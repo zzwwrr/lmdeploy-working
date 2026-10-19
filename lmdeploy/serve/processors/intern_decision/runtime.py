@@ -6,8 +6,7 @@ import time
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .protocol import (DecisionQueueFull, DecisionRequest, DecisionTimeout,
-                       DecisionUnavailable)
+from .protocol import DecisionQueueFull, DecisionRequest, DecisionTimeout, DecisionUnavailable
 
 
 class DecisionConfig(BaseModel):
@@ -19,6 +18,7 @@ class DecisionConfig(BaseModel):
 
 
 class DecisionRuntime:
+
     def __init__(self, config=None):
         self.config = DecisionConfig.model_validate(config or {})
         self.lock = asyncio.Lock()
@@ -66,30 +66,41 @@ class DecisionRuntime:
             worker = asyncio.create_task(asyncio.to_thread(engine.decision_input, request, limit))
             self.workers.add(worker)
             worker.add_done_callback(self.workers.discard)
+            worker.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             try:
                 prepared = await asyncio.wait_for(asyncio.shield(worker), self.config.inference_timeout)
+                remaining = max(0., self.config.inference_timeout - (time.perf_counter() - admitted))
                 logits = (await asyncio.wait_for(
-                    engine.async_get_logits([prepared.input_ids], multimodal=[prepared.multimodal],
-                                            read_positions=[prepared.read_positions]),
-                    self.config.inference_timeout))[0]
+                    engine.async_get_logits([prepared.input_ids],
+                                            multimodal=[prepared.multimodal],
+                                            read_positions=[prepared.read_positions]), remaining))[0]
             except asyncio.TimeoutError as exc:
                 raise DecisionTimeout('Decision execution timed out') from exc
             ended = time.perf_counter()
-            response = engine.decision_output(
-                prepared, logits, request_id=secrets.token_hex(16), model=engine.model_name,
-                thinking=request.thinking,
-                timing=dict(queue_ms=(admitted-started)*1000, inference_ms=(ended-admitted)*1000,
-                            server_ms=(ended-started)*1000))
+            response = engine.decision_output(prepared,
+                                              logits,
+                                              request_id=secrets.token_hex(16),
+                                              model=engine.model_name,
+                                              thinking=request.thinking,
+                                              timing=dict(queue_ms=(admitted - started) * 1000,
+                                                          inference_ms=(ended - admitted) * 1000,
+                                                          server_ms=(ended - started) * 1000))
+            response.timing['server_ms'] = (time.perf_counter() - started) * 1000
             return response.model_dump()
         finally:
-            # A cancelled caller cannot delete uploads while a CPU worker uses them.
+            cleanup_error = None
+            # Worker owns its uploads until it exits, even after caller timeout.
             if worker is not None and not worker.done():
                 from lmdeploy.serve.core.scoring import await_bounded_cleanup
                 try:
                     await await_bounded_cleanup(asyncio.shield(worker), self.config.cleanup_timeout)
-                except BaseException:
-                    self.failure = 'Decision preprocessing cleanup failed; restart the engine'
+                except BaseException as exc:
+                    cleanup_error = exc
+                    if not (isinstance(exc, asyncio.CancelledError) and getattr(exc, 'cleanup_completed', False)):
+                        self.failure = 'Decision preprocessing cleanup failed; restart the engine'
             if acquired:
                 self.lock.release()
             self.pending -= 1
             self.tasks.discard(task)
+            if cleanup_error is not None and isinstance(cleanup_error, asyncio.CancelledError):
+                raise cleanup_error

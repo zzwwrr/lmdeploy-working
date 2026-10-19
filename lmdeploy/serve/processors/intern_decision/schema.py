@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Adapted from Intern-Decision (0a8a2388), src/inputs/schema.py.
 # Modified for LMDeploy: standalone inference-only protocol and input processing.
-"""Dependency-free decision schema and prompt compiler shared by training and inference."""
+"""Inference-only decision schema and the original trained prompt format."""
 
 from __future__ import annotations
 
@@ -13,14 +13,12 @@ from typing import Any
 
 DECISION_TOKEN = "<decision>"
 ANSWER_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-SYSTEM_PROMPT = (
-    "You are a careful decision assistant. Use the state and decision schema in "
-    "the user message to make the requested decisions. For every field, choose "
-    "exactly one answer symbol (e.g. A, B, C, ...) from its listed options and "
-    "return one valid JSON object mapping each field name to its chosen symbol. "
-    "Use the field names and symbols exactly as given. Do not include "
-    "explanations, Markdown, or extra text."
-)
+SYSTEM_PROMPT = ("You are a careful decision assistant. Use the state and decision schema in "
+                 "the user message to make the requested decisions. For every field, choose "
+                 "exactly one answer symbol (e.g. A, B, C, ...) from its listed options and "
+                 "return one valid JSON object mapping each field name to its chosen symbol. "
+                 "Use the field names and symbols exactly as given. Do not include "
+                 "explanations, Markdown, or extra text.")
 
 
 @dataclass(frozen=True)
@@ -82,6 +80,8 @@ def _message_content(row: Mapping[str, Any], user_text: str) -> str | list[dict[
 
 
 def compile_row(row: Mapping[str, Any], include_targets: bool = False) -> CompiledExample:
+    if include_targets:
+        raise ValueError("Training target compilation is not part of the decision inference task")
     questions = row.get("questions")
     if not isinstance(questions, Mapping) or not questions:
         raise ValueError(f"{row.get('id', '<missing id>')}: questions must be a non-empty object")
@@ -90,9 +90,6 @@ def compile_row(row: Mapping[str, Any], include_targets: bool = False) -> Compil
     symbols: dict[str, tuple[str, ...]] = {}
     schema_lines: list[str] = []
     targets: dict[str, str] = {}
-    row_targets = row.get("targets")
-    if not isinstance(row_targets, Mapping):
-        row_targets = {}
     for field, question in questions.items():
         if not isinstance(question, Mapping):
             raise ValueError(f"{row.get('id', '<missing id>')}: question {field!r} is not an object")
@@ -103,26 +100,33 @@ def compile_row(row: Mapping[str, Any], include_targets: bool = False) -> Compil
             raise ValueError(f"At most {len(ANSWER_SYMBOLS)} single-token answer symbols are supported")
         field_name = str(field)
         fields.append(field_name)
-        field_symbols = tuple(ANSWER_SYMBOLS[: len(options)])
+        field_symbols = tuple(ANSWER_SYMBOLS[:len(options)])
         symbols[field_name] = field_symbols
         schema_lines.append(f"{field_name}: {question.get('instructions', '')}")
         for symbol, (value, description) in zip(field_symbols, options):
             schema_lines.append(f"    {symbol} = {value}: {description}")
 
     state = _json(row.get("state"))
-    user_text = (
-        "Return one answer for every field using the supplied answer symbols.\n\n"
-        "## State\n"
-        f"{state}\n"
-        "## Decision schema\n" + "\n".join(schema_lines)
-    )
+    user_text = ("Return one answer for every field using the supplied answer symbols.\n\n"
+                 "## State\n"
+                 f"{state}\n"
+                 "## Decision schema\n" + "\n".join(schema_lines))
     if DECISION_TOKEN in user_text or any(DECISION_TOKEN in field for field in fields):
         raise ValueError("Reserved decision marker appears in input evidence")
     skeleton = json.dumps(dict.fromkeys(fields, DECISION_TOKEN), ensure_ascii=False, indent=4)
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": _message_content(row, user_text)},
-        {"role": "assistant", "content": skeleton},
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT
+        },
+        {
+            "role": "user",
+            "content": _message_content(row, user_text)
+        },
+        {
+            "role": "assistant",
+            "content": skeleton
+        },
     ]
     return CompiledExample(
         messages=messages,

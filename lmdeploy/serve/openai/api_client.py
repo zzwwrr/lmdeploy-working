@@ -108,8 +108,12 @@ class APIClient:
                 if not 0 < path.stat().st_size <= 12 * 1024 * 1024:
                     raise ValueError('Each image must contain 1 byte to 12 MiB')
                 with Image.open(path) as image:
-                    mime = {'JPEG': 'image/jpeg', 'PNG': 'image/png', 'WEBP': 'image/webp',
-                            'GIF': 'image/gif'}.get(image.format)
+                    mime = {
+                        'JPEG': 'image/jpeg',
+                        'PNG': 'image/png',
+                        'WEBP': 'image/webp',
+                        'GIF': 'image/gif'
+                    }.get(image.format)
                 if mime is None:
                     raise ValueError('Unsupported image format')
                 item = dict(type=mime, data=base64.b64encode(path.read_bytes()).decode('ascii'))

@@ -107,6 +107,8 @@ class AsyncEngine:
         logger.info(f'input backend={backend}, backend_config={backend_config}')
         logger.info(f'speculative_config={speculative_config}')
         self.task = task
+        if task == 'intern-decision' and {'calibration', 'calibration_path', 'temperature'} & kwargs.keys():
+            raise ValueError('Decision calibration and temperature overrides are not supported')
         if task is not None:
             from lmdeploy.serve.processors.intern_decision.task import configure_task
             backend_config = configure_task(task, model_path, backend, backend_config, speculative_config)
@@ -632,7 +634,17 @@ class AsyncEngine:
                                sessions: List['Session'] | None = None,
                                sequence_start: bool = True,
                                sequence_end: bool = True,
-                               *, multimodal=None, read_positions=None) -> List[torch.Tensor]:
+                               *,
+                               multimodal=None,
+                               read_positions=None) -> List[torch.Tensor]:
+        """Prefill scoring; default returns one L x V tensor per input.
+
+        PyTorch additionally accepts per-input raw ``multimodal`` and absolute
+        ``read_positions``. Position selection happens after the full LM head.
+        Caller sessions are retained when sequence_end=False and must be closed
+        by their owner. Ordinary calls preserve the vocabulary dimension (also
+        one for reward models).
+        """
         assert input_ids and all(isinstance(_, List) for _ in input_ids)
         assert sessions is None or (len(sessions) == len(input_ids))
 
@@ -642,8 +654,8 @@ class AsyncEngine:
             raise ValueError('read_positions batch length mismatch')
         if self.backend == 'pytorch':
             from .scoring import score_logits
-            return await score_logits(self, input_ids, sessions, sequence_start, sequence_end,
-                                      multimodal, read_positions)
+            return await score_logits(self, input_ids, sessions, sequence_start, sequence_end, multimodal,
+                                      read_positions)
         if multimodal is not None or read_positions is not None:
             raise ValueError('Extended scoring requires PyTorch')
 

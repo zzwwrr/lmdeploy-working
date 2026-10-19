@@ -31,17 +31,16 @@ from lmdeploy.pytorch.disagg.conn.protocol import (DistServeCacheFreeRequest, Di
                                                    MigrationRequest)
 from lmdeploy.serve.core import AsyncEngine
 from lmdeploy.serve.openai.harmony_utils import GptOssChatParser
-from lmdeploy.serve.openai.protocol import DecisionRequest
 from lmdeploy.serve.openai.protocol import ChatCompletionResponse  # noqa: E501
 from lmdeploy.serve.openai.protocol import (AbortRequest, ChatCompletionRequest, ChatCompletionResponseChoice,
                                             ChatCompletionResponseStreamChoice, ChatCompletionStreamResponse,
                                             ChatCompletionTokenLogprob, ChatMessage, ChoiceLogprobs, CompletionRequest,
                                             CompletionResponse, CompletionResponseChoice,
-                                            CompletionResponseStreamChoice, CompletionStreamResponse, DeltaMessage,
-                                            EmbeddingsRequest, EncodeRequest, EncodeResponse, ErrorResponse,
-                                            GenerateReqInput, GenerateReqMetaOutput, GenerateReqOutput, LogProbs,
-                                            ModelCard, ModelList, ModelPermission, PoolingRequest, PoolingResponse,
-                                            TopLogprob, UpdateParamsRequest, UsageInfo)
+                                            CompletionResponseStreamChoice, CompletionStreamResponse, DecisionRequest,
+                                            DeltaMessage, EmbeddingsRequest, EncodeRequest, EncodeResponse,
+                                            ErrorResponse, GenerateReqInput, GenerateReqMetaOutput, GenerateReqOutput,
+                                            LogProbs, ModelCard, ModelList, ModelPermission, PoolingRequest,
+                                            PoolingResponse, TopLogprob, UpdateParamsRequest, UsageInfo)
 from lmdeploy.serve.openai.reasoning_parser.reasoning_parser import ReasoningParser, ReasoningParserManager
 from lmdeploy.serve.openai.tool_parser.tool_parser import ToolParser, ToolParserManager
 from lmdeploy.serve.utils.server_utils import validate_json_request
@@ -1468,7 +1467,8 @@ def serve(model_path: str,
         backend_config = default_backend_config()
         backend = 'pytorch'
     if isinstance(backend_config, PytorchEngineConfig):
-        backend_config.enable_mp_engine = True
+        if task != 'intern-decision':
+            backend_config.enable_mp_engine = True
         # router replay
         if backend_config.enable_return_routed_experts:
             backend_config.enable_transfer_obj_ref = True

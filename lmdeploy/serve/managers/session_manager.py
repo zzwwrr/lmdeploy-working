@@ -106,15 +106,14 @@ class Session:
             # refer to async_end method
             self._active.set()
 
-    async def finish_score(self, handle, generator, *, submitted, finished, end,
-                           timeout, original_error, engine):
+    async def finish_score(self, handle, generator, *, submitted, finished, end, timeout, original_error, engine):
         """Finish owned scoring work while still holding its request handle.
 
         Never call async_close here: it waits for this very handle to be returned.
         The stream has already stopped iterating before this method is entered.
         """
-        from lmdeploy.serve.core.scoring import await_bounded_cleanup
         from lmdeploy.messages import ResponseType
+        from lmdeploy.serve.core.scoring import await_bounded_cleanup
         self._engine_session_active = submitted
 
         async def cleanup():
@@ -141,13 +140,18 @@ class Session:
         try:
             await await_bounded_cleanup(cleanup(), timeout.cleanup_timeout if timeout else 10)
         except BaseException as exc:
+            if isinstance(exc, asyncio.CancelledError) and getattr(exc, 'cleanup_completed', False):
+                raise
             self._handle_reusable = False
             engine._scoring_failure = 'Scoring cleanup failed; restart the engine'
             runtime = getattr(engine, 'decision_runtime', None)
             if runtime is not None:
                 runtime.failure = engine._scoring_failure
             if original_error is not None:
-                original_error.add_note(f'Scoring cleanup also failed: {exc!r}')
+                if hasattr(original_error, 'add_note'):
+                    original_error.add_note(f'Scoring cleanup also failed: {exc!r}')
+                else:  # Python 3.10
+                    original_error.__context__ = exc
             else:
                 raise
 
@@ -164,11 +168,15 @@ class Session:
             return
         if self._handle is not None:
             await self._active.wait()
-        async with self.request_handle() as handle:
+        from lmdeploy.serve.core.scoring import await_bounded_cleanup
+        async with self.request_handle(strict=True) as handle:
             try:
-                await handle.async_end(self.session_id)
-            except (Exception, asyncio.CancelledError, GeneratorExit) as e:
-                logger.exception(f'[async_close] exception caught: {e}')
+                await await_bounded_cleanup(handle.async_end(self.session_id), 10)
+                self._engine_session_active = False
+            except BaseException as exc:
+                if not (isinstance(exc, asyncio.CancelledError) and getattr(exc, 'cleanup_completed', False)):
+                    self._handle_reusable = False
+                raise
         self.reset()
 
     def abort(self):

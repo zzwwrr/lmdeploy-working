@@ -11,13 +11,21 @@ from .uploads import materialize_images
 
 
 class DecisionInputProcessor:
+
     def __init__(self, checkpoint, hf_config, max_length=8192):
         self.encoder = DecisionEncoder(checkpoint, max_length=max_length)
         self.hf_config = hf_config
         self.lock = Lock()
         vision = hf_config.vision_config
-        if vision.spatial_merge_size != 2:
-            raise ValueError('Decision images require spatial_merge_size=2')
+        image_processor = self.encoder.processor.image_processor
+        if (vision.spatial_merge_size != 2 or image_processor.merge_size != 2
+                or image_processor.patch_size != vision.patch_size
+                or image_processor.temporal_patch_size != vision.temporal_patch_size):
+            raise ValueError('Decision processor and model vision parameters must match (merge_size=2)')
+        vocab_size = hf_config.text_config.vocab_size
+        if not 0 <= self.encoder.marker_id < vocab_size or any(not 0 <= value < vocab_size
+                                                               for value in self.encoder._candidate_ids.values()):
+            raise ValueError('Decision tokenizer IDs exceed the model vocabulary')
 
     def __call__(self, request, max_length=8192):
         request = DecisionRequest.model_validate(request)
@@ -35,12 +43,15 @@ class DecisionInputProcessor:
                 multimodal = to_lmdeploy_multimodal(encoded, self.hf_config)
             fields = encoded.compiled.fields
             options = tuple(_options(row['questions'][field]) for field in fields)
-            return PreparedDecision(
-                input_ids=encoded.batch['input_ids'][0].tolist(), multimodal=multimodal,
-                read_positions=tuple(encoded.marker_positions.tolist()), candidate_ids=encoded.candidate_ids,
-                fields=fields, option_values=tuple(tuple(value for value, _ in opts) for opts in options),
-                question_types=tuple(row['questions'][field]['type'] for field in fields),
-                legends=tuple(dict(opts) for opts in options), input_length=encoded.input_length)
+            return PreparedDecision(input_ids=encoded.batch['input_ids'][0].tolist(),
+                                    multimodal=multimodal,
+                                    read_positions=tuple(encoded.marker_positions.tolist()),
+                                    candidate_ids=encoded.candidate_ids,
+                                    fields=fields,
+                                    option_values=tuple(tuple(value for value, _ in opts) for opts in options),
+                                    question_types=tuple(row['questions'][field]['type'] for field in fields),
+                                    legends=tuple(dict(opts) for opts in options),
+                                    input_length=encoded.input_length)
         finally:
             if directory is not None:
                 shutil.rmtree(directory)

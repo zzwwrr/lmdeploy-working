@@ -301,8 +301,7 @@ class EngineInstance(EngineInstanceBase):
 
     async def async_end(self, session_id: int):
         """End the given session."""
-        resp = await self.req_sender.async_send(
-            RequestType.END_SESSION, dict(session_id=session_id, response=True))
+        resp = await self.req_sender.async_send(RequestType.END_SESSION, dict(session_id=session_id, response=True))
         if resp.type not in (ResponseType.SUCCESS, ResponseType.SESSION_NOT_EXIST):
             raise RuntimeError(f'END_SESSION failed: {resp.type}')
         return resp.type

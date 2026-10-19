@@ -39,7 +39,8 @@ class ThinkingOptions(BaseModel):
     @field_validator('confidence_threshold', mode='before')
     @classmethod
     def threshold(cls, value):
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 1:
+        if isinstance(value, bool) or not isinstance(value,
+                                                     (int, float)) or not math.isfinite(value) or not 0 <= value <= 1:
             raise ValueError('confidence_threshold must be a finite number in [0, 1]')
         return float(value)
 
@@ -59,7 +60,10 @@ class DecisionRequest(BaseModel):
     @field_validator('state')
     @classmethod
     def json_state(cls, value):
-        json.dumps(value, ensure_ascii=False, allow_nan=False)
+        try:
+            json.dumps(value, ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ValueError('state must contain finite JSON data') from exc
         return value
 
     @field_validator('questions')

@@ -5,6 +5,7 @@ import asyncio
 import torch
 
 from lmdeploy.messages import GenerationConfig, ResponseType
+from lmdeploy.metrics.metrics_processor import metrics_processor
 
 
 async def await_bounded_cleanup(awaitable, timeout):
@@ -18,6 +19,7 @@ async def await_bounded_cleanup(awaitable, timeout):
             cancellation = cancellation or exc
     result = task.result()
     if cancellation is not None:
+        cancellation.cleanup_completed = True
         raise cancellation
     return result
 
@@ -26,6 +28,8 @@ async def score_logits(engine, input_ids, sessions, sequence_start, sequence_end
     if getattr(engine, '_scoring_failure', None):
         raise RuntimeError(engine._scoring_failure)
     created = sessions is None
+    if created and not sequence_end:
+        raise ValueError('Pass caller-owned sessions when sequence_end=False')
     sessions = sessions if sessions is not None else [engine.session_mgr.get() for _ in input_ids]
 
     async def score_one(index, session):
@@ -33,15 +37,21 @@ async def score_logits(engine, input_ids, sessions, sequence_start, sequence_end
             generator = None
             submitted = finished = False
             error = None
+            metrics_processor.increase_api_routed_requests()
             try:
                 ids = input_ids[index]
-                generator = handle.async_stream_infer(
-                    session.session_id, input_ids=ids,
-                    multimodal=multimodal[index] if multimodal is not None else None,
-                    gen_config=GenerationConfig(max_new_tokens=0, output_logits='all', top_k=1,
-                                                with_cache=False, preserve_cache=False),
-                    sequence_start=sequence_start, sequence_end=sequence_end, step=session.step,
-                    stream_output=False)
+                generator = handle.async_stream_infer(session.session_id,
+                                                      input_ids=ids,
+                                                      multimodal=multimodal[index] if multimodal is not None else None,
+                                                      gen_config=GenerationConfig(max_new_tokens=0,
+                                                                                  output_logits='all',
+                                                                                  top_k=1,
+                                                                                  with_cache=False,
+                                                                                  preserve_cache=False),
+                                                      sequence_start=sequence_start,
+                                                      sequence_end=sequence_end,
+                                                      step=session.step,
+                                                      stream_output=False)
                 submitted = True
                 output = None
                 async for output in generator:
@@ -53,12 +63,20 @@ async def score_logits(engine, input_ids, sessions, sequence_start, sequence_end
                 full = output.logits
                 if full.ndim != 2 or full.shape[0] != len(ids):
                     raise RuntimeError(f'Scoring logits shape {tuple(full.shape)} does not cover {len(ids)} tokens')
+                if not full.is_floating_point():
+                    raise RuntimeError('Scoring logits must be floating point')
+                for chunk in full.split(256, dim=0):
+                    if not bool(torch.isfinite(chunk).all()):
+                        raise RuntimeError('Scoring returned NaN or Inf')
+                    # Keep cancellation and HTTP disconnect checks responsive even
+                    # while validating a long full-vocabulary tensor on CPU.
+                    await asyncio.sleep(0)
                 if read_positions is None:
                     result = full
                 else:
                     positions = read_positions[index]
-                    if not positions or any(isinstance(p, bool) or not isinstance(p, int)
-                                            or p < 0 or p >= len(ids) for p in positions):
+                    if not positions or any(
+                            isinstance(p, bool) or not isinstance(p, int) or p < 0 or p >= len(ids) for p in positions):
                         raise ValueError('Scoring positions must be in bounds')
                     vocab = engine.hf_cfg.text_config.vocab_size
                     if full.shape[1] != vocab:
@@ -73,10 +91,18 @@ async def score_logits(engine, input_ids, sessions, sequence_start, sequence_end
             finally:
                 # Implemented by the common session ownership primitive. This runs
                 # before request_handle can return the instance to its pool.
-                await session.finish_score(handle, generator, submitted=submitted, finished=finished,
-                                           end=sequence_end or error is not None,
-                                           timeout=getattr(getattr(engine, 'decision_runtime', None), 'config', None),
-                                           original_error=error, engine=engine)
+                try:
+                    await session.finish_score(handle,
+                                               generator,
+                                               submitted=submitted,
+                                               finished=finished,
+                                               end=sequence_end or error is not None,
+                                               timeout=getattr(getattr(engine, 'decision_runtime', None), 'config',
+                                                               None),
+                                               original_error=error,
+                                               engine=engine)
+                finally:
+                    metrics_processor.decrease_api_routed_requests()
 
     tasks = [asyncio.create_task(score_one(i, session)) for i, session in enumerate(sessions)]
     try:

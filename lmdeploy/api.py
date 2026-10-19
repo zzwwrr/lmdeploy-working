@@ -35,6 +35,8 @@ def pipeline(model_path: str,
               on huggingface.co, such as ``internlm/internlm-chat-7b``,
               ``Qwen/Qwen-7B-Chat``, ``baichuan-inc/Baichuan2-7B-Chat``
               and so on.
+        task: Set to ``intern-decision`` for the explicit decision protocol.
+            Default None keeps ordinary task selection.
         backend_config: backend
             config instance. Default to None.
         chat_template_config: chat template configuration.

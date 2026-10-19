@@ -52,11 +52,12 @@ class DecisionEncoder:
             raise ValueError('Decision marker must encode to exactly one registered token')
         if not self.tokenizer.chat_template or not self.processor.chat_template:
             raise ValueError('Decision checkpoint must supply tokenizer and processor chat templates')
-        for symbol in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789':
-            ids = self.tokenizer.encode(symbol, add_special_tokens=False)
-            if len(ids) != 1:
-                raise ValueError(f'Answer symbol {symbol!r} must encode to exactly one token')
         self._candidate_ids: dict[str, int] = {}
+        ids = [
+            self._candidate_id(symbol) for symbol in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        ]
+        if len(set(ids)) != 62 or self.marker_id in ids:
+            raise ValueError('Answer symbols must have distinct token IDs, separate from the decision marker')
 
     def _candidate_id(self, symbol: str) -> int:
         if symbol not in self._candidate_ids:
@@ -79,8 +80,7 @@ class DecisionEncoder:
             raise ValueError("images must be a list containing at most 8 images")
         compiled = compile_row(row, include_targets=False)
         candidate_ids = tuple(
-            tuple(self._candidate_id(symbol) for symbol in compiled.symbols[field]) for field in compiled.fields
-        )
+            tuple(self._candidate_id(symbol) for symbol in compiled.symbols[field]) for field in compiled.fields)
         messages = copy.deepcopy(compiled.messages)
         # Both the opened file and the converted RGB image are closed even if
         # decoding or processor execution raises. Returned tensors own their data.
@@ -125,7 +125,7 @@ class DecisionEncoder:
             raise ValueError("Decision encoder expects one unpadded sequence")
         length = int(ids.shape[-1])
         if length > self.max_length:
-            raise ValueError(f"Example has {length} tokens, above {self.max_length}; truncation is forbidden")
+            raise ValueError(f"Example has {length} tokens, above {self.max_length}, truncation is forbidden")
         positions = (ids[0] == self.marker_id).nonzero().flatten().to(torch.long) - 1
         if len(positions) != len(compiled.fields) or bool((positions < 0).any()):
             raise ValueError("Decision marker count or position mismatch")

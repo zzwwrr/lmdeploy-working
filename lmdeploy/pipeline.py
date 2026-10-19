@@ -284,7 +284,8 @@ class Pipeline:
 
         # TODO: a better way to determine `max_input_len`, at most allocate
         # 2G mem for logits with shape [bs, max_input_len, vocab_size]
-        vocab_size = self.async_engine.hf_cfg.vocab_size
+        text_config = getattr(self.async_engine.hf_cfg, 'text_config', self.async_engine.hf_cfg)
+        vocab_size = text_config.vocab_size
         max_input_len = 2 * 1024**3 // (vocab_size * 4)
         sizes = [len(_) for _ in input_ids]
         result = []
@@ -298,20 +299,27 @@ class Pipeline:
             if start == end:
                 _input_ids = input_ids[indices[start]]
                 session = self.session_mgr.get()
-                res = self._get_long_text_ppl(session, input_ids=_input_ids, max_input_len=max_input_len)
-                result.append(res)
-                self.session_mgr.remove(session)
+                try:
+                    res = self._get_long_text_ppl(session, input_ids=_input_ids, max_input_len=max_input_len)
+                    result.append(res)
+                finally:
+                    try:
+                        self._run(coro=session.async_close()).result()
+                    finally:
+                        self.session_mgr.remove(session)
             else:
                 _input_ids = [input_ids[indices[i]] for i in range(start, end)]
                 sessions = [self.session_mgr.get() for _ in range(start, end)]
-                res = self._get_ppl(
-                    sessions=sessions,
-                    input_ids=_input_ids,
-                    max_input_len=max_input_len,
-                )
-                result.extend(res)
-                for session in sessions:
-                    self.session_mgr.remove(session)
+                try:
+                    res = self._get_ppl(
+                        sessions=sessions,
+                        input_ids=_input_ids,
+                        max_input_len=max_input_len,
+                    )
+                    result.extend(res)
+                finally:
+                    for session in sessions:
+                        self.session_mgr.remove(session)
         output = list(range(len(result)))
         for index, sorted_index in enumerate(indices):
             output[sorted_index] = result[index]

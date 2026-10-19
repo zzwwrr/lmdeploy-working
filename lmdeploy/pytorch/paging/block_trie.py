@@ -83,7 +83,10 @@ class BlockTrie:
 
     def match(self, seq: SchedulerSequence):
         """Match sequence and cache."""
-        if not self.enable:
+        # Full-prefill scoring must execute every input position. Shared prefix
+        # hits contain KV state, but cannot supply the omitted prefix logits.
+        # Ordinary generation keeps the configured cache policy.
+        if not self.enable or seq.sampling_param.out_logits:
             return
 
         block_size = self.block_size
@@ -130,7 +133,7 @@ class BlockTrie:
 
     def allocate(self, seq: SchedulerSequence):
         """allocate."""
-        if not self.enable:
+        if not self.enable or seq.sampling_param.out_logits:
             return
 
         block_size = self.block_size

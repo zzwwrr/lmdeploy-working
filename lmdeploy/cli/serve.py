@@ -270,6 +270,9 @@ class SubCliServe:
                                                    hf_overrides=args.hf_overrides)
         chat_template_config = get_chat_template(args.chat_template, args.model_path)
         speculative_config = get_speculative_config(args)
+        if args.task is not None:
+            from lmdeploy.serve.processors.intern_decision.task import configure_task
+            backend_config = configure_task(args.task, args.model_path, backend, backend_config, speculative_config)
 
         from lmdeploy.messages import VisionConfig
         vision_config = VisionConfig(args.vision_max_batch_size)

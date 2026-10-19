@@ -40,13 +40,8 @@ def to_lmdeploy_multimodal(encoded: EncodedDecision, hf_config) -> list[dict] | 
     """
     batch = encoded.batch
     ids = batch.get("input_ids")
-    if (
-        not isinstance(ids, torch.Tensor)
-        or ids.device.type != "cpu"
-        or ids.dtype != torch.long
-        or ids.ndim != 2
-        or ids.shape != (1, encoded.input_length)
-    ):
+    if (not isinstance(ids, torch.Tensor) or ids.device.type != "cpu" or ids.dtype != torch.long or ids.ndim != 2
+            or ids.shape != (1, encoded.input_length)):
         raise ValueError("Expected CPU int64 input_ids with shape [1, input_length]")
     image_id = _integer(hf_config, "image_token_id")
     start_id = _integer(hf_config, "vision_start_token_id")
@@ -81,21 +76,11 @@ def to_lmdeploy_multimodal(encoded: EncodedDecision, hf_config) -> list[dict] | 
         raise ValueError("This LMDeploy Qwen3.5 adapter requires spatial_merge_size=2")
     grids = batch.get("image_grid_thw")
     pixels = batch.get("pixel_values")
-    if (
-        not isinstance(grids, torch.Tensor)
-        or grids.device.type != "cpu"
-        or grids.dtype not in (torch.int32, torch.int64)
-        or grids.shape != (image_count, 3)
-    ):
+    if (not isinstance(grids, torch.Tensor) or grids.device.type != "cpu"
+            or grids.dtype not in (torch.int32, torch.int64) or grids.shape != (image_count, 3)):
         raise ValueError("image_grid_thw must be a CPU integer tensor with shape [image_count, 3]")
-    if (
-        not isinstance(pixels, torch.Tensor)
-        or pixels.device.type != "cpu"
-        or pixels.ndim != 2
-        or pixels.shape[1] < 1
-        or not pixels.is_floating_point()
-        or not bool(torch.isfinite(pixels).all())
-    ):
+    if (not isinstance(pixels, torch.Tensor) or pixels.device.type != "cpu" or pixels.ndim != 2 or pixels.shape[1] < 1
+            or not pixels.is_floating_point() or not bool(torch.isfinite(pixels).all())):
         raise ValueError("pixel_values must be a finite CPU floating tensor of flattened patches")
     result = []
     patch_offset = 0
@@ -111,15 +96,13 @@ def to_lmdeploy_multimodal(encoded: EncodedDecision, hf_config) -> list[dict] | 
         next_offset = patch_offset + patches
         if next_offset > len(pixels):
             raise ValueError("Image grid requires more pixel patches than supplied")
-        result.append(
-            {
-                "pixel_values": pixels[patch_offset:next_offset],
-                "image_grid_thw": grids[index : index + 1],
-                "offset": begin,
-                "image_tokens": image_tokens,
-                "image_token_id": image_id,
-            }
-        )
+        result.append({
+            "pixel_values": pixels[patch_offset:next_offset],
+            "image_grid_thw": grids[index:index + 1],
+            "offset": begin,
+            "image_tokens": image_tokens,
+            "image_token_id": image_id,
+        })
         patch_offset = next_offset
     if patch_offset != len(pixels):
         raise ValueError("Image grids must consume all pixel patches exactly once")

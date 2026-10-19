@@ -73,13 +73,15 @@ def materialize_images(request):
                         image = ImageOps.exif_transpose(source).convert("RGB")
                         image.info.clear()
                         path = directory / f"{index:02d}.png"
-                        image.save(path, format="PNG")
-                        image.close()
+                        try:
+                            image.save(path, format="PNG")
+                        finally:
+                            image.close()
             except (
-                UnidentifiedImageError,
-                OSError,
-                Image.DecompressionBombError,
-                Image.DecompressionBombWarning,
+                    UnidentifiedImageError,
+                    OSError,
+                    Image.DecompressionBombError,
+                    Image.DecompressionBombWarning,
             ) as exc:
                 raise ValueError("Invalid, incomplete or oversized image.") from exc
             normalized_total += path.stat().st_size
