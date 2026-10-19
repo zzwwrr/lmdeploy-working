@@ -101,6 +101,7 @@ class AsyncEngine:
                  chat_template_config: ChatTemplateConfig | None = None,
                  max_log_len: int | None = None,
                  speculative_config: SpeculativeConfig | None = None,
+                 decision_config: dict | None = None,
                  task: str | None = None,
                  **kwargs) -> None:
         logger.info(f'input backend={backend}, backend_config={backend_config}')
@@ -122,6 +123,8 @@ class AsyncEngine:
             from lmdeploy.serve.processors.intern_decision.output import DecisionOutputProcessor
             self.decision_input = DecisionInputProcessor(model_path, hf_config=self.hf_cfg)
             self.decision_output = DecisionOutputProcessor()
+            from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
+            self.decision_runtime = DecisionRuntime(decision_config)
             self.model_name = model_name or 'intern-decision'
         self.session_len = (_get_and_verify_max_len(self.hf_cfg, None)
                             if backend_config.session_len is None else backend_config.session_len)
@@ -365,8 +368,6 @@ class AsyncEngine:
 
         gen_config = self._determine_gen_config(session, input_ids, gen_config=gen_config)
 
-        # TODO(intern-decision): [05] 决策入口不得通过 generate(max_new_tokens=0) 调用。
-        # 此分支直接返回而不执行模型 prefill；async_decide 应走下面的原生 logits 评分路径。
         if gen_config.max_new_tokens == 0:
             logger.info(f'run out of tokens. session={session_id}.')
             yield GenOut(response='',
@@ -614,16 +615,12 @@ class AsyncEngine:
         scores = [x[-1].cpu().item() for x in logits]
         return scores
 
-    # TODO(intern-decision): [05] 在此增加 async_decide(request) 统一异步入口。
-    # 输入处理器生成 PreparedDecision（token、图片、读取位置、候选及字段映射），
-    # 调用扩展后的 async_get_logits，再交给输出处理器生成 choice / score / noul 响应。
-    # 使用本引擎已有的事件循环、调度器和 Qwen3.5 模型，不搬入外置 LMDeployBackend。
-
-    # TODO(intern-decision): [05] 向 async_get_logits 增加可选 multimodal / 位置选择参数。
-    # 保持旧调用与返回约定；逐请求校验图片和位置并把图片提交至 async_stream_infer。
-    # 首版取得完整 L×V logits 后按 marker-1 选择 Q×V，再交给输出处理器选择候选；
-    # 不把此步骤描述成 LM head 前的稀疏投影优化，后者需要另立执行层改动与验证。
-    # 明确全位置 logits 与前缀缓存的兼容约束，检查形状、位置边界和分数有限性。
+    async def async_decide(self, request):
+        """Score an Intern-Decision request without generating tokens."""
+        from lmdeploy.serve.processors.intern_decision.protocol import DecisionUnavailable
+        if self.task != 'intern-decision':
+            raise DecisionUnavailable('Enable task=intern-decision to use decisions')
+        return await self.decision_runtime.decide(self, request)
 
     # TODO(intern-decision): [06] 重构本评分路径的资源收尾，覆盖成功、异常、取消和超时。
     # 让 finally 关闭结果生成器，并在需要时取消请求；等待 END_SESSION 确认后再归还 handle。
@@ -641,9 +638,21 @@ class AsyncEngine:
                                input_ids,
                                sessions: List['Session'] | None = None,
                                sequence_start: bool = True,
-                               sequence_end: bool = True) -> List[torch.Tensor]:
+                               sequence_end: bool = True,
+                               *, multimodal=None, read_positions=None) -> List[torch.Tensor]:
         assert input_ids and all(isinstance(_, List) for _ in input_ids)
         assert sessions is None or (len(sessions) == len(input_ids))
+
+        if multimodal is not None and len(multimodal) != len(input_ids):
+            raise ValueError('multimodal batch length mismatch')
+        if read_positions is not None and len(read_positions) != len(input_ids):
+            raise ValueError('read_positions batch length mismatch')
+        if self.backend == 'pytorch':
+            from .scoring import score_logits
+            return await score_logits(self, input_ids, sessions, sequence_start, sequence_end,
+                                      multimodal, read_positions)
+        if multimodal is not None or read_positions is not None:
+            raise ValueError('Extended scoring requires PyTorch')
 
         logits = [None] * len(input_ids)
 
