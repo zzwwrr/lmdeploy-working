@@ -6,6 +6,7 @@ the LM head only on the answer skeleton, and ``logprob_token_ids`` returns the l
 every scored row. The rows whose target token is ``<decision>`` are the decision rows.
 """
 import asyncio
+import os
 import secrets
 import time
 
@@ -53,6 +54,8 @@ class DecisionService:
         self.async_engine = async_engine
         self.max_length = min(max_length, async_engine.session_len - 1)
         self.max_pending_requests = max_pending_requests
+        # Clients of the original service send the checkpoint name (e.g. "Intern-Decision-0.8B").
+        self.model_names = {async_engine.model_name, os.path.basename(os.path.normpath(model_path))}
         self.supports_images = getattr(async_engine, 'vl_encoder', None) is not None
         self.encoder = DecisionEncoder(model_path, trust_remote_code=trust_remote_code)
         hf_cfg = async_engine.hf_cfg
@@ -119,6 +122,8 @@ class DecisionService:
                 cleanup_result_generators([generator] if generator is not None else [], [session],
                                           engine.session_mgr))
 
+        if out is not None and out.finish_reason == 'abort':
+            raise DecisionUnavailable('The decision request was aborted by the engine')
         if out is None or out.logprobs is None or out.logprob_token_ids is None:
             reason = getattr(out, 'finish_reason', None)
             raise DecisionError(f'Scoring returned no input logprobs (finish_reason={reason})')
@@ -138,7 +143,7 @@ class DecisionService:
         """Score one request and return a JSON-compatible dict. No tokens are generated."""
         started = time.perf_counter()
         request = DecisionRequest.model_validate(request)
-        if request.model is not None and request.model != self.async_engine.model_name:
+        if request.model is not None and request.model not in self.model_names:
             raise ValueError(f'Unknown model: {request.model}')
         if request.images and not self.supports_images:
             raise DecisionUnavailable('This engine was started without a vision encoder; image requests are '

@@ -1,16 +1,16 @@
 # Copyright 2026 Shanghai AI Laboratory
 # SPDX-License-Identifier: Apache-2.0
 # Adapted from Intern-Decision (0a8a2388), src/service/uploads.py.
-# Modified for LMDeploy: decode in memory and share one loader between Python paths and HTTP uploads.
+# Modified for LMDeploy: decode in memory, one loader for Python paths and HTTP uploads, and no EXIF rotation
+# (the checkpoint's inference.py feeds pixels as stored).
 """Turn decision image inputs into validated, in-memory RGB images."""
 
 import base64
 import binascii
 import io
-import warnings
 from pathlib import Path
 
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
 from .protocol import MAX_IMAGES
 
@@ -55,9 +55,8 @@ def _to_rgb(source, expected_format: str | None) -> Image.Image:
         raise ValueError('Each image is limited to 16 million pixels.')
     if getattr(source, 'n_frames', 1) != 1:
         raise ValueError('Animated images are not supported; upload a still image.')
-    source.load()
-    # Apply camera orientation and drop metadata; the pixel resolution is kept.
-    image = ImageOps.exif_transpose(source).convert('RGB')
+    # Like the reference, pixels are used as stored: EXIF orientation is not applied.
+    image = source.convert('RGB')
     image.info.clear()
     return image
 
@@ -91,12 +90,10 @@ def load_images(items: list, *, allow_paths: bool, media_root: str | Path = '.')
             else:
                 raise ValueError('Each image must be a local path or an uploaded image object.')
             try:
-                with warnings.catch_warnings():
-                    warnings.simplefilter('error', Image.DecompressionBombWarning)
-                    with Image.open(source) as opened:
-                        images.append(_to_rgb(opened, expected))
-            except (UnidentifiedImageError, OSError, Image.DecompressionBombError,
-                    Image.DecompressionBombWarning) as exc:
+                # The pixel cap is checked from the header before any decoding.
+                with Image.open(source) as opened:
+                    images.append(_to_rgb(opened, expected))
+            except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
                 raise ValueError('Invalid, incomplete or oversized image.') from exc
     except BaseException:
         for image in images:

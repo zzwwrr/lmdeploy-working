@@ -102,11 +102,12 @@ def test_upload_and_path_load_the_same_pixels(tmp_path):
     assert upload.tobytes() == local.tobytes()
 
 
-def test_exif_orientation_is_applied():
+def test_exif_orientation_is_not_applied():
+    # Matches the checkpoint's inference.py, which feeds pixels as stored.
     exif = Image.Exif()
     exif[0x0112] = 6  # rotate 90 degrees
     image, = load_images([_upload(_png(fmt='JPEG', exif=exif), 'image/jpeg')], allow_paths=False)
-    assert image.size == (3, 4)
+    assert image.size == (4, 3) and not image.info
 
 
 @pytest.mark.parametrize('item, allow_paths, match', [
@@ -204,11 +205,12 @@ class FakeEngine:
     model_name = 'intern-decision'
     epoch = 0
 
-    def __init__(self, expand=4, fail=None):
+    def __init__(self, expand=4, fail=None, abort=False):
         self.backend_config = PytorchEngineConfig()
         self.session_mgr = FakeSessionManager()
         self.expand = expand
         self.fail = fail
+        self.abort = abort
         self.requests = []
 
     async def preprocess(self, messages, session, gen_config=None, input_ids=None, do_preprocess=True):
@@ -227,6 +229,9 @@ class FakeEngine:
     async def generate(self, request, stream_response=True):
         if self.fail:
             raise self.fail
+        if self.abort:
+            yield SimpleNamespace(logprobs=None, logprob_token_ids=None, finish_reason='abort')
+            return
         start = request.gen_config.logprob_start_len
         targets = request.ids[start + 1:]
         rows = [{t: -1.0, **{s: float(s) for s in request.gen_config.logprob_token_ids}} for t in targets]
@@ -236,6 +241,7 @@ class FakeEngine:
 def _service(engine):
     service = DecisionService.__new__(DecisionService)
     service.async_engine = engine
+    service.model_names = {engine.model_name, 'Intern-Decision-0.8B'}
     service.max_length = 8191
     service.max_pending_requests = 2
     service.supports_images = True
@@ -275,6 +281,14 @@ def test_score_failure_cleans_up_session():
     assert not engine.session_mgr.sessions
 
 
+def test_aborted_score_is_unavailable():
+    from lmdeploy.serve.processors.intern_decision import DecisionUnavailable
+    engine = FakeEngine(abort=True)
+    with pytest.raises(DecisionUnavailable, match='aborted'):
+        asyncio.run(_service(engine)._score(_encoded(), []))
+    assert not engine.session_mgr.sessions
+
+
 def test_score_rejects_over_length_without_running():
     engine = FakeEngine(expand=10_000)
     with pytest.raises(ValueError, match='truncation'):
@@ -288,7 +302,7 @@ def test_decide_end_to_end_and_admission():
     encoded = _encoded()
     service._prepare = lambda request, allow_local_paths: ([], encoded)
     request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
-    result = asyncio.run(service.decide(request))
+    result = asyncio.run(service.decide({**request, 'model': 'Intern-Decision-0.8B'}))
     assert list(result['answers']) == ['a', 'r']
     assert result['usage']['generated_tokens'] == 0 and result['usage']['decision_count'] == 2
     assert result['calibration'] == {'method': 'temperature-scaling', 'temperature': 2.747760550703}

@@ -73,10 +73,11 @@ of which 16 are needed (~10×).
 idea from v1, now cheap because the plumbing (`logits_indices`, `seq_logit_length`) already exists.
 
 ### 4.2 Union of candidate columns across a batch
-All rows in a batch share one column layout, so a batch carries the union of all requested candidate ids. With
-decisions alone that is just the 62 letters. Ordinary `/generate` scoring requests in the same batch get those columns
-too: a negligible cost, and their top-k output is unaffected because it is sorted and truncated.
-**Option:** trim each row to its own request's ids in `engine_loop._append_input_logprobs`.
+All rows in a batch share one column layout, so the GPU gathers the union of all requested candidate ids (just the
+62 letters when only decisions are batched). `engine_loop._append_input_logprobs` then trims each row to its own
+request's columns. The gather is negligible, and the trim is one `index_select` per request, only when the request
+asked for fewer ids than the union.
+**Option:** none needed for decision-only batches.
 
 ### 4.3 Long prompts and chunked prefill
 When a scoring prompt is longer than `max_prefill_token_num`, it is prefilled in chunks. The engine's cross-chunk

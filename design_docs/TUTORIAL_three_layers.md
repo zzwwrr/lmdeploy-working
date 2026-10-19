@@ -94,7 +94,8 @@ An HTTP request with one image:
    `DecisionService.decide(request, allow_local_paths=False)`. HTTP may only upload bytes, so it can't read the
    server's files.
 2. **Protocol.** In a worker thread (so the event loop stays free):
-   - `images.py` decodes the base64 image in memory, applies EXIF rotation, and converts it to RGB.
+   - `images.py` decodes the base64 image in memory and converts it to RGB. Like the official code, it uses the
+     pixels as stored and does not apply EXIF rotation.
    - `schema.py` builds the trained prompt.
    - `encoding.py` renders it with the checkpoint's own chat template. The image is still a single `<|image_pad|>`
      token at this point. The encoder records the **tail**: how many tokens there are from the row before the first
@@ -138,7 +139,8 @@ An HTTP request with one image:
 |---|---|
 | `messages.py` | the new field and its validation (needs `logprob_start_len >= 0`) |
 | `pytorch/messages.py` | carried on `SamplingParam` |
-| `strategies/ar/sampling.py` | sorted **union** over the batch. All rows share one column layout, so if two requests ask for different ids, both get both. |
+| `strategies/ar/sampling.py` | sorted **union** over the batch: all rows share one column layout on the GPU |
+| `engine/engine_loop.py` | trims each request's rows back to the ids **it** asked for, so other requests in the batch (e.g. `/generate` top-k) see no extra columns |
 | `engine/logits_process.py` | `SamplingInputs.logprob_token_ids` |
 | `model_agent/agent.py` | `_get_outputs_with_logprobs` appends `input_logits.gather(-1, ids)` columns |
 

@@ -368,8 +368,10 @@ def serve(model_path: str,
         from lmdeploy.serve.processors.intern_decision import TASK_NAME
         if task != TASK_NAME:
             raise ValueError(f'Unsupported task: {task!r}')
-        if backend != 'pytorch' or (backend_config is not None and not isinstance(backend_config, PytorchEngineConfig)):
+        if backend_config is not None and not isinstance(backend_config, PytorchEngineConfig):
             raise ValueError(f'{task} requires the PyTorch backend')
+        # input logprobs are PyTorch-only; like the CLI, the task selects that backend
+        backend = 'pytorch'
         backend_config = backend_config or PytorchEngineConfig()
 
     handle_torchrun()
@@ -396,9 +398,13 @@ def serve(model_path: str,
     set_parsers(server_context, reasoning_parser, tool_call_parser)
     if task is not None:
         from lmdeploy.serve.processors.intern_decision import DecisionService
-        server_context.decision_service = DecisionService(server_context.async_engine,
-                                                          model_path,
-                                                          trust_remote_code=trust_remote_code)
+        try:
+            server_context.decision_service = DecisionService(server_context.async_engine,
+                                                              model_path,
+                                                              trust_remote_code=trust_remote_code)
+        except BaseException:
+            server_context.async_engine.close()
+            raise
 
     # create FastAPI lifespan events
     lifespan = create_lifespan_handler(backend_config,

@@ -54,8 +54,9 @@ EOF
 ```
 
 `data` may also be a data URL (`data:image/png;base64,...`). Server-side paths and remote URLs are rejected. JPEG,
-PNG, WebP and static GIF are accepted, up to 12 MB each, 32 MB in total and 16 megapixels per image. EXIF rotation is
-applied and metadata is dropped; the same loader handles local paths in Python.
+PNG, WebP and static GIF are accepted, up to 12 MB each, 32 MB in total and 16 megapixels per image. Like the
+checkpoint's `inference.py`, pixels are used as stored: EXIF orientation is **not** applied, so rotate photos before
+sending them. The same loader handles local paths in Python.
 
 Errors use the OpenAI error envelope: 400 for invalid input, 422 for schema violations, 429 when too many decisions
 are pending, 503 when the task is not enabled or images are sent to an engine without a vision encoder.
@@ -104,5 +105,6 @@ reuses a cached prefix past `logprob_start_len`.
 - PyTorch backend only; speculative decoding and non-hybrid (disaggregated) roles are rejected.
 - `thinking.enabled=true` is not supported.
 - Inputs above 8192 tokens (after image expansion) or the engine's session length are rejected, never truncated.
-- In a mixed batch, a request's input-logprob rows may carry extra candidate columns requested by others;
-  `/generate` top-k output is unaffected because it sorts and truncates.
+- The `model` field may be omitted, or be the served model name (`--model-name`, default: the model path) or the
+  checkpoint directory name (e.g. `Intern-Decision-0.8B`, as clients of the original service send).
+- With `--dp > 1`, call each rank's server directly: the DP proxy does not route `/v1/decisions`.

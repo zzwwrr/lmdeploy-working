@@ -75,7 +75,8 @@ Engine    AsyncEngine.preprocess / generate (unchanged), PyTorch engine + logpro
   engine are no longer blocked.
 - **No custom session/cleanup code.** v1's changes to `session_manager.py`, `engine_instance.py`,
   `mp_engine` and `block_trie.py` are gone.
-- **Images are decoded in memory**, and the EXIF rotation applies to both Python paths and HTTP uploads.
+- **Images are decoded in memory** by one loader for Python paths and HTTP uploads. Like the reference
+  `inference.py`, EXIF orientation is not applied (v1 applied it to uploads only).
 - `APIClient.decide` is gone with `api_client.py` (deleted on `main`). HTTP clients post JSON directly.
 - Admission control is a simple pending-request cap (HTTP 429). v1's global lock and timeouts are removed.
 
@@ -83,8 +84,9 @@ Engine    AsyncEngine.preprocess / generate (unchanged), PyTorch engine + logpro
 
 - Rows are aligned by "target token == `<decision>`". Image expansion happens before the skeleton,
   so the skeleton's distance to the end is stable, and `logprob_start_len = expanded_len - tail`.
-- With mixed batches, a request's rows may carry extra candidate columns requested by other
-  requests (the union). This is harmless to `/generate` top-k (sorted, truncated), but it is not
-  per-request filtered yet.
+- With mixed batches, the GPU gathers the union of all requested ids. `engine_loop._append_input_logprobs`
+  then trims every row to its own request's columns, so other requests (e.g. `/generate` top-k) are unaffected.
+  The subagent review found the untrimmed version corrupted `/generate` top-k; this was fixed before pushing.
+- Decisions are not routed by the DP proxy (`--dp > 1`).
 - TurboMind is unsupported, because `logprob_start_len` is PyTorch-only.
 - Not run in this round (as agreed). Verification is by self-review plus a subagent review.

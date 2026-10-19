@@ -125,6 +125,7 @@ class GenerationConfig:
             every input-logprob row, in addition to the target and top-k
             entries. Requires ``logprob_start_len >= 0``. Useful for scoring a
             fixed candidate set (e.g. answer symbols) at prompt positions.
+            PyTorch engine only.
         response_format: Generate responses according to given formatting.
             Examples:
 
@@ -276,7 +277,7 @@ class GenerationConfig:
         if self.logprob_token_ids is not None:
             if self.logprob_start_len < 0:
                 raise ValueError('logprob_token_ids requires logprob_start_len >= 0')
-            if not all(isinstance(x, int) and x >= 0 for x in self.logprob_token_ids):
+            if not all(isinstance(x, int) and not isinstance(x, bool) and x >= 0 for x in self.logprob_token_ids):
                 raise ValueError('logprob_token_ids must be a list of non-negative ints')
         if self.repetition_ngram_size <= 0 or self.repetition_ngram_threshold <= 0:
             self.repetition_ngram_size = 0

@@ -560,6 +560,12 @@ class AsyncEngine:
                     f'the last source position for processed input_ids length({input_len}).')
             if input_logprobs_requested and gen_config.max_new_tokens != 0:
                 raise RequestError(ErrorCode.INVALID_REQUEST, 'logprob_start_len requires max_new_tokens=0.')
+            if gen_config.logprob_token_ids:
+                vocab_size = getattr(getattr(self.hf_cfg, 'text_config', self.hf_cfg), 'vocab_size', None)
+                if vocab_size is not None and max(gen_config.logprob_token_ids) >= vocab_size:
+                    # An out-of-range id would fail the gather on the device for the whole batch.
+                    raise RequestError(ErrorCode.INVALID_REQUEST,
+                                       f'logprob_token_ids must be smaller than the vocabulary size ({vocab_size}).')
             if gen_config.max_new_tokens < 1 and not input_logprobs_requested:
                 raise RequestError(
                     ErrorCode.INVALID_REQUEST,
