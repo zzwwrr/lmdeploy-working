@@ -130,6 +130,12 @@ def check_vl_llm(config: dict) -> bool:
 
 def get_task(model_path: str):
     """Get pipeline type and pipeline class from model config."""
+    # TODO(intern-decision): [01] 增加独立于网络架构的任务选择，供 Python 和 HTTP 启动共用。
+    # 首版显式选择 task='intern-decision'；自动识别需约定 decision_config.json 等可靠元数据。
+    # Qwen3_5ForConditionalGeneration 仍映射到原生 Qwen3.5；不能仅凭架构名、目录名或
+    # <decision> token 存在就把普通模型判成决策模型。任务初始化还需校验 tokenizer/协议。
+    # 首版限定 PyTorch；上面的 Qwen3.5 视觉自动路由特判保持独立，决策输入通过 raw
+    # multimodal 进入已有视觉网络，不在接入任务时顺手改变普通 Qwen3.5 的路由行为。
     from lmdeploy.serve.core import AsyncEngine
 
     if os.path.exists(os.path.join(model_path, 'triton_models', 'weights')):

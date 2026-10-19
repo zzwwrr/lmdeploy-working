@@ -65,6 +65,9 @@ def pipeline(model_path: str,
 
     """ # noqa E501
 
+    # TODO(intern-decision): [01] 为公开 pipeline() 入口声明并传递拟新增的任务选择参数。
+    # 预期用法是 pipeline(checkpoint, task='intern-decision', backend_config=...) 后
+    # 调用 pipe.decide(request)；该参数/API 目前尚未实现，需与 CLI 的任务选择保持一致。
     return Pipeline(model_path,
                     backend_config=backend_config,
                     chat_template_config=chat_template_config,

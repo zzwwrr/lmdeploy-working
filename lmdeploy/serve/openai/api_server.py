@@ -1074,6 +1074,12 @@ async def encode(request: EncodeRequest, raw_request: Request = None):
         return EncodeResponse(input_ids=encoded, length=length)
 
 
+# TODO(intern-decision): [07] 在此新增 POST /v1/decisions 和兼容别名 /v1/jev，
+# 两个路由共用 serving_decision 处理器、JSON 校验和现有鉴权，返回 DecisionResponse。
+# 复用 VariableInterface.async_engine；仅在决策任务启用时接受请求，否则给出明确错误。
+# 这是 LMDeploy 自定义决策 API；评分走拟新增的 async_decide，不转成聊天生成或 pooling。
+
+
 @router.post('/pooling', dependencies=[Depends(validate_json_request)])
 async def pooling(request: PoolingRequest, raw_request: Request = None):
     """Pooling prompts for reward model.
@@ -1360,6 +1366,8 @@ def create_lifespan_handler(backend_config: PytorchEngineConfig | TurbomindEngin
     return lifespan_handler
 
 
+# TODO(intern-decision): [01] 为 serve 增加拟议 task 参数，接收 CLI/Python 的任务选择；
+# 将选择传入下方共享引擎初始化，使服务入口与 Pipeline.decide 使用同一套任务处理器。
 def serve(model_path: str,
           model_name: str | None = None,
           backend: Literal['turbomind', 'pytorch'] = 'turbomind',
@@ -1450,6 +1458,9 @@ def serve(model_path: str,
         http_or_https = 'https'
 
     handle_torchrun()
+    # TODO(intern-decision): [01] 在现有架构识别之外传递决策任务配置，并在共同引擎层
+    # 校验 tokenizer/template 与决策协议；复用 Qwen3.5 注册、权重加载和视觉计算。
+    # 不将所有 Qwen3.5 自动视为决策模型，也不在此另启模型或独立事件循环。
     _, pipeline_class = get_task(model_path)
     if isinstance(backend_config, PytorchEngineConfig):
         backend_config.enable_mp_engine = True

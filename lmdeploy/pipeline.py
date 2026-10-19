@@ -64,6 +64,9 @@ class Pipeline:
             download_dir = backend_config.download_dir if backend_config else None
             speculative_config.model = get_model(speculative_config.model, download_dir)
 
+        # TODO(intern-decision): [01] 将显式任务 / 协议配置传给 AsyncEngine 共用初始化入口。
+        # 模型架构选择与决策任务选择分开，Python 与 HTTP 使用同一组输入 / 输出处理器；
+        # 决策图片交由专用输入处理器转换，不依赖 Qwen3.5 自动选择 VLAsyncEngine。
         # Create inference engine
         _, pipeline_class = get_task(model_path)
         backend, backend_config = autoget_backend_config(model_path, backend_config)
@@ -231,6 +234,10 @@ class Pipeline:
         """Create a new session."""
         return self.session_mgr.get()
 
+    # TODO(intern-decision): [07] 在此增加公开的 Pipeline.decide(request) 同步接口。
+    # 输入沿用原模型 state / questions / images 协议，返回与 HTTP 相同的决策响应数据。
+    # 通过 self._run(coro=self.async_engine.async_decide(request)).result() 进入 [05]；
+    # 复用现有 internal_thread 和引擎，不另建线程 / 引擎，也不借用奖励模型的标量输出协议。
     def get_reward_score(self, input_ids: List) -> List[float]:
         """Get reward score.
 

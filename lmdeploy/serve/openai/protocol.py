@@ -7,6 +7,10 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import shortuuid
 from pydantic import BaseModel, ConfigDict, Field
 
+# TODO(intern-decision): [02] 从拟新增的 serve/processors/intern_decision/protocol.py
+# 导入并导出 DecisionRequest/DecisionResponse，使 HTTP 和 Python 共用一份协议定义。
+# 保留 state/questions/images 与 choice/score/noul 的原语义；这是 LMDeploy 自定义 API。
+
 
 class ErrorResponse(BaseModel):
     """Error responses."""

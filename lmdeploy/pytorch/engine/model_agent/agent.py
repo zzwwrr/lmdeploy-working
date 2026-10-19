@@ -518,6 +518,11 @@ class BaseModelAgent:
 
         hidden_states, ret = self.spec_agent.update_main_model_outputs(ret, origin_inputs)
 
+        # TODO(intern-decision): [10][后续可选] 首版仍返回全位置 logits，评分层再选 Q 行。
+        # 若要真正节省 LM-head 投影，应在这里按每请求的评分位置选择 hidden_states，
+        # 并同步适配批内索引、chunked-prefill 全局位置、TP 及输出拆分/拼接协议；
+        # 不能只在 async_get_logits 里 index_select，就宣称已避免 L*V 中间张量。
+        # 此项独立于首版任务接口，实施前需补全普通生成与评分混用的回归测试。
         logits = self.get_logits(hidden_states)
         ret['logits'] = logits
         return ret

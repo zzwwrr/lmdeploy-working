@@ -112,6 +112,11 @@ class AsyncEngine:
         self.prompt_processor = MultimodalProcessor(self.tokenizer, self.chat_template)
         self.hf_gen_cfg = get_hf_gen_cfg(model_path)
         self.arch, self.hf_cfg = get_model_arch(model_path)
+        # TODO(intern-decision): [01] 在此建立 HTTP / Python 共用的决策任务配置与处理器。
+        # 接收显式 intern-decision 任务选择，或读取带版本的 decision_config.json；
+        # Qwen3.5 架构名继续决定网络实现，不能仅凭架构名或 <decision> token 判定任务。
+        # 校验 tokenizer、模板、候选单 token 和后端能力后，初始化独立输入 / 输出处理器；
+        # 首版使用 PyTorch 评分路径，保留普通聊天 / 奖励模型的默认初始化行为。
         self.session_len = (_get_and_verify_max_len(self.hf_cfg, None)
                             if backend_config.session_len is None else backend_config.session_len)
         backend_config.session_len = self.session_len
@@ -354,6 +359,8 @@ class AsyncEngine:
 
         gen_config = self._determine_gen_config(session, input_ids, gen_config=gen_config)
 
+        # TODO(intern-decision): [05] 决策入口不得通过 generate(max_new_tokens=0) 调用。
+        # 此分支直接返回而不执行模型 prefill；async_decide 应走下面的原生 logits 评分路径。
         if gen_config.max_new_tokens == 0:
             logger.info(f'run out of tokens. session={session_id}.')
             yield GenOut(response='',
@@ -601,6 +608,29 @@ class AsyncEngine:
         scores = [x[-1].cpu().item() for x in logits]
         return scores
 
+    # TODO(intern-decision): [05] 在此增加 async_decide(request) 统一异步入口。
+    # 输入处理器生成 PreparedDecision（token、图片、读取位置、候选及字段映射），
+    # 调用扩展后的 async_get_logits，再交给输出处理器生成 choice / score / noul 响应。
+    # 使用本引擎已有的事件循环、调度器和 Qwen3.5 模型，不搬入外置 LMDeployBackend。
+
+    # TODO(intern-decision): [05] 向 async_get_logits 增加可选 multimodal / 位置选择参数。
+    # 保持旧调用与返回约定；逐请求校验图片和位置并把图片提交至 async_stream_infer。
+    # 首版取得完整 L×V logits 后按 marker-1 选择 Q×V，再交给输出处理器选择候选；
+    # 不把此步骤描述成 LM head 前的稀疏投影优化，后者需要另立执行层改动与验证。
+    # 明确全位置 logits 与前缀缓存的兼容约束，检查形状、位置边界和分数有限性。
+
+    # TODO(intern-decision): [06] 重构本评分路径的资源收尾，覆盖成功、异常、取消和超时。
+    # 让 finally 关闭结果生成器，并在需要时取消请求；等待 END_SESSION 确认后再归还 handle。
+    # 对并发评分的失败，取消并等待其余任务；依照 session 所有权清理本地记录与引擎缓存。
+    # 结合 safe_run 与 Session.request_handle 的异常处理，避免异常被吞掉或重复归还资源。
+    # 需同步审查 serve/managers/session_manager.py 的 request_handle / async_close：
+    # step==0 的提前返回可能跳过评分 session；持有 handle 时调用 async_close 又会等待自己释放。
+    # 因此不能简单把现有 async_close 搬入持有 handle 的 finally；应设计可确认结束的共用原语。
+    # 同步审查 pytorch/engine/engine_instance.py 的 async_end / end：当前发送 response=False，
+    # 不能把调用返回视为 END_SESSION 已确认；该文件也受 SHA256 保护，本轮仅在此记录待办。
+    # 清理超时或失败不得把状态不明的 handle 放回池中，异常也必须反馈给决策调用方。
+    # 现有外置后端固定校验 session_manager.py 的 SHA256，本轮将该文件的待办写在这里，
+    # 避免仅添加注释就破坏现有服务；实际协议重构时再协调兼容性与相应版本约束。
     async def async_get_logits(self,
                                input_ids,
                                sessions: List['Session'] | None = None,
