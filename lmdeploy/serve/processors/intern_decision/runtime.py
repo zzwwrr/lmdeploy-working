@@ -83,7 +83,7 @@ class DecisionRuntime:
             return response.model_dump()
         finally:
             # A cancelled caller cannot delete uploads while a CPU worker uses them.
-            if worker is not None:
+            if worker is not None and not worker.done():
                 from lmdeploy.serve.core.scoring import await_bounded_cleanup
                 try:
                     await await_bounded_cleanup(asyncio.shield(worker), self.config.cleanup_timeout)

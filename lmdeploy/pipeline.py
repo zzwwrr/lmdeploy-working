@@ -167,6 +167,8 @@ class Pipeline:
 
     def close(self):
         """Close the pipeline."""
+        if not self.internal_thread.closed:
+            self._run(coro=self.async_engine.async_shutdown_decisions()).result()
         self.internal_thread.close()
         self.async_engine.close()
 
@@ -235,10 +237,14 @@ class Pipeline:
         """Create a new session."""
         return self.session_mgr.get()
 
-    # TODO(intern-decision): [07] 在此增加公开的 Pipeline.decide(request) 同步接口。
-    # 输入沿用原模型 state / questions / images 协议，返回与 HTTP 相同的决策响应数据。
-    # 通过 self._run(coro=self.async_engine.async_decide(request)).result() 进入 [05]；
-    # 复用现有 internal_thread 和引擎，不另建线程 / 引擎，也不借用奖励模型的标量输出协议。
+    def decide(self, request):
+        """Run a decision on the existing engine loop and return a JSON-compatible dict.
+
+        Images may be trusted local paths or base64 upload objects. HTTP clients
+        must supply upload objects. This method generates no tokens.
+        """
+        return self._run(coro=self.async_engine.async_decide(request)).result()
+
     def get_reward_score(self, input_ids: List) -> List[float]:
         """Get reward score.
 

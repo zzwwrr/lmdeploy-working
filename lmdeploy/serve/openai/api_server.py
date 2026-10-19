@@ -31,6 +31,7 @@ from lmdeploy.pytorch.disagg.conn.protocol import (DistServeCacheFreeRequest, Di
                                                    MigrationRequest)
 from lmdeploy.serve.core import AsyncEngine
 from lmdeploy.serve.openai.harmony_utils import GptOssChatParser
+from lmdeploy.serve.openai.protocol import DecisionRequest
 from lmdeploy.serve.openai.protocol import ChatCompletionResponse  # noqa: E501
 from lmdeploy.serve.openai.protocol import (AbortRequest, ChatCompletionRequest, ChatCompletionResponseChoice,
                                             ChatCompletionResponseStreamChoice, ChatCompletionStreamResponse,
@@ -1074,10 +1075,12 @@ async def encode(request: EncodeRequest, raw_request: Request = None):
         return EncodeResponse(input_ids=encoded, length=length)
 
 
-# TODO(intern-decision): [07] 在此新增 POST /v1/decisions 和兼容别名 /v1/jev，
-# 两个路由共用 serving_decision 处理器、JSON 校验和现有鉴权，返回 DecisionResponse。
-# 复用 VariableInterface.async_engine；仅在决策任务启用时接受请求，否则给出明确错误。
-# 这是 LMDeploy 自定义决策 API；评分走拟新增的 async_decide，不转成聊天生成或 pooling。
+@router.post('/v1/decisions', dependencies=[Depends(validate_json_request)])
+@router.post('/v1/jev', dependencies=[Depends(validate_json_request)])
+async def decisions(request: DecisionRequest, raw_request: Request):
+    """Custom decision API (both paths share the same handler)."""
+    from .serving_decision import serve_decision
+    return await serve_decision(request, raw_request, VariableInterface.async_engine)
 
 
 @router.post('/pooling', dependencies=[Depends(validate_json_request)])
@@ -1271,6 +1274,7 @@ async def startup_event():
 async def shutdown_event():
     async_engine = VariableInterface.async_engine
     if async_engine is not None:
+        await async_engine.async_shutdown_decisions()
         async_engine.close()
 
 
@@ -1361,6 +1365,7 @@ def create_lifespan_handler(backend_config: PytorchEngineConfig | TurbomindEngin
         finally:
             if task:
                 task.cancel()
+            await async_engine.async_shutdown_decisions()
             await metrics_processor.stop_metrics_handler()
 
     return lifespan_handler

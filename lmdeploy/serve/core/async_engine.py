@@ -163,6 +163,11 @@ class AsyncEngine:
         self._build_stat_loggers()
         self.epoch = 0
 
+    async def async_shutdown_decisions(self):
+        """Cancel admitted decision requests while the engine can still acknowledge cleanup."""
+        if hasattr(self, 'decision_runtime'):
+            await self.decision_runtime.close()
+
     def close(self):
         self.session_mgr.clear()
         self.engine.close()
