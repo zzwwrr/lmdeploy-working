@@ -134,6 +134,28 @@ class TestBlockTire:
         ref_cnt = allocator.get_ref_count(logical_blocks.get_real_blocks())
         assert np.array_equal(ref_cnt, [4, 3])
 
+    def test_full_logits_bypass_shared_prefix(self, block_trie, block_mgr, scheduler):
+        from lmdeploy.pytorch.messages import SamplingParam
+        session = scheduler.add_session(0)
+        block_size = session.seq_meta.block_size
+        tokens = [1] * block_size + [2] * block_size + [3]
+        cached = session.add_sequence(tokens)
+        block_mgr.allocate(cached)
+        block_trie.allocate(cached)
+
+        scoring = session.add_sequence(tokens, sampling_param=SamplingParam(max_new_tokens=0, out_logits=True))
+        block_trie.match(scoring)
+        assert scoring.num_history_ids == 0
+        assert len(scoring.logical_blocks) == 0
+        block_mgr.allocate(scoring)
+        block_trie.allocate(scoring)
+        assert not set(scoring.logical_blocks.get_real_blocks()) & set(cached.logical_blocks.get_real_blocks())
+
+        ordinary = session.add_sequence(tokens)
+        block_trie.match(ordinary)
+        assert ordinary.num_history_ids == 2 * block_size
+        assert len(ordinary.logical_blocks) == 2
+
     def test_evict(self, block_trie, scheduler, num_gpu_blocks):
         block_mgr = block_trie.block_manager
         sess = scheduler.add_session(0)

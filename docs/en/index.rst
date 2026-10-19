@@ -57,6 +57,8 @@ Documentation
    :caption: Large Language Models(LLMs) Deployment
 
    llm/pipeline.md
+   llm/intern_decision.md
+   llm/intern_decision_validation.md
    llm/api_server.md
    llm/api_server_tools.md
    llm/api_server_reasoning.md

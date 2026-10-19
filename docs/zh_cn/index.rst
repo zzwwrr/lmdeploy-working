@@ -57,6 +57,7 @@ LMDeploy 工具箱提供以下核心功能：
    :caption: 大语言模型(LLMs)部署
 
    llm/pipeline.md
+   llm/intern_decision.md
    llm/api_server.md
    llm/api_server_tools.md
    llm/api_server_reasoning.md
