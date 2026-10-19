@@ -1,20 +1,115 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+"""Shared Python/HTTP contract for decision protocol v1."""
+import json
+import math
+from dataclasses import dataclass
+from typing import Any
 
-# TODO(intern-decision): [02] 定义 DecisionRequest / PreparedDecision / DecisionResponse，
-# 供 Python 与 HTTP 共用；这里只规划数据契约，不创建模型或 FastAPI 应用。
-# DecisionRequest 沿用 Intern-Decision 的 state、questions 和可选 images，问题类型为
-# choice / score / noul；HTTP 图片兼容原来的 data/base64 协议，不接收任意服务器路径。
-# 输入校验保留 1..16 个字段、每字段至多 62 个选项、至多 8 张静态图片及长度限制；
-# 字段与选项保持原始顺序，推理时忽略训练 answer/targets，拒绝保留标记注入与静默截断。
-# HTTP 的 model 选择、请求标识和错误响应与 LMDeploy 服务协议衔接；不把 questions
-# 转成普通聊天 messages 后交给生成接口。thinking.enabled=true 在首版明确不支持。
-#
-# PreparedDecision 拟包含：input_ids、multimodal、read_positions（marker-1）、
-# candidate_ids、fields、option_values 和 input_length；每个字段的业务值/符号/ID
-# 在输入阶段固定，输出阶段直接使用该映射，避免重新排序或重新编码候选。
-#
-# DecisionResponse 保留 answers 中的 type / probabilities / confidence 和
-# choice / score / noul 等业务语义；兼容外层 decision/source、request_id/model 字段。
-# 显式定义 usage：decision_count 是字段数，实际生成 token 数为 0；原协议若保留
-# output_tokens=字段数的兼容字段，需说明口径，不能误报成 LMDeploy 生成 token 数。
-# 首版不携带原项目的外部 thinking 服务、浏览器演示或训练监督逻辑。
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class DecisionError(RuntimeError):
+    status_code = 500
+
+
+class DecisionUnavailable(DecisionError):
+    status_code = 503
+
+
+class DecisionQueueFull(DecisionError):
+    status_code = 429
+
+
+class DecisionTimeout(DecisionError):
+    status_code = 504
+
+
+class ThinkingOptions(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    enabled: bool = False
+    confidence_threshold: float = 0.7
+
+    @field_validator('enabled')
+    @classmethod
+    def disabled(cls, value):
+        if value:
+            raise ValueError('thinking.enabled=true is not supported')
+        return value
+
+    @field_validator('confidence_threshold', mode='before')
+    @classmethod
+    def threshold(cls, value):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 1:
+            raise ValueError('confidence_threshold must be a finite number in [0, 1]')
+        return float(value)
+
+
+class DecisionRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    state: Any
+    questions: dict[str, dict[str, Any]]
+    images: list[Any] = Field(default_factory=list, max_length=8)
+    model: str | None = None
+    thinking: ThinkingOptions = Field(default_factory=ThinkingOptions)
+    # Training-only metadata is accepted but never enters the inference prompt.
+    targets: Any = Field(default=None, exclude=True)
+    answer: Any = Field(default=None, exclude=True)
+    id: Any = Field(default=None, exclude=True)
+
+    @field_validator('state')
+    @classmethod
+    def json_state(cls, value):
+        json.dumps(value, ensure_ascii=False, allow_nan=False)
+        return value
+
+    @field_validator('questions')
+    @classmethod
+    def valid_questions(cls, questions):
+        if not 1 <= len(questions) <= 16:
+            raise ValueError('Supply 1–16 questions')
+        clean = {}
+        for name, question in questions.items():
+            if not name:
+                raise ValueError('Question names must be nonempty strings')
+            kind, criteria = question.get('type'), question.get('criteria')
+            if kind not in ('choice', 'score', 'noul'):
+                raise ValueError('Question type must be choice, score, or noul')
+            if kind == 'choice' and not isinstance(criteria, dict):
+                raise ValueError('Choice criteria must be an object')
+            if kind == 'score':
+                if not isinstance(criteria, (list, dict)):
+                    raise ValueError('Score criteria must be a list or object')
+                if isinstance(criteria, dict):
+                    try:
+                        if any(isinstance(key, bool) or not math.isfinite(float(key)) for key in criteria):
+                            raise ValueError('Score option keys must be finite numbers')
+                    except (TypeError, ValueError) as exc:
+                        raise ValueError('Score option keys must be finite numbers') from exc
+            if kind != 'noul' and not 1 <= len(criteria) <= 62:
+                raise ValueError('Supply 1–62 options')
+            if isinstance(criteria, dict) and any(not isinstance(key, str) for key in criteria):
+                raise ValueError('Option keys must be strings')
+            clean[name] = {key: question[key] for key in ('type', 'instructions', 'criteria') if key in question}
+        return clean
+
+
+@dataclass(frozen=True)
+class PreparedDecision:
+    input_ids: list[int]
+    multimodal: list[dict] | None
+    read_positions: tuple[int, ...]
+    candidate_ids: tuple[tuple[int, ...], ...]
+    fields: tuple[str, ...]
+    option_values: tuple[tuple[str, ...], ...]
+    question_types: tuple[str, ...]
+    legends: tuple[dict[str, str], ...]
+    input_length: int
+
+
+class DecisionResponse(BaseModel):
+    request_id: str
+    model: str
+    answers: dict[str, dict[str, Any]]
+    usage: dict[str, int]
+    timing: dict[str, float]
+    thinking: dict[str, Any]
