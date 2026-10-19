@@ -42,6 +42,7 @@ class Pipeline:
                  trust_remote_code: bool = False,
                  speculative_config: SpeculativeConfig | None = None,
                  allowed_media_domains: list[str] | None = None,
+                 task: str | None = None,
                  **kwargs):
         """Initialize Pipeline.
 
@@ -54,6 +55,8 @@ class Pipeline:
             trust_remote_code: whether to trust remote code from model repositories.
             speculative_config: Speculative decoding configuration.
             allowed_media_domains: Optional HTTP(S) media URL domain allowlist.
+            task: Optional task protocol on top of the model. ``'intern-decision'`` enables
+                :meth:`decide` for Intern-Decision checkpoints (PyTorch backend only).
             **kwargs: Additional keyword arguments.
         """
 
@@ -70,6 +73,14 @@ class Pipeline:
         if speculative_config and speculative_config.model and not os.path.exists(speculative_config.model):
             download_dir = backend_config.download_dir if backend_config else None
             speculative_config.model = get_model(speculative_config.model, download_dir)
+
+        if task is not None:
+            from .serve.processors.intern_decision import TASK_NAME
+            if task != TASK_NAME:
+                raise ValueError(f'Unsupported task: {task!r}')
+            if backend_config is not None and not isinstance(backend_config, PytorchEngineConfig):
+                raise ValueError(f'{task} requires the PyTorch backend')
+            backend_config = backend_config or PytorchEngineConfig()
 
         # Create inference engine
         backend, backend_config = autoget_backend_config(model_path, backend_config,
@@ -92,6 +103,16 @@ class Pipeline:
         self.session_mgr = self.async_engine.session_mgr
         self.backend_config = self.async_engine.backend_config
         self.async_engine.start_loop(self.internal_thread.loop, use_async_api=False)
+        self.decision_service = None
+        if task is not None:
+            from .serve.processors.intern_decision import DecisionService
+            try:
+                self.decision_service = DecisionService(self.async_engine,
+                                                        model_path,
+                                                        trust_remote_code=trust_remote_code)
+            except BaseException:
+                self.close()
+                raise
 
     def infer(self,
               prompts: list[str] | str | list[dict] | list[list[dict]] | tuple | list[tuple],
@@ -261,6 +282,20 @@ class Pipeline:
     def session(self) -> Session:
         """Create a new session."""
         return self.session_mgr.get()
+
+    def decide(self, request: dict) -> dict:
+        """Score an Intern-Decision request in one forward pass; no tokens are generated.
+
+        Requires ``pipeline(..., task='intern-decision')``. ``request`` follows the Intern-Decision (Jev) protocol:
+        ``state``, ``questions`` and optional ``images``, where an image is a trusted local path or an upload
+        object ``{"data": "<base64>", "type": "image/png"}``.
+
+        Returns:
+            dict: the same JSON-compatible response as ``POST /v1/decisions``.
+        """
+        if self.decision_service is None:
+            raise RuntimeError("Create the pipeline with task='intern-decision' to use decide()")
+        return self._run(coro=self.decision_service.decide(request, allow_local_paths=True)).result()
 
     def get_reward_score(self, input_ids: list) -> list[float]:
         """Get reward score.

@@ -63,6 +63,8 @@ class ServerContext:
         self.enable_abort_handling = False
         self.response_parser_cls: type[ResponseParser] | None = None
         self.default_gen_config: dict = {}
+        # Set by serve(task='intern-decision'); POST /v1/decisions returns 503 otherwise.
+        self.decision_service = None
 
     @property
     def engine_config(self):
@@ -281,6 +283,7 @@ def serve(model_path: str,
           speculative_config: SpeculativeConfig | None = None,
           allowed_media_domains: list[str] | None = None,
           generation_config: str = 'auto',
+          task: str | None = None,
           **kwargs):
     """An example to perform model inference through the command line
     interface.
@@ -334,6 +337,9 @@ def serve(model_path: str,
         allow_terminate_by_client (bool): Allow request from client to terminate server.
         allowed_media_domains (list[str] | None): Optional exact hostname
             allowlist for HTTP(S) media URLs.
+        task (str | None): Optional task protocol served next to the OpenAI
+            endpoints. ``'intern-decision'`` enables ``POST /v1/decisions``
+            for Intern-Decision checkpoints (PyTorch backend only).
     """
     if os.getenv('TM_LOG_LEVEL') is None:
         os.environ['TM_LOG_LEVEL'] = log_level
@@ -358,6 +364,14 @@ def serve(model_path: str,
         ssl_certfile = os.environ['SSL_CERTFILE']
         http_or_https = 'https'
 
+    if task is not None:
+        from lmdeploy.serve.processors.intern_decision import TASK_NAME
+        if task != TASK_NAME:
+            raise ValueError(f'Unsupported task: {task!r}')
+        if backend != 'pytorch' or (backend_config is not None and not isinstance(backend_config, PytorchEngineConfig)):
+            raise ValueError(f'{task} requires the PyTorch backend')
+        backend_config = backend_config or PytorchEngineConfig()
+
     handle_torchrun()
     _, pipeline_class = get_task(backend,
                                  model_path,
@@ -380,6 +394,11 @@ def serve(model_path: str,
         allowed_media_domains=allowed_media_domains,
         **kwargs)
     set_parsers(server_context, reasoning_parser, tool_call_parser)
+    if task is not None:
+        from lmdeploy.serve.processors.intern_decision import DecisionService
+        server_context.decision_service = DecisionService(server_context.async_engine,
+                                                          model_path,
+                                                          trust_remote_code=trust_remote_code)
 
     # create FastAPI lifespan events
     lifespan = create_lifespan_handler(backend_config,
