@@ -51,8 +51,7 @@ class APIClient:
         self.completions_v1_url = f'{api_server_url}/v1/completions'
         self.models_v1_url = f'{api_server_url}/v1/models'
         self.encode_v1_url = f'{api_server_url}/v1/encode'
-        # TODO(intern-decision): [08] 添加 /v1/decisions 地址，复用本客户端的请求头与鉴权；
-        # /v1/jev 只是服务端兼容别名，客户端统一使用主路径。
+        self.decisions_v1_url = f'{api_server_url}/v1/decisions'
         self._available_models = None
         self.api_key = api_key
         self.headers = {'content-type': 'application/json'}
@@ -89,9 +88,37 @@ class APIClient:
             return output['input_ids'], output['length']
         return None, None
 
-    # TODO(intern-decision): [08] 在此新增 decide 方法，提交原协议 state/questions/images，
-    # 将图片编码为 data/base64，通过上述主路径接收结构化 answers，并处理 HTTP 错误。
-    # 使用普通 JSON 请求/响应；不套聊天 messages、不采样生成、不按 SSE 文本流解析。
+    def decide(self, request, *, timeout=300):
+        """Submit one decision request and return ordinary JSON.
+
+        Local image paths are read on the client and serialized as upload objects;
+        they are never sent as server paths. HTTP errors raise requests.HTTPError.
+        """
+        import base64
+        import copy
+        from pathlib import Path
+
+        from PIL import Image
+
+        data = request.model_dump() if hasattr(request, 'model_dump') else copy.deepcopy(request)
+        images = []
+        for item in data.get('images', []):
+            if isinstance(item, (str, Path)):
+                path = Path(item)
+                if not 0 < path.stat().st_size <= 12 * 1024 * 1024:
+                    raise ValueError('Each image must contain 1 byte to 12 MiB')
+                with Image.open(path) as image:
+                    mime = {'JPEG': 'image/jpeg', 'PNG': 'image/png', 'WEBP': 'image/webp',
+                            'GIF': 'image/gif'}.get(image.format)
+                if mime is None:
+                    raise ValueError('Unsupported image format')
+                item = dict(type=mime, data=base64.b64encode(path.read_bytes()).decode('ascii'))
+            images.append(item)
+        data['images'] = images
+        with requests.post(self.decisions_v1_url, headers=self.headers, json=data, timeout=timeout) as response:
+            response.raise_for_status()
+            return response.json()
+
     def chat_completions_v1(
         self,
         model: str,
