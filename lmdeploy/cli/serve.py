@@ -65,9 +65,8 @@ class SubCliServe:
                             'engine’s tasks once the maximum number of concurrent requests is '
                             'reached, regardless of any additional requests sent by clients '
                             'concurrently during that time. Default to None.')
+        parser.add_argument('--task', choices=['intern-decision'], default=None)
         # common args
-        # TODO(intern-decision): [01] 拟新增 --task intern-decision，显式选择决策协议；
-        # 默认仍沿用现有任务选择，首版校验决策任务使用已验证的 PyTorch/Qwen3.5 路径。
         ArgumentHelper.backend(parser)
         ArgumentHelper.log_level(parser)
         ArgumentHelper.api_keys(parser)
@@ -274,13 +273,12 @@ class SubCliServe:
 
         from lmdeploy.messages import VisionConfig
         vision_config = VisionConfig(args.vision_max_batch_size)
-        # TODO(intern-decision): [01] 将拟新增的 task 参数同时传给 run_api_server 和
-        # launch_server，并验证多进程转发；最终交给共享引擎初始化，不在 CLI 创建第二个模型。
         if args.dp == 1 or backend == 'turbomind':
             from lmdeploy.serve.openai.api_server import serve as run_api_server
 
             run_api_server(
                 args.model_path,
+                task=args.task,
                 model_name=args.model_name,
                 backend=backend,
                 backend_config=backend_config,
@@ -312,6 +310,7 @@ class SubCliServe:
                 args.nnodes,
                 args.node_rank,
                 args.model_path,
+                task=args.task,
                 model_name=args.model_name,
                 backend=backend,
                 backend_config=backend_config,

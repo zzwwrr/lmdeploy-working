@@ -37,6 +37,7 @@ class Pipeline:
                  log_level: str = 'WARNING',
                  max_log_len: int | None = None,
                  speculative_config: SpeculativeConfig | None = None,
+                 task: str | None = None,
                  **kwargs):
         """Initialize Pipeline.
 
@@ -64,17 +65,17 @@ class Pipeline:
             download_dir = backend_config.download_dir if backend_config else None
             speculative_config.model = get_model(speculative_config.model, download_dir)
 
-        # TODO(intern-decision): [01] 将显式任务 / 协议配置传给 AsyncEngine 共用初始化入口。
-        # 模型架构选择与决策任务选择分开，Python 与 HTTP 使用同一组输入 / 输出处理器；
-        # 决策图片交由专用输入处理器转换，不依赖 Qwen3.5 自动选择 VLAsyncEngine。
-        # Create inference engine
-        _, pipeline_class = get_task(model_path)
+        _, pipeline_class = get_task(model_path, task)
+        if task == 'intern-decision' and backend_config is None:
+            from .serve.processors.intern_decision.task import default_backend_config
+            backend_config = default_backend_config()
         backend, backend_config = autoget_backend_config(model_path, backend_config)
         self.async_engine = pipeline_class(model_path,
                                            backend=backend,
                                            backend_config=backend_config,
                                            chat_template_config=chat_template_config,
                                            max_log_len=max_log_len,
+                                           task=task,
                                            speculative_config=speculative_config,
                                            **kwargs)
         self.internal_thread = _EventLoopThread(daemon=True)

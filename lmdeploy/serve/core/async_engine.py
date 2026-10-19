@@ -101,9 +101,14 @@ class AsyncEngine:
                  chat_template_config: ChatTemplateConfig | None = None,
                  max_log_len: int | None = None,
                  speculative_config: SpeculativeConfig | None = None,
+                 task: str | None = None,
                  **kwargs) -> None:
         logger.info(f'input backend={backend}, backend_config={backend_config}')
         logger.info(f'speculative_config={speculative_config}')
+        self.task = task
+        if task is not None:
+            from lmdeploy.serve.processors.intern_decision.task import configure_task
+            backend_config = configure_task(task, model_path, backend, backend_config, speculative_config)
         backend_config = backend_config or (TurbomindEngineConfig()
                                             if backend == 'turbomind' else PytorchEngineConfig())
         self.model_name = model_name if model_name else model_path
@@ -112,11 +117,12 @@ class AsyncEngine:
         self.prompt_processor = MultimodalProcessor(self.tokenizer, self.chat_template)
         self.hf_gen_cfg = get_hf_gen_cfg(model_path)
         self.arch, self.hf_cfg = get_model_arch(model_path)
-        # TODO(intern-decision): [01] 在此建立 HTTP / Python 共用的决策任务配置与处理器。
-        # 接收显式 intern-decision 任务选择，或读取带版本的 decision_config.json；
-        # Qwen3.5 架构名继续决定网络实现，不能仅凭架构名或 <decision> token 判定任务。
-        # 校验 tokenizer、模板、候选单 token 和后端能力后，初始化独立输入 / 输出处理器；
-        # 首版使用 PyTorch 评分路径，保留普通聊天 / 奖励模型的默认初始化行为。
+        if task == 'intern-decision':
+            from lmdeploy.serve.processors.intern_decision.input import DecisionInputProcessor
+            from lmdeploy.serve.processors.intern_decision.output import DecisionOutputProcessor
+            self.decision_input = DecisionInputProcessor(model_path, hf_config=self.hf_cfg)
+            self.decision_output = DecisionOutputProcessor()
+            self.model_name = model_name or 'intern-decision'
         self.session_len = (_get_and_verify_max_len(self.hf_cfg, None)
                             if backend_config.session_len is None else backend_config.session_len)
         backend_config.session_len = self.session_len

@@ -1366,8 +1366,6 @@ def create_lifespan_handler(backend_config: PytorchEngineConfig | TurbomindEngin
     return lifespan_handler
 
 
-# TODO(intern-decision): [01] 为 serve 增加拟议 task 参数，接收 CLI/Python 的任务选择；
-# 将选择传入下方共享引擎初始化，使服务入口与 Pipeline.decide 使用同一套任务处理器。
 def serve(model_path: str,
           model_name: str | None = None,
           backend: Literal['turbomind', 'pytorch'] = 'turbomind',
@@ -1391,6 +1389,7 @@ def serve(model_path: str,
           allow_terminate_by_client: bool = False,
           enable_abort_handling: bool = False,
           speculative_config: SpeculativeConfig | None = None,
+          task: str | None = None,
           **kwargs):
     """An example to perform model inference through the command line
     interface.
@@ -1458,16 +1457,18 @@ def serve(model_path: str,
         http_or_https = 'https'
 
     handle_torchrun()
-    # TODO(intern-decision): [01] 在现有架构识别之外传递决策任务配置，并在共同引擎层
-    # 校验 tokenizer/template 与决策协议；复用 Qwen3.5 注册、权重加载和视觉计算。
-    # 不将所有 Qwen3.5 自动视为决策模型，也不在此另启模型或独立事件循环。
-    _, pipeline_class = get_task(model_path)
+    _, pipeline_class = get_task(model_path, task)
+    if task == 'intern-decision' and backend_config is None:
+        from lmdeploy.serve.processors.intern_decision.task import default_backend_config
+        backend_config = default_backend_config()
+        backend = 'pytorch'
     if isinstance(backend_config, PytorchEngineConfig):
         backend_config.enable_mp_engine = True
         # router replay
         if backend_config.enable_return_routed_experts:
             backend_config.enable_transfer_obj_ref = True
     VariableInterface.async_engine = pipeline_class(model_path=model_path,
+                                                    task=task,
                                                     model_name=model_name,
                                                     backend=backend,
                                                     backend_config=backend_config,
