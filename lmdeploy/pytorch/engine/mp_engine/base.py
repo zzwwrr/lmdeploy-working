@@ -25,6 +25,7 @@ class MPEngine(EngineBase):
         """Initialize mp engine."""
         self.session_states = defaultdict(SessionState)
         self.engine_config = self._collective_rpc('get_engine_config')
+        self.max_session_len = self._collective_rpc('get_max_session_len')
 
     def _collective_rpc(self, func, *args, **kwargs):
         """Collective rpc call."""
@@ -61,6 +62,9 @@ class MPEngine(EngineBase):
     def update_params(self, request: Any):
         """Update params."""
         return self._collective_rpc('update_params', request)
+
+    def get_max_session_len(self):
+        return self.max_session_len
 
     def get_schedule_metrics(self):
         """Get schedule metrics."""
@@ -101,7 +105,7 @@ class MPEngineInstance(EngineInstanceBase):
             return ResponseType.SESSION_NOT_EXIST
         await self.session_states[session_id].is_exists.wait()
         ret = await self.engine._collective_rpc_async('instance_async_end', session_id)
-        self.session_states.pop(session_id)
+        self.session_states.pop(session_id, None)
         return ret
 
     async def async_cancel(self, session_id: int):

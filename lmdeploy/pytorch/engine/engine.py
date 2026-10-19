@@ -530,6 +530,10 @@ class Engine(EngineBase):
             return True
         return False
 
+    def get_max_session_len(self):
+        """Actual token capacity after cache sizing, possibly below configuration."""
+        return self.max_session_len
+
     def get_engine_config(self):
         return self.engine_config
 

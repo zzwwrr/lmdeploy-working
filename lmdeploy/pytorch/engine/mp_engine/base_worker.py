@@ -73,6 +73,9 @@ class EngineWorkerBase:
         """End session."""
         return self.engine.end_session(session_id)
 
+    def get_max_session_len(self):
+        return self.engine.get_max_session_len()
+
     def get_engine_config(self):
         """Get engine config."""
         return self.engine.get_engine_config()

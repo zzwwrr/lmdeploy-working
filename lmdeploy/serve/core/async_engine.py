@@ -622,18 +622,6 @@ class AsyncEngine:
             raise DecisionUnavailable('Enable task=intern-decision to use decisions')
         return await self.decision_runtime.decide(self, request)
 
-    # TODO(intern-decision): [06] 重构本评分路径的资源收尾，覆盖成功、异常、取消和超时。
-    # 让 finally 关闭结果生成器，并在需要时取消请求；等待 END_SESSION 确认后再归还 handle。
-    # 对并发评分的失败，取消并等待其余任务；依照 session 所有权清理本地记录与引擎缓存。
-    # 结合 safe_run 与 Session.request_handle 的异常处理，避免异常被吞掉或重复归还资源。
-    # 需同步审查 serve/managers/session_manager.py 的 request_handle / async_close：
-    # step==0 的提前返回可能跳过评分 session；持有 handle 时调用 async_close 又会等待自己释放。
-    # 因此不能简单把现有 async_close 搬入持有 handle 的 finally；应设计可确认结束的共用原语。
-    # 同步审查 pytorch/engine/engine_instance.py 的 async_end / end：当前发送 response=False，
-    # 不能把调用返回视为 END_SESSION 已确认；该文件也受 SHA256 保护，本轮仅在此记录待办。
-    # 清理超时或失败不得把状态不明的 handle 放回池中，异常也必须反馈给决策调用方。
-    # 现有外置后端固定校验 session_manager.py 的 SHA256，本轮将该文件的待办写在这里，
-    # 避免仅添加注释就破坏现有服务；实际协议重构时再协调兼容性与相应版本约束。
     async def async_get_logits(self,
                                input_ids,
                                sessions: List['Session'] | None = None,

@@ -27,6 +27,8 @@ class Session:
         # event to wait for the session to be active
         self._active: asyncio.Event | None = None
         self._handle = None  # inference instance
+        self._handle_reusable = True
+        self._engine_session_active = False
         self._session_mgr: SessionManager = weakref.ref(session_mgr)
         self.update(**kwargs)
 
@@ -70,20 +72,24 @@ class Session:
         logger.debug(f'Session {self.session_id} has been reset.')
 
     @asynccontextmanager
-    async def request_handle(self):
+    async def request_handle(self, *, strict=False):
         if self._handle is not None:
             raise RuntimeError(f'Session {self.session_id} already has an inference instance.')
         logger.debug(f'[request_handle] session {self.session_id} acquiring an instance')
 
         hnd_pool = self._session_mgr().request_handle_pool
         self._handle = await hnd_pool.get()
+        self._handle_reusable = True
         self._active = asyncio.Event()
         logger.debug(f'[request_handle] session {self.session_id} acquired an instance')
         try:
             yield self._handle
         except SafeRunException:
-            pass
+            if strict:
+                raise
         except (asyncio.CancelledError, GeneratorExit) as e:
+            if strict:
+                raise
             logger.exception(f'[request_handle] session {self.session_id} exception caught: {e}')
             await self._handle.async_cancel(self.session_id)
         except Exception as e:
@@ -93,11 +99,57 @@ class Session:
             logger.debug(f'[request_handle] session {self.session_id} releasing the instance')
             # Return inference instance if it was acquired
             if self._handle is not None:
-                hnd_pool.put(self._handle)
+                if self._handle_reusable:
+                    hnd_pool.put(self._handle)
                 self._handle = None
             # MUST set the signal after releasing the instance to avoid race condition
             # refer to async_end method
             self._active.set()
+
+    async def finish_score(self, handle, generator, *, submitted, finished, end,
+                           timeout, original_error, engine):
+        """Finish owned scoring work while still holding its request handle.
+
+        Never call async_close here: it waits for this very handle to be returned.
+        The stream has already stopped iterating before this method is entered.
+        """
+        from lmdeploy.serve.core.scoring import await_bounded_cleanup
+        from lmdeploy.messages import ResponseType
+        self._engine_session_active = submitted
+
+        async def cleanup():
+            pending = None
+            if submitted and not finished:
+                try:
+                    await handle.async_cancel(self.session_id)
+                except Exception as exc:
+                    pending = exc
+            if generator is not None:
+                try:
+                    await generator.aclose()
+                except Exception as exc:
+                    pending = pending or exc
+            if submitted and end:
+                status = await handle.async_end(self.session_id)
+                if status not in (ResponseType.SUCCESS, ResponseType.SESSION_NOT_EXIST):
+                    raise RuntimeError(f'END_SESSION was not confirmed: {status}')
+                self._engine_session_active = False
+                self.step = 0
+            if pending:
+                raise RuntimeError('Scoring cancellation or stream closure failed') from pending
+
+        try:
+            await await_bounded_cleanup(cleanup(), timeout.cleanup_timeout if timeout else 10)
+        except BaseException as exc:
+            self._handle_reusable = False
+            engine._scoring_failure = 'Scoring cleanup failed; restart the engine'
+            runtime = getattr(engine, 'decision_runtime', None)
+            if runtime is not None:
+                runtime.failure = engine._scoring_failure
+            if original_error is not None:
+                original_error.add_note(f'Scoring cleanup also failed: {exc!r}')
+            else:
+                raise
 
     async def async_abort(self):
         """Abort the session."""
@@ -108,7 +160,7 @@ class Session:
     async def async_close(self):
         """End the session."""
         logger.info(f'[session] Ending session {self.session_id}')
-        if self._handle is None and self.step == 0:
+        if self._handle is None and self.step == 0 and not self._engine_session_active:
             return
         if self._handle is not None:
             await self._active.wait()

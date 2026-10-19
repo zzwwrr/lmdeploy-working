@@ -7,7 +7,24 @@ import torch
 from lmdeploy.messages import GenerationConfig, ResponseType
 
 
+async def await_bounded_cleanup(awaitable, timeout):
+    """Keep cleanup alive under caller cancellation, with an absolute time bound."""
+    task = asyncio.ensure_future(asyncio.wait_for(awaitable, timeout))
+    cancellation = None
+    while not task.done():
+        try:
+            await asyncio.shield(task)
+        except asyncio.CancelledError as exc:
+            cancellation = cancellation or exc
+    result = task.result()
+    if cancellation is not None:
+        raise cancellation
+    return result
+
+
 async def score_logits(engine, input_ids, sessions, sequence_start, sequence_end, multimodal, read_positions):
+    if getattr(engine, '_scoring_failure', None):
+        raise RuntimeError(engine._scoring_failure)
     created = sessions is None
     sessions = sessions if sessions is not None else [engine.session_mgr.get() for _ in input_ids]
 

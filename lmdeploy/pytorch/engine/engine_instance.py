@@ -43,8 +43,9 @@ async def async_try_add_session(req_sender: RequestSender, session_id: int):
 async def async_cancel(req_sender: RequestSender, session_id: int):
     """Stop current streaming inference."""
     resp = await req_sender.async_send(RequestType.STOP_SESSION, dict(session_id=session_id))
-    _check_resp_success(resp, (f'Failed to cancel session: {session_id}. '
-                               f'Error: {resp.type}.'))
+    if resp.type not in (ResponseType.SUCCESS, ResponseType.SESSION_NOT_EXIST):
+        raise RuntimeError(f'STOP_SESSION failed: {resp.type}')
+    return resp.type
 
 
 def try_add_session(req_sender: RequestSender, session_id: int):
@@ -61,7 +62,10 @@ def try_add_session(req_sender: RequestSender, session_id: int):
 def end(req_sender: RequestSender, session_id: int):
     """End the given session."""
     logger.debug(f'session[{session_id}] try end session.')
-    req_sender.send_async(RequestType.END_SESSION, dict(session_id=session_id, response=False))
+    resp = req_sender.send(RequestType.END_SESSION, dict(session_id=session_id, response=True))
+    if resp.type not in (ResponseType.SUCCESS, ResponseType.SESSION_NOT_EXIST):
+        raise RuntimeError(f'END_SESSION failed: {resp.type}')
+    return resp.type
 
 
 def cancel(req_sender: RequestSender, session_id: int):
@@ -297,7 +301,11 @@ class EngineInstance(EngineInstanceBase):
 
     async def async_end(self, session_id: int):
         """End the given session."""
-        return end(self.req_sender, session_id)
+        resp = await self.req_sender.async_send(
+            RequestType.END_SESSION, dict(session_id=session_id, response=True))
+        if resp.type not in (ResponseType.SUCCESS, ResponseType.SESSION_NOT_EXIST):
+            raise RuntimeError(f'END_SESSION failed: {resp.type}')
+        return resp.type
 
     def end(self, session_id: int):
         """End the given session."""
