@@ -5,14 +5,13 @@
 # (the checkpoint's inference.py feeds pixels as stored).
 """Turn decision image inputs into validated, in-memory RGB images."""
 
-import base64
-import binascii
-import io
+from functools import partial
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
 from lmdeploy.serve.core.decision_protocol import MAX_IMAGES
+from lmdeploy.vl.media.image import ImageMediaIO
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_UPLOAD_TOTAL = 32 * 1024 * 1024
@@ -39,26 +38,17 @@ def _decode_upload(item: dict) -> tuple[bytes, str]:
         raise ValueError('Image MIME and data URL disagree')
     if content_type not in FORMATS:
         raise ValueError('Supported image formats: JPEG, PNG, WebP and static GIF.')
-    try:
-        payload = base64.b64decode(encoded, validate=True)
-    except (ValueError, binascii.Error) as exc:
-        raise ValueError('Invalid image base64.') from exc
-    if not payload or len(payload) > MAX_UPLOAD_BYTES:
-        raise ValueError('Each image must be between 1 byte and 12 MB.')
+    payload = ImageMediaIO(strict_base64=True, max_bytes=MAX_UPLOAD_BYTES).decode_base64(content_type, encoded)
     return payload, FORMATS[content_type]
 
 
-def _to_rgb(source, expected_format: str | None) -> Image.Image:
+def _validate_image(source: Image.Image, expected_format: str | None) -> None:
     if expected_format is not None and source.format != expected_format:
         raise ValueError('Image content does not match its declared format.')
     if source.width * source.height > MAX_IMAGE_PIXELS:
         raise ValueError('Each image is limited to 16 million pixels.')
     if getattr(source, 'n_frames', 1) != 1:
         raise ValueError('Animated images are not supported; upload a still image.')
-    # Like the reference, pixels are used as stored: EXIF orientation is not applied.
-    image = source.convert('RGB')
-    image.info.clear()
-    return image
 
 
 def load_images(items: list, *, allow_paths: bool, media_root: str | Path = '.') -> list[Image.Image]:
@@ -77,7 +67,7 @@ def load_images(items: list, *, allow_paths: bool, media_root: str | Path = '.')
                 total += len(payload)
                 if total > MAX_UPLOAD_TOTAL:
                     raise ValueError('Combined image upload is limited to 32 MB.')
-                source = io.BytesIO(payload)
+                source = payload
             elif isinstance(item, (str, Path)) and str(item):
                 if not allow_paths:
                     raise ValueError('Upload image bytes; server-side paths are not accepted.')
@@ -90,9 +80,11 @@ def load_images(items: list, *, allow_paths: bool, media_root: str | Path = '.')
             else:
                 raise ValueError('Each image must be a local path or an uploaded image object.')
             try:
-                # The pixel cap is checked from the header before any decoding.
-                with Image.open(source) as opened:
-                    images.append(_to_rgb(opened, expected))
+                # Validation sees original headers/frames, before RGB conversion.
+                # Keep the checkpoint's stored pixel orientation and drop metadata.
+                loader = ImageMediaIO(validator=partial(_validate_image, expected_format=expected),
+                                      clear_metadata=True)
+                images.append(loader.load_bytes(source) if isinstance(source, bytes) else loader.load_file(source))
             except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
                 raise ValueError('Invalid, incomplete or oversized image.') from exc
     except BaseException:
