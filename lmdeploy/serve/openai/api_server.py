@@ -29,6 +29,7 @@ from lmdeploy.metrics.metrics_processor import metrics_processor
 from lmdeploy.model import ChatTemplateConfig
 from lmdeploy.serve.anthropic import create_anthropic_router
 from lmdeploy.serve.core import AsyncEngine, EngineHealthMonitor
+from lmdeploy.serve.core.base_runner import create_session
 from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
 from lmdeploy.serve.core.generation_config import (
     resolve_default_gen_config,
@@ -64,7 +65,7 @@ class ServerContext:
         self.response_parser_cls: type[ResponseParser] | None = None
         self.default_gen_config: dict = {}
         # Set by serve(task='intern-decision'); POST /v1/decisions returns 503 otherwise.
-        self.decision_service = None
+        self.decision_runtime = None
 
     @property
     def engine_config(self):
@@ -75,18 +76,7 @@ class ServerContext:
         return self.async_engine.session_mgr
 
     def create_session(self, user_session_id: int | None = None) -> Session:
-        session_mgr = self.session_manager
-        if user_session_id is None or user_session_id == -1:
-            # user doesn't input session_id, so we need to generate a new one
-            session = session_mgr.get()
-        else:
-            # find the inside session_id by user_session_id, create a new one
-            # if it doesn't exist and update the user_session_id_map
-            session_id = session_mgr.map_user_session_id(user_session_id)
-            session = session_mgr.get(session_id)
-        # Stamp epoch for ``stop_all_session`` / ``abort_all`` coordination in ``AsyncEngine.generate``.
-        session.epoch = self.async_engine.epoch
-        return session
+        return create_session(self.async_engine, user_session_id)
 
     def find_session(self, user_session_id: int) -> Session | None:
         """Find the session by user_session_id.
@@ -397,11 +387,11 @@ def serve(model_path: str,
         **kwargs)
     set_parsers(server_context, reasoning_parser, tool_call_parser)
     if task is not None:
-        from lmdeploy.serve.processors.intern_decision import DecisionService
+        from lmdeploy.serve.processors.intern_decision import DecisionRuntime
         try:
-            server_context.decision_service = DecisionService(server_context.async_engine,
-                                                              model_path,
-                                                              trust_remote_code=trust_remote_code)
+            server_context.decision_runtime = DecisionRuntime(server_context.async_engine,
+                                                               model_path,
+                                                               trust_remote_code=trust_remote_code)
         except BaseException:
             server_context.async_engine.close()
             raise

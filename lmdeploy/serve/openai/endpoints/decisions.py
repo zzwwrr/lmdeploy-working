@@ -1,11 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-"""Intern-Decision endpoints: a thin HTTP transport over ``DecisionService``."""
+"""Intern-Decision endpoints: a thin HTTP transport over ``DecideRunner``."""
 from __future__ import annotations
 
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Request
 
+from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.core.exceptions import RequestError
 from lmdeploy.serve.openai.errors import create_error_response, create_request_error_response
 from lmdeploy.serve.processors.intern_decision import DecisionError, DecisionRequest
@@ -24,12 +25,16 @@ def register(router: APIRouter, server_context) -> None:
         HTTP every image must be an upload object ``{"data": "<base64 or data URL>", "type": "image/png"}``;
         server-side paths and remote URLs are rejected.
         """
-        service = server_context.decision_service
-        if service is None:
+        runtime = server_context.decision_runtime
+        if runtime is None:
             return create_error_response(HTTPStatus.SERVICE_UNAVAILABLE,
                                          'Start the server with --task intern-decision to use decisions.')
         try:
-            return await service.decide(request, allow_local_paths=False)
+            return await DecideRunner(server_context.async_engine, runtime).run(
+                request,
+                allow_local_paths=False,
+                is_disconnected=raw_request.is_disconnected if raw_request is not None else None,
+            )
         except RequestError as e:
             return create_request_error_response(e)
         except DecisionError as e:

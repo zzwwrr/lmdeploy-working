@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from typing import Any
@@ -11,8 +10,8 @@ from typing import Any
 from lmdeploy.messages import GenerationConfig
 from lmdeploy.serve.core.generation_config import build_generation_config
 from lmdeploy.serve.openai.protocol import ChatCompletionRequest, DeltaMessage
-from lmdeploy.serve.utils.request_cleanup import cleanup_result_generators
 
+from .base_runner import BaseRunner
 from .exceptions import ErrorCode, RequestError
 
 
@@ -64,17 +63,14 @@ class ChatResult:
     reasoning_tokens: int | None = None
 
 
-@dataclass
-class ChatRunner:
+class ChatRunner(BaseRunner):
     """Prepared shared chat generation run."""
 
-    request: ChatCompletionRequest
-    response_parser: Any
-    gen_config: GenerationConfig
-    session: Any
-    result_generator: Any
-    session_manager: Any
-    _closed: bool = False
+    def __init__(self, engine, request: ChatCompletionRequest, response_parser, gen_config: GenerationConfig):
+        super().__init__(engine)
+        self.request = request
+        self.response_parser = response_parser
+        self.gen_config = gen_config
 
     @classmethod
     async def prepare(
@@ -107,11 +103,11 @@ class ChatRunner:
             adapter_name = parsed_request.model
 
         engine_messages = None if options.input_ids is not None else parsed_request.messages
-        session = server_context.create_session(parsed_request.session_id)
-        preprocessed = await server_context.async_engine.preprocess(
+        runner = cls(server_context.async_engine, parsed_request, response_parser, gen_config)
+        await runner.prepare_engine(
             engine_messages,
-            session,
             gen_config=gen_config,
+            user_session_id=parsed_request.session_id,
             tools=parsed_request.tools,
             reasoning_effort=parsed_request.reasoning_effort,
             do_preprocess=options.do_preprocess,
@@ -122,30 +118,7 @@ class ChatRunner:
             mm_processor_kwargs=parsed_request.mm_processor_kwargs,
             **options.preprocess_kwargs,
         )
-        result_generator = server_context.async_engine.generate(preprocessed, stream_response=True)
-        return cls(
-            request=parsed_request,
-            response_parser=response_parser,
-            gen_config=gen_config,
-            session=session,
-            result_generator=result_generator,
-            session_manager=server_context.session_manager,
-        )
-
-    async def close(self) -> None:
-        """Close the engine generator and remove the API session."""
-        if self._closed:
-            return
-        self._closed = True
-        cleanup_task = asyncio.create_task(
-            cleanup_result_generators(
-                [self.result_generator],
-                [self.session],
-                self.session_manager,
-            ),
-            name='chat_runner_cleanup',
-        )
-        await asyncio.shield(cleanup_task)
+        return runner
 
     async def stream(self) -> AsyncGenerator[ChatStreamChunk, None]:
         """Yield parser-normalized streaming chunks and clean up the
@@ -157,7 +130,7 @@ class ChatRunner:
             or self.request.return_logprob
         )
         try:
-            async for res in self.result_generator:
+            async for res in self.iter_outputs():
                 delta_text = res.response or ''
                 delta_token_ids = res.token_ids if res.token_ids is not None else []
                 try:
@@ -220,10 +193,8 @@ class ChatRunner:
         cache_block_ids: list[Any] = []
         remote_token_ids: list[Any] = []
         try:
-            async for res in self.result_generator:
-                if raw_request is not None and await raw_request.is_disconnected():
-                    await self.session.async_abort()
-                    raise RequestError(ErrorCode.INVALID_REQUEST, 'Client disconnected')
+            async for res in self.iter_outputs(
+                    is_disconnected=raw_request.is_disconnected if raw_request is not None else None):
                 final_res = res
                 text += res.response or ''
                 if res.token_ids:

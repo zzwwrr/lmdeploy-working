@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+import pytest
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 
@@ -76,6 +77,14 @@ def test_sleeping_engine_protects_anthropic_inference_route():
     assert status_code == 503
     assert body['error']['type'] == 'overloaded_error'
     assert 'sleeping' in body['error']['message']
+
+
+@pytest.mark.parametrize('path', ['/v1/decisions', '/v1/jev'])
+def test_sleeping_engine_protects_decision_routes(path):
+    middleware = EngineSleepingMiddleware(_unused_app, is_sleeping=lambda: True)
+    status_code, body = asyncio.run(_call_middleware(middleware, path))
+    assert status_code == 503
+    assert 'sleeping' in body['message']
 
 
 def test_validation_errors_use_route_protocol_envelope():

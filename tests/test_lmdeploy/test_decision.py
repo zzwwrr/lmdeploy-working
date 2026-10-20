@@ -4,6 +4,8 @@ import asyncio
 import base64
 import io
 import math
+import threading
+from importlib import import_module
 from types import SimpleNamespace
 
 import pytest
@@ -13,12 +15,13 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
+from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.processors.intern_decision import DecisionError, DecisionQueueFull, DecisionRequest
 from lmdeploy.serve.processors.intern_decision.encoding import EncodedDecision
 from lmdeploy.serve.processors.intern_decision.images import load_images
 from lmdeploy.serve.processors.intern_decision.output import DecisionOutputProcessor, scale_probabilities
+from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
 from lmdeploy.serve.processors.intern_decision.schema import compile_row
-from lmdeploy.serve.processors.intern_decision.service import DecisionService
 
 QUESTIONS = {
     'action': {
@@ -174,7 +177,7 @@ def test_output_rejects_bad_logits(logits):
         DecisionOutputProcessor()(questions, ('q', ), logits)
 
 
-# ---------------------------------------------------------------- service
+# ---------------------------------------------------------------- runner
 
 MARKER, IMAGE_PAD = 900, 800
 SYMBOLS = {'A': 32, 'B': 33, 'C': 34}
@@ -238,17 +241,16 @@ class FakeEngine:
         yield SimpleNamespace(logprobs=rows, logprob_token_ids=targets, finish_reason='length')
 
 
-def _service(engine):
-    service = DecisionService.__new__(DecisionService)
-    service.async_engine = engine
-    service.model_names = {engine.model_name, 'Intern-Decision-0.8B'}
-    service.max_length = 8191
-    service.max_pending_requests = 2
-    service.supports_images = True
-    service.encoder = SimpleNamespace(marker_id=MARKER, symbol_ids=SYMBOLS)
-    service.output = DecisionOutputProcessor()
-    service.pending = 0
-    return service
+def _runtime(engine):
+    runtime = DecisionRuntime.__new__(DecisionRuntime)
+    runtime.model_names = {engine.model_name, 'Intern-Decision-0.8B'}
+    runtime.max_length = 8191
+    runtime.max_pending_requests = 2
+    runtime.supports_images = True
+    runtime.encoder = SimpleNamespace(marker_id=MARKER, symbol_ids=SYMBOLS)
+    runtime.output = DecisionOutputProcessor()
+    runtime.pending = 0
+    return runtime
 
 
 def _encoded(images=0):
@@ -262,8 +264,8 @@ def _encoded(images=0):
 @pytest.mark.parametrize('images', [0, 2])
 def test_score_reads_marker_rows_after_image_expansion(images):
     engine = FakeEngine()
-    service = _service(engine)
-    logits, length = asyncio.run(service._score(_encoded(images), [object()] * images))
+    runner = DecideRunner(engine, _runtime(engine))
+    logits, length = asyncio.run(runner._score(_encoded(images), [object()] * images))
     request = engine.requests[0]
     assert length == len(request.ids)
     # The first scored row is the token right before the first <decision>, after expansion.
@@ -277,7 +279,7 @@ def test_score_reads_marker_rows_after_image_expansion(images):
 def test_score_failure_cleans_up_session():
     engine = FakeEngine(fail=RuntimeError('boom'))
     with pytest.raises(RuntimeError, match='boom'):
-        asyncio.run(_service(engine)._score(_encoded(), []))
+        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
     assert not engine.session_mgr.sessions
 
 
@@ -285,40 +287,170 @@ def test_aborted_score_is_unavailable():
     from lmdeploy.serve.processors.intern_decision import DecisionUnavailable
     engine = FakeEngine(abort=True)
     with pytest.raises(DecisionUnavailable, match='aborted'):
-        asyncio.run(_service(engine)._score(_encoded(), []))
+        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
     assert not engine.session_mgr.sessions
 
 
 def test_score_rejects_over_length_without_running():
     engine = FakeEngine(expand=10_000)
     with pytest.raises(ValueError, match='truncation'):
-        asyncio.run(_service(engine)._score(_encoded(1), [object()]))
+        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(1), [object()]))
     assert not engine.session_mgr.sessions
 
 
 def test_decide_end_to_end_and_admission():
     engine = FakeEngine()
-    service = _service(engine)
+    runtime = _runtime(engine)
+    runner = DecideRunner(engine, runtime)
     encoded = _encoded()
-    service._prepare = lambda request, allow_local_paths: ([], encoded)
+    runner._prepare = lambda request, allow_local_paths: ([], encoded)
     request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
-    result = asyncio.run(service.decide({**request, 'model': 'Intern-Decision-0.8B'}))
+    result = asyncio.run(runner.run({**request, 'model': 'Intern-Decision-0.8B'}))
     assert list(result['answers']) == ['a', 'r']
     assert result['usage']['generated_tokens'] == 0 and result['usage']['decision_count'] == 2
     assert result['calibration'] == {'method': 'temperature-scaling', 'temperature': 2.747760550703}
-    assert service.pending == 0
+    assert runtime.pending == 0
 
-    service.pending = service.max_pending_requests
+    runtime.pending = runtime.max_pending_requests
     with pytest.raises(DecisionQueueFull):
-        asyncio.run(service.decide(request))
+        asyncio.run(DecideRunner(engine, runtime).run(request))
     with pytest.raises(ValueError, match='Unknown model'):
-        asyncio.run(_service(engine).decide({**request, 'model': 'other'}))
+        asyncio.run(DecideRunner(engine, _runtime(engine)).run({**request, 'model': 'other'}))
+
+
+@pytest.mark.parametrize('failure', ['preparation', 'engine', 'output'])
+def test_request_failure_releases_images_and_admission(failure):
+    engine = FakeEngine(fail=RuntimeError('failed') if failure == 'engine' else None)
+    runtime = _runtime(engine)
+    runner = DecideRunner(engine, runtime)
+    closed = []
+    image = SimpleNamespace(close=lambda: closed.append(True))
+
+    def fail(*args, **kwargs):
+        raise ValueError('failed')
+
+    if failure == 'preparation':
+        runtime.encoder.encode = fail
+        # Exercise the real _prepare's image ownership on encoder failure.
+        request = {'state': 1, 'questions': QUESTIONS, 'images': [_upload(_png())]}
+    else:
+        runner._prepare = lambda *args: ([image], _encoded(1))
+        request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
+        if failure == 'output':
+            runtime.output = fail
+    with pytest.raises((ValueError, RuntimeError), match='failed'):
+        asyncio.run(runner.run(request))
+    assert runtime.pending == 0
+    assert not engine.session_mgr.sessions
+    if failure != 'preparation':
+        assert closed == [True]
+
+
+def test_cancelled_preparation_keeps_admission_until_worker_releases_images():
+    engine = FakeEngine()
+    runtime = _runtime(engine)
+    runtime.max_pending_requests = 1
+    runner = DecideRunner(engine, runtime)
+    release_worker = threading.Event()
+    closed = []
+    image = SimpleNamespace(close=lambda: closed.append(True))
+    request = {'state': 1, 'questions': QUESTIONS}
+
+    async def run():
+        started = asyncio.Event()
+        loop = asyncio.get_running_loop()
+
+        def prepare(*args):
+            loop.call_soon_threadsafe(started.set)
+            assert release_worker.wait(timeout=10)
+            return [image], _encoded()
+
+        runner._prepare = prepare
+        task = asyncio.create_task(runner.run(request))
+        try:
+            await asyncio.wait_for(started.wait(), timeout=5)
+            task.cancel()
+            # Allow the request to enter shielded cleanup, then cancel again.
+            while not hasattr(runner, '_request_cleanup_task'):
+                await asyncio.sleep(0)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            assert runtime.pending == 1
+            with pytest.raises(DecisionQueueFull):
+                await DecideRunner(engine, runtime).run(request)
+        finally:
+            release_worker.set()
+            await asyncio.wait_for(runner._request_cleanup_task, timeout=5)
+        assert closed == [True]
+        assert runtime.pending == 0
+        assert not engine.requests
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize('case, message', [
+    ('empty', 'no input logprobs'),
+    ('missing', 'no input logprobs'),
+    ('misaligned', 'misaligned'),
+    ('no_markers', 'Expected 2 decision rows'),
+    ('missing_candidate', 'lack a requested candidate'),
+])
+def test_invalid_scoring_output_releases_session(case, message):
+    engine = FakeEngine()
+
+    async def generate(*args, **kwargs):
+        if case == 'empty':
+            return
+        rows = [{32: 1.0, 33: 2.0, 34: 3.0}] * 2
+        targets = [MARKER, MARKER]
+        if case == 'missing':
+            rows = None
+        elif case == 'misaligned':
+            targets = [MARKER]
+        elif case == 'no_markers':
+            targets = [1, 2]
+        elif case == 'missing_candidate':
+            rows = [{32: 1.0}] * 2
+        yield SimpleNamespace(logprobs=rows, logprob_token_ids=targets, finish_reason='length')
+
+    engine.generate = generate
+    with pytest.raises(DecisionError, match=message):
+        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+    assert not engine.session_mgr.sessions
+
+
+def test_pipeline_decide_uses_request_runner_with_local_paths(monkeypatch):
+    from concurrent.futures import Future
+
+    from lmdeploy.pipeline import Pipeline
+
+    pipeline = Pipeline.__new__(Pipeline)
+    pipeline.async_engine = FakeEngine()
+    pipeline.decision_runtime = _runtime(pipeline.async_engine)
+    observed = []
+
+    def prepare(self, request, allow_local_paths):
+        observed.append(allow_local_paths)
+        return [], _encoded()
+
+    def run(coro):
+        future = Future()
+        future.set_result(asyncio.run(coro))
+        return future
+
+    monkeypatch.setattr(DecideRunner, '_prepare', prepare)
+    pipeline._run = run
+    result = pipeline.decide({'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}})
+    assert result['usage']['generated_tokens'] == 0
+    assert observed == [True]
+    assert pipeline.decision_runtime.pending == 0
 
 
 # ---------------------------------------------------------------- HTTP
 
 
-def test_http_routes():
+def test_http_routes(monkeypatch):
     from lmdeploy.serve.openai.api_server import ServerContext
     from lmdeploy.serve.openai.endpoints import create_openai_router
 
@@ -331,9 +463,14 @@ def test_http_routes():
 
     calls = []
 
-    class Service:
+    class Runner:
 
-        async def decide(self, request, allow_local_paths):
+        def __init__(self, engine, runtime):
+            assert engine is context.async_engine
+            assert runtime is context.decision_runtime
+
+        async def run(self, request, allow_local_paths, is_disconnected):
+            assert callable(is_disconnected)
             calls.append(allow_local_paths)
             if request.state == 'busy':
                 raise DecisionQueueFull('busy')
@@ -341,7 +478,8 @@ def test_http_routes():
                 raise ValueError('bad image')
             return {'ok': True}
 
-    context.decision_service = Service()
+    monkeypatch.setattr(import_module('lmdeploy.serve.openai.endpoints.decisions'), 'DecideRunner', Runner)
+    context.decision_runtime = object()
     assert client.post('/v1/decisions', json=body).json() == {'ok': True}
     assert client.post('/v1/jev', json=body).json() == {'ok': True}
     assert client.post('/v1/decisions', json={**body, 'state': 'busy'}).status_code == 429

@@ -5,6 +5,18 @@ A beginner's tutorial. It explains how LMDeploy is organised, how Intern-Decisio
 
 > You only need a rough idea of "a request comes in, the model runs, an answer goes out".
 
+> **Runner refactor (2026-10-20):** the walkthrough below describes the original v2 commits.
+> The current implementation splits `DecisionService` into a shared
+> [`DecisionRuntime`](../lmdeploy/serve/processors/intern_decision/runtime.py) and a per-request
+> [`DecideRunner`](../lmdeploy/serve/core/decide_runner.py).
+> `ServerContext.decision_runtime` and `Pipeline.decision_runtime` hold the encoder, calibration and admission state.
+> Both HTTP and `Pipeline.decide()` call `DecideRunner.run()`. `ChatRunner` and `DecideRunner` inherit
+> [`BaseRunner`](../lmdeploy/serve/core/base_runner.py), which owns session creation, epoch stamping,
+> engine preprocessing/generation, disconnect checks and cleanup. Decision's `after_preprocess()` computes the
+> scoring offset after image expansion; raw `GenOut` retains the score target IDs.
+> Image resources and admission remain owned by the decision request until its preparation worker and cleanup finish.
+> The former `service.py` has been removed; the historical references below identify the original implementation.
+
 ---
 
 ## 0. The one-paragraph version

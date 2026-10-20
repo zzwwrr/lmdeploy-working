@@ -6,6 +6,11 @@ which was based on `17ed9e54` (March 2026, 371 commits behind).
 Goal of this round: **functional support** on current LMDeploy, built on its scoring-only prefill.
 Performance tuning comes later.
 
+> **Implementation update (2026-10-20):** this document records the original v2 plan and commits.
+> `DecisionService` / `ServerContext.decision_service` have since been replaced by shared `DecisionRuntime`
+> / `decision_runtime` and a per-request `DecideRunner`. Chat and Decision now share the execution lifecycle in
+> `serve/core/base_runner.py`; see the update in [the tutorial](TUTORIAL_three_layers.md).
+
 ## Why port instead of rebasing commit by commit
 
 Since v1 was cut, `main` has changed the files v1 touches a great deal:

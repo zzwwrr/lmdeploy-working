@@ -40,6 +40,7 @@ class _FakeSessionManager:
 class _FakeEngine:
 
     model_name = 'fake-model'
+    epoch = 0
     backend_config = SimpleNamespace(adapters=[])
 
     def __init__(self, outputs=None):
@@ -282,3 +283,35 @@ def test_runner_engine_error_is_not_reclassified_as_request_error():
 
     with pytest.raises(RuntimeError, match='engine exploded'):
         asyncio.run(_run())
+
+
+def test_stream_parser_failure_closes_underlying_engine_generator():
+    class FailingParser(_Parser):
+        def stream_chunk(self, *args, **kwargs):
+            raise ValueError('bad streaming payload')
+
+    context = _FakeServerContext(FailingParser)
+
+    async def run():
+        runner = await ChatRunner.prepare(context, _request())
+        return [chunk async for chunk in runner.stream()]
+
+    with pytest.raises(RequestError, match='bad streaming payload'):
+        asyncio.run(run())
+    assert context.async_engine.generator_closed
+    assert context.session_manager.removed == [context.session_manager.session]
+
+
+def test_stream_early_close_releases_session():
+    context = _FakeServerContext(_Parser)
+
+    async def run():
+        runner = await ChatRunner.prepare(context, _request())
+        stream = runner.stream()
+        await anext(stream)
+        await stream.aclose()
+        await runner.close()
+
+    asyncio.run(run())
+    assert context.async_engine.generator_closed
+    assert context.session_manager.removed == [context.session_manager.session]

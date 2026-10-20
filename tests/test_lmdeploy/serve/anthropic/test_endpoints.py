@@ -98,6 +98,8 @@ class _SystemFirstChatTemplate(_FakeChatTemplate):
 
 class _FakeEngine:
 
+    epoch = 0
+
     def __init__(
             self,
             *,

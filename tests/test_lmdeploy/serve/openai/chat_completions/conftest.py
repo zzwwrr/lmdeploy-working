@@ -22,6 +22,7 @@ class FakeAsyncEngine:
     """
 
     model_name = 'fake-model'
+    epoch = 0
     backend_config = SimpleNamespace(adapters=[], logprobs_mode=None)
 
     def __init__(self):

@@ -103,13 +103,13 @@ class Pipeline:
         self.session_mgr = self.async_engine.session_mgr
         self.backend_config = self.async_engine.backend_config
         self.async_engine.start_loop(self.internal_thread.loop, use_async_api=False)
-        self.decision_service = None
+        self.decision_runtime = None
         if task is not None:
-            from .serve.processors.intern_decision import DecisionService
+            from .serve.processors.intern_decision import DecisionRuntime
             try:
-                self.decision_service = DecisionService(self.async_engine,
-                                                        model_path,
-                                                        trust_remote_code=trust_remote_code)
+                self.decision_runtime = DecisionRuntime(self.async_engine,
+                                                         model_path,
+                                                         trust_remote_code=trust_remote_code)
             except BaseException:
                 self.close()
                 raise
@@ -293,9 +293,14 @@ class Pipeline:
         Returns:
             dict: the same JSON-compatible response as ``POST /v1/decisions``.
         """
-        if self.decision_service is None:
+        if self.decision_runtime is None:
             raise RuntimeError("Create the pipeline with task='intern-decision' to use decide()")
-        return self._run(coro=self.decision_service.decide(request, allow_local_paths=True)).result()
+        from .serve.core.decide_runner import DecideRunner
+
+        async def run():
+            return await DecideRunner(self.async_engine, self.decision_runtime).run(request, allow_local_paths=True)
+
+        return self._run(coro=run()).result()
 
     def get_reward_score(self, input_ids: list) -> list[float]:
         """Get reward score.

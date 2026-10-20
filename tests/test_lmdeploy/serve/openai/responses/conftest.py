@@ -14,6 +14,7 @@ from lmdeploy.serve.openai.responses import create_responses_router
 class FakeAsyncEngine:
 
     model_name = 'fake-model'
+    epoch = 0
     backend_config = SimpleNamespace(adapters=[])
 
     def __init__(self):
@@ -78,7 +79,7 @@ class FakeServerContext:
     def __init__(self):
         self.async_engine = FakeAsyncEngine()
         self.default_gen_config = {}
-        self.sessions = []
+        self.sessions = self.session_manager.sessions
 
     @property
     def engine_config(self):
@@ -89,15 +90,19 @@ class FakeServerContext:
         return self.async_engine.session_mgr
 
     def create_session(self, session_id):
-        session = FakeSession(session_id)
-        self.sessions.append(session)
-        return session
+        return self.session_manager.get(session_id)
 
 
 class FakeSessionManager:
 
     def __init__(self):
         self.removed = []
+        self.sessions = []
+
+    def get(self, session_id=None):
+        session = FakeSession(session_id if session_id is not None else len(self.sessions))
+        self.sessions.append(session)
+        return session
 
     def remove(self, session):
         self.removed.append(session)
