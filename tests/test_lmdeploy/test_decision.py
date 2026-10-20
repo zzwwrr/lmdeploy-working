@@ -5,7 +5,6 @@ import base64
 import io
 import math
 import threading
-from importlib import import_module
 from types import SimpleNamespace
 
 import pytest
@@ -22,11 +21,11 @@ from lmdeploy.intern_decision_encoding import (
     scale_probabilities,
 )
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
+from lmdeploy.serve.core.base_runner import BaseRunner
 from lmdeploy.serve.core.decide_runner import DecideRunner
+from lmdeploy.serve.core.decide_runner import _load_images as load_images
 from lmdeploy.serve.core.decision_protocol import DecisionRequest
 from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
-from lmdeploy.serve.processors.intern_decision.images import load_images
-from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
 
 QUESTIONS = {
     'action': {
@@ -246,16 +245,18 @@ class FakeEngine:
         yield SimpleNamespace(logprobs=rows, logprob_token_ids=targets, finish_reason='length')
 
 
-def _runtime(engine):
-    runtime = DecisionRuntime.__new__(DecisionRuntime)
-    runtime.model_names = {engine.model_name, 'Intern-Decision-0.8B'}
-    runtime.max_length = 8191
-    runtime.max_pending_requests = 2
-    runtime.supports_images = True
-    runtime.encoder = SimpleNamespace(marker_id=MARKER, symbol_ids=SYMBOLS)
-    runtime.output = DecisionOutputProcessor()
-    runtime.pending = 0
-    return runtime
+def _runner(engine):
+    runner = DecideRunner.__new__(DecideRunner)
+    runner.async_engine = engine
+    runner.model_names = {engine.model_name, 'Intern-Decision-0.8B'}
+    runner.max_length = 8191
+    runner.max_pending_requests = 2
+    runner.supports_images = True
+    runner.encoder = SimpleNamespace(marker_id=MARKER, symbol_ids=SYMBOLS)
+    runner.output = DecisionOutputProcessor()
+    runner.pending = 0
+    runner._cleanup_tasks = set()
+    return runner
 
 
 def _encoded(images=0):
@@ -269,8 +270,8 @@ def _encoded(images=0):
 @pytest.mark.parametrize('images', [0, 2])
 def test_score_reads_marker_rows_after_image_expansion(images):
     engine = FakeEngine()
-    runner = DecideRunner(engine, _runtime(engine))
-    logits, length = asyncio.run(runner._score(_encoded(images), [object()] * images))
+    runner = _runner(engine)
+    logits, length = asyncio.run(runner._score(BaseRunner(engine), _encoded(images), [object()] * images))
     request = engine.requests[0]
     assert length == len(request.ids)
     # The first scored row is the token right before the first <decision>, after expansion.
@@ -284,14 +285,14 @@ def test_score_reads_marker_rows_after_image_expansion(images):
 def test_score_failure_cleans_up_session():
     engine = FakeEngine(fail=RuntimeError('boom'))
     with pytest.raises(RuntimeError, match='boom'):
-        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+        asyncio.run(_runner(engine)._score(BaseRunner(engine), _encoded(), []))
     assert not engine.session_mgr.sessions
 
 
 def test_aborted_score_is_unavailable():
     engine = FakeEngine(abort=True)
     with pytest.raises(RequestError, match='aborted') as exc:
-        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+        asyncio.run(_runner(engine)._score(BaseRunner(engine), _encoded(), []))
     assert exc.value.code is ErrorCode.ENGINE_UNAVAILABLE
     assert exc.value.status_code == 503
     assert not engine.session_mgr.sessions
@@ -300,14 +301,13 @@ def test_aborted_score_is_unavailable():
 def test_score_rejects_over_length_without_running():
     engine = FakeEngine(expand=10_000)
     with pytest.raises(ValueError, match='truncation'):
-        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(1), [object()]))
+        asyncio.run(_runner(engine)._score(BaseRunner(engine), _encoded(1), [object()]))
     assert not engine.session_mgr.sessions
 
 
 def test_decide_end_to_end_and_admission():
     engine = FakeEngine()
-    runtime = _runtime(engine)
-    runner = DecideRunner(engine, runtime)
+    runner = _runner(engine)
     encoded = _encoded()
     runner._prepare = lambda request, allow_local_paths: ([], encoded)
     request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
@@ -315,22 +315,32 @@ def test_decide_end_to_end_and_admission():
     assert list(result['answers']) == ['a', 'r']
     assert result['usage']['generated_tokens'] == 0 and result['usage']['decision_count'] == 2
     assert result['calibration'] == {'method': 'temperature-scaling', 'temperature': 2.747760550703}
-    assert runtime.pending == 0
+    assert runner.pending == 0
 
-    runtime.pending = runtime.max_pending_requests
+    async def repeat():
+        return await asyncio.gather(runner.run(request), runner.run(request))
+
+    repeated = asyncio.run(repeat())
+    assert all(item['answers'] == result['answers'] for item in repeated)
+    assert len({result['request_id'], *(item['request_id'] for item in repeated)}) == 3
+    assert engine.session_mgr.count == 3
+    assert not engine.session_mgr.sessions
+    assert runner.pending == 0
+    assert not runner._cleanup_tasks
+
+    runner.pending = runner.max_pending_requests
     with pytest.raises(RequestError) as exc:
-        asyncio.run(DecideRunner(engine, runtime).run(request))
+        asyncio.run(runner.run(request))
     assert exc.value.code is ErrorCode.OVERLOADED
     assert exc.value.status_code == 429
     with pytest.raises(ValueError, match='Unknown model'):
-        asyncio.run(DecideRunner(engine, _runtime(engine)).run({**request, 'model': 'other'}))
+        asyncio.run(_runner(engine).run({**request, 'model': 'other'}))
 
 
 @pytest.mark.parametrize('failure', ['preparation', 'engine', 'output'])
 def test_request_failure_releases_images_and_admission(failure):
     engine = FakeEngine(fail=RuntimeError('failed') if failure == 'engine' else None)
-    runtime = _runtime(engine)
-    runner = DecideRunner(engine, runtime)
+    runner = _runner(engine)
     closed = []
     image = SimpleNamespace(close=lambda: closed.append(True))
 
@@ -338,17 +348,17 @@ def test_request_failure_releases_images_and_admission(failure):
         raise ValueError('failed')
 
     if failure == 'preparation':
-        runtime.encoder.encode = fail
+        runner.encoder.encode = fail
         # Exercise the real _prepare's image ownership on encoder failure.
         request = {'state': 1, 'questions': QUESTIONS, 'images': [_upload(_png())]}
     else:
         runner._prepare = lambda *args: ([image], _encoded(1))
         request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
         if failure == 'output':
-            runtime.output = fail
+            runner.output = fail
     with pytest.raises((ValueError, RuntimeError), match='failed'):
         asyncio.run(runner.run(request))
-    assert runtime.pending == 0
+    assert runner.pending == 0
     assert not engine.session_mgr.sessions
     if failure != 'preparation':
         assert closed == [True]
@@ -356,9 +366,8 @@ def test_request_failure_releases_images_and_admission(failure):
 
 def test_cancelled_preparation_keeps_admission_until_worker_releases_images():
     engine = FakeEngine()
-    runtime = _runtime(engine)
-    runtime.max_pending_requests = 1
-    runner = DecideRunner(engine, runtime)
+    runner = _runner(engine)
+    runner.max_pending_requests = 1
     release_worker = threading.Event()
     closed = []
     image = SimpleNamespace(close=lambda: closed.append(True))
@@ -375,25 +384,27 @@ def test_cancelled_preparation_keeps_admission_until_worker_releases_images():
 
         runner._prepare = prepare
         task = asyncio.create_task(runner.run(request))
+        cleanup_tasks = ()
         try:
             await asyncio.wait_for(started.wait(), timeout=5)
             task.cancel()
             # Allow the request to enter shielded cleanup, then cancel again.
-            while not hasattr(runner, '_request_cleanup_task'):
+            while not runner._cleanup_tasks:
                 await asyncio.sleep(0)
+            cleanup_tasks = tuple(runner._cleanup_tasks)
             task.cancel()
             with pytest.raises(asyncio.CancelledError):
                 await task
-            assert runtime.pending == 1
+            assert runner.pending == 1
             with pytest.raises(RequestError) as exc:
-                await DecideRunner(engine, runtime).run(request)
+                await runner.run(request)
             assert exc.value.code is ErrorCode.OVERLOADED
             assert exc.value.status_code == 429
         finally:
             release_worker.set()
-            await asyncio.wait_for(runner._request_cleanup_task, timeout=5)
+            await asyncio.wait_for(asyncio.gather(*cleanup_tasks), timeout=5)
         assert closed == [True]
-        assert runtime.pending == 0
+        assert runner.pending == 0
         assert not engine.requests
 
     asyncio.run(run())
@@ -426,20 +437,20 @@ def test_invalid_scoring_output_releases_session(case, message):
 
     engine.generate = generate
     with pytest.raises(RequestError, match=message) as exc:
-        asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+        asyncio.run(_runner(engine)._score(BaseRunner(engine), _encoded(), []))
     assert exc.value.code is ErrorCode.INTERNAL_ERROR
     assert exc.value.status_code == 500
     assert not engine.session_mgr.sessions
 
 
-def test_pipeline_decide_uses_request_runner_with_local_paths(monkeypatch):
+def test_pipeline_decide_uses_shared_runner_with_local_paths(monkeypatch):
     from concurrent.futures import Future
 
     from lmdeploy.pipeline import Pipeline
 
     pipeline = Pipeline.__new__(Pipeline)
     pipeline.async_engine = FakeEngine()
-    pipeline.decision_runtime = _runtime(pipeline.async_engine)
+    pipeline.decision_runner = _runner(pipeline.async_engine)
     observed = []
 
     def prepare(self, request, allow_local_paths):
@@ -456,13 +467,13 @@ def test_pipeline_decide_uses_request_runner_with_local_paths(monkeypatch):
     result = pipeline.decide({'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}})
     assert result['usage']['generated_tokens'] == 0
     assert observed == [True]
-    assert pipeline.decision_runtime.pending == 0
+    assert pipeline.decision_runner.pending == 0
 
 
 # ---------------------------------------------------------------- HTTP
 
 
-def test_http_routes(monkeypatch):
+def test_http_routes():
     from lmdeploy.serve.openai.api_server import ServerContext
     from lmdeploy.serve.openai.endpoints import create_openai_router
 
@@ -477,10 +488,6 @@ def test_http_routes(monkeypatch):
 
     class Runner:
 
-        def __init__(self, engine, runtime):
-            assert engine is context.async_engine
-            assert runtime is context.decision_runtime
-
         async def run(self, request, allow_local_paths, is_disconnected):
             assert callable(is_disconnected)
             calls.append(allow_local_paths)
@@ -490,8 +497,7 @@ def test_http_routes(monkeypatch):
                 raise ValueError('bad image')
             return {'ok': True}
 
-    monkeypatch.setattr(import_module('lmdeploy.serve.openai.endpoints.decisions'), 'DecideRunner', Runner)
-    context.decision_runtime = object()
+    context.decision_runner = Runner()
     assert client.post('/v1/decisions', json=body).json() == {'ok': True}
     assert client.post('/v1/jev', json=body).json() == {'ok': True}
     busy = client.post('/v1/decisions', json={**body, 'state': 'busy'})

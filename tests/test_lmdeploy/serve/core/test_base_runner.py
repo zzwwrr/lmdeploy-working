@@ -73,12 +73,20 @@ def test_preparation_failure_releases_session_without_generating(stage):
     engine = Engine()
     runner = BaseRunner(engine)
 
-    async def fail(*args, **kwargs):
+    def fail(*args, **kwargs):
         raise ValueError('preparation failed')
 
-    setattr(engine if stage == 'preprocess' else runner, stage, fail)
+    kwargs = {}
+    if stage == 'preprocess':
+
+        async def fail_preprocess(*args, **kwargs):
+            fail()
+
+        engine.preprocess = fail_preprocess
+    else:
+        kwargs['after_preprocess'] = fail
     with pytest.raises(ValueError, match='preparation failed'):
-        asyncio.run(runner.prepare_engine(None, gen_config=GenerationConfig()))
+        asyncio.run(runner.prepare_engine(None, gen_config=GenerationConfig(), **kwargs))
     assert engine.session_mgr.removed == [engine.session_mgr.session]
     assert not engine.generated
 

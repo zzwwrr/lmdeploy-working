@@ -47,6 +47,7 @@ class BaseRunner:
         self.session = None
         self.result_generator = None
         self._started = False
+        self._preprocess_task = None
         self._cleanup_task = None
 
     async def prepare_engine(self,
@@ -55,26 +56,29 @@ class BaseRunner:
                              gen_config: GenerationConfig,
                              user_session_id: int | None = None,
                              stream_response: bool = True,
+                             after_preprocess: Callable[[PreprocessedRequest], None] | None = None,
                              **preprocess_kwargs) -> PreprocessedRequest:
         if self._started or self._cleanup_task is not None:
             raise RuntimeError('A runner can only execute one request.')
         self._started = True
         try:
             self.session = create_session(self.async_engine, user_session_id)
-            prepared = await self.async_engine.preprocess(
-                messages, self.session, gen_config=gen_config, **preprocess_kwargs)
-            await self.after_preprocess(prepared)
+            self._preprocess_task = asyncio.create_task(
+                self.async_engine.preprocess(messages, self.session, gen_config=gen_config, **preprocess_kwargs),
+                name=f'{type(self).__name__}_preprocess',
+            )
+            # Visual preprocessing may keep using images in a worker thread.
+            # Cancellation must leave its result available for close() to join.
+            prepared = await asyncio.shield(self._preprocess_task)
+            if self._cleanup_task is not None:
+                raise RuntimeError('The runner was closed while preparing the request.')
+            if after_preprocess is not None:
+                after_preprocess(prepared)
             self.result_generator = self.async_engine.generate(prepared, stream_response=stream_response)
             return prepared
-        except BaseException as exc:
-            if isinstance(exc, RequestError) and exc.code == ErrorCode.REQUEST_CONFLICT:
-                # Another request owns this session's handle; leave it intact.
-                self.session = None
+        except BaseException:
             await self.close()
             raise
-
-    async def after_preprocess(self, prepared: PreprocessedRequest) -> None:
-        """Validate/adjust the processed input before starting engine execution."""
 
     async def iter_outputs(self, *, is_disconnected: DisconnectCheck | None = None) -> AsyncIterator[GenOut]:
         if self.result_generator is None:
@@ -91,14 +95,26 @@ class BaseRunner:
     async def close(self) -> None:
         """Schedule cleanup once; cancellation of a waiter cannot cancel it."""
         if self._cleanup_task is None:
-            self._cleanup_task = asyncio.create_task(
-                cleanup_result_generators(
+
+            async def cleanup():
+                if self._preprocess_task is not None:
+                    try:
+                        await self._preprocess_task
+                    except RequestError as exc:
+                        if exc.code == ErrorCode.REQUEST_CONFLICT:
+                            # Another request owns the session's handle.
+                            self.session = None
+                    except BaseException:
+                        # Preparation reports its own failure. Still release
+                        # any session owned by this request.
+                        pass
+                await cleanup_result_generators(
                     [self.result_generator] if self.result_generator is not None else [],
                     [self.session] if self.session is not None else [],
                     self.session_manager,
-                ),
-                name=f'{type(self).__name__}_cleanup',
-            )
+                )
+
+            self._cleanup_task = asyncio.create_task(cleanup(), name=f'{type(self).__name__}_cleanup')
         await asyncio.shield(self._cleanup_task)
 
     async def __aenter__(self):

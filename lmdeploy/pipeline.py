@@ -75,7 +75,7 @@ class Pipeline:
             speculative_config.model = get_model(speculative_config.model, download_dir)
 
         if task is not None:
-            from .serve.processors.intern_decision import TASK_NAME
+            from .serve.core.decide_runner import TASK_NAME
             if task != TASK_NAME:
                 raise ValueError(f'Unsupported task: {task!r}')
             if backend_config is not None and not isinstance(backend_config, PytorchEngineConfig):
@@ -103,13 +103,13 @@ class Pipeline:
         self.session_mgr = self.async_engine.session_mgr
         self.backend_config = self.async_engine.backend_config
         self.async_engine.start_loop(self.internal_thread.loop, use_async_api=False)
-        self.decision_runtime = None
+        self.decision_runner = None
         if task is not None:
-            from .serve.processors.intern_decision import DecisionRuntime
+            from .serve.core.decide_runner import DecideRunner
             try:
-                self.decision_runtime = DecisionRuntime(self.async_engine,
-                                                         model_path,
-                                                         trust_remote_code=trust_remote_code)
+                self.decision_runner = DecideRunner(self.async_engine,
+                                                    model_path,
+                                                    trust_remote_code=trust_remote_code)
             except BaseException:
                 self.close()
                 raise
@@ -293,14 +293,9 @@ class Pipeline:
         Returns:
             dict: the same JSON-compatible response as ``POST /v1/decisions``.
         """
-        if self.decision_runtime is None:
+        if self.decision_runner is None:
             raise RuntimeError("Create the pipeline with task='intern-decision' to use decide()")
-        from .serve.core.decide_runner import DecideRunner
-
-        async def run():
-            return await DecideRunner(self.async_engine, self.decision_runtime).run(request, allow_local_paths=True)
-
-        return self._run(coro=run()).result()
+        return self._run(coro=self.decision_runner.run(request, allow_local_paths=True)).result()
 
     def get_reward_score(self, input_ids: list) -> list[float]:
         """Get reward score.

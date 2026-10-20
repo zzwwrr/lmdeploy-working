@@ -65,7 +65,7 @@ class ServerContext:
         self.response_parser_cls: type[ResponseParser] | None = None
         self.default_gen_config: dict = {}
         # Set by serve(task='intern-decision'); POST /v1/decisions returns 503 otherwise.
-        self.decision_runtime = None
+        self.decision_runner = None
 
     @property
     def engine_config(self):
@@ -355,7 +355,7 @@ def serve(model_path: str,
         http_or_https = 'https'
 
     if task is not None:
-        from lmdeploy.serve.processors.intern_decision import TASK_NAME
+        from lmdeploy.serve.core.decide_runner import TASK_NAME
         if task != TASK_NAME:
             raise ValueError(f'Unsupported task: {task!r}')
         if backend_config is not None and not isinstance(backend_config, PytorchEngineConfig):
@@ -387,11 +387,11 @@ def serve(model_path: str,
         **kwargs)
     set_parsers(server_context, reasoning_parser, tool_call_parser)
     if task is not None:
-        from lmdeploy.serve.processors.intern_decision import DecisionRuntime
+        from lmdeploy.serve.core.decide_runner import DecideRunner
         try:
-            server_context.decision_runtime = DecisionRuntime(server_context.async_engine,
-                                                               model_path,
-                                                               trust_remote_code=trust_remote_code)
+            server_context.decision_runner = DecideRunner(server_context.async_engine,
+                                                          model_path,
+                                                          trust_remote_code=trust_remote_code)
         except BaseException:
             server_context.async_engine.close()
             raise

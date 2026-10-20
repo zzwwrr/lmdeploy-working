@@ -6,7 +6,6 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Request
 
-from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.core.decision_protocol import DecisionRequest
 from lmdeploy.serve.core.exceptions import RequestError
 from lmdeploy.serve.openai.errors import create_error_response, create_request_error_response
@@ -25,12 +24,12 @@ def register(router: APIRouter, server_context) -> None:
         HTTP every image must be an upload object ``{"data": "<base64 or data URL>", "type": "image/png"}``;
         server-side paths and remote URLs are rejected.
         """
-        runtime = server_context.decision_runtime
-        if runtime is None:
+        runner = server_context.decision_runner
+        if runner is None:
             return create_error_response(HTTPStatus.SERVICE_UNAVAILABLE,
                                          'Start the server with --task intern-decision to use decisions.')
         try:
-            return await DecideRunner(server_context.async_engine, runtime).run(
+            return await runner.run(
                 request,
                 allow_local_paths=False,
                 is_disconnected=raw_request.is_disconnected if raw_request is not None else None,
