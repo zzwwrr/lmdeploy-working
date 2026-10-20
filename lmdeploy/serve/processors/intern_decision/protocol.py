@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .schema import ANSWER_SYMBOLS
+from lmdeploy.intern_decision_encoding import ANSWER_SYMBOLS
 
 MAX_QUESTIONS = 16
 MAX_IMAGES = 8

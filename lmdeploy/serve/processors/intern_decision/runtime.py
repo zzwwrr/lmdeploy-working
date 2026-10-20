@@ -2,11 +2,10 @@
 """Shared model components and admission state for Intern-Decision requests."""
 import os
 
+from lmdeploy.intern_decision_encoding import DEFAULT_TEMPERATURE, DecisionEncoder, DecisionOutputProcessor
 from lmdeploy.messages import PytorchEngineConfig
 from lmdeploy.pytorch.disagg.config import EngineRole
 
-from .encoding import DecisionEncoder
-from .output import DEFAULT_TEMPERATURE, DecisionOutputProcessor
 from .protocol import DecisionQueueFull
 
 TASK_NAME = 'intern-decision'

@@ -14,14 +14,18 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from PIL import Image
 
+from lmdeploy.intern_decision_encoding import (
+    DecisionOutputError,
+    DecisionOutputProcessor,
+    EncodedDecision,
+    compile_row,
+    scale_probabilities,
+)
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
 from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.processors.intern_decision import DecisionError, DecisionQueueFull, DecisionRequest
-from lmdeploy.serve.processors.intern_decision.encoding import EncodedDecision
 from lmdeploy.serve.processors.intern_decision.images import load_images
-from lmdeploy.serve.processors.intern_decision.output import DecisionOutputProcessor, scale_probabilities
 from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
-from lmdeploy.serve.processors.intern_decision.schema import compile_row
 
 QUESTIONS = {
     'action': {
@@ -173,7 +177,7 @@ def test_temperature_flattens_but_keeps_argmax():
 @pytest.mark.parametrize('logits', [[[1.0, float('nan')]], [[1.0]], [[1.0, 2.0], [0.0, 1.0]]])
 def test_output_rejects_bad_logits(logits):
     questions = {'q': {'type': 'noul'}}
-    with pytest.raises(DecisionError):
+    with pytest.raises(DecisionOutputError):
         DecisionOutputProcessor()(questions, ('q', ), logits)
 
 

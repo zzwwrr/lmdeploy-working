@@ -6,6 +6,7 @@ import asyncio
 import secrets
 import time
 
+from lmdeploy.intern_decision_encoding import DecisionOutputError
 from lmdeploy.messages import GenerationConfig
 from lmdeploy.serve.processors.intern_decision.images import load_images
 from lmdeploy.serve.processors.intern_decision.protocol import (
@@ -116,7 +117,10 @@ class DecideRunner(BaseRunner):
             prepared = time.perf_counter()
             logits, length = await self._score(encoded, images, is_disconnected=is_disconnected)
             scored = time.perf_counter()
-            answers = runtime.output(request.questions, encoded.compiled.fields, logits)
+            try:
+                answers = runtime.output(request.questions, encoded.compiled.fields, logits)
+            except DecisionOutputError as exc:
+                raise DecisionError(str(exc)) from exc
             response = DecisionResponse(request_id=secrets.token_hex(16),
                                         model=self.async_engine.model_name,
                                         answers=answers,

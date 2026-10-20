@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from lmdeploy.serve.processors.intern_decision.output import DEFAULT_TEMPERATURE, scale_probabilities
+from lmdeploy.intern_decision_encoding import DEFAULT_TEMPERATURE, scale_probabilities
 
 GOLDEN = Path(__file__).parent / 'fixtures/intern_decision_v1.json'
 
@@ -121,7 +121,7 @@ def checkpoint():
 
 
 def test_encoding_matches_golden(checkpoint, tmp_path):
-    from lmdeploy.serve.processors.intern_decision.encoding import DecisionEncoder
+    from lmdeploy.intern_decision_encoding import DecisionEncoder
     encoder = DecisionEncoder(checkpoint)
     golden = json.loads(GOLDEN.read_text())['cases']
     for name, row in cases(tmp_path):
