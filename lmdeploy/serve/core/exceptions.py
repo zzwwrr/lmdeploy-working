@@ -16,6 +16,7 @@ class ErrorCode(str, enum.Enum):
     UNSUPPORTED_FEATURE = 'unsupported_feature'
     PREPROCESS_FAILED = 'preprocess_failed'
     REQUEST_CANCELLED = 'request_cancelled'
+    OVERLOADED = 'overloaded'
     ENGINE_UNAVAILABLE = 'engine_unavailable'
     INTERNAL_ERROR = 'internal_error'
 
@@ -29,6 +30,7 @@ ERROR_STATUS = {
     ErrorCode.UNSUPPORTED_FEATURE: HTTPStatus.BAD_REQUEST,
     ErrorCode.PREPROCESS_FAILED: HTTPStatus.BAD_REQUEST,
     ErrorCode.REQUEST_CANCELLED: 499,
+    ErrorCode.OVERLOADED: HTTPStatus.TOO_MANY_REQUESTS,
     ErrorCode.ENGINE_UNAVAILABLE: HTTPStatus.SERVICE_UNAVAILABLE,
     ErrorCode.INTERNAL_ERROR: HTTPStatus.INTERNAL_SERVER_ERROR,
 }
@@ -42,6 +44,7 @@ ERROR_MESSAGES = {
     ErrorCode.UNSUPPORTED_FEATURE: 'The requested feature is not supported.',
     ErrorCode.PREPROCESS_FAILED: 'Request preprocessing failed.',
     ErrorCode.REQUEST_CANCELLED: 'The request was cancelled.',
+    ErrorCode.OVERLOADED: 'Too many pending requests.',
     ErrorCode.ENGINE_UNAVAILABLE: 'The inference engine is unavailable.',
     ErrorCode.INTERNAL_ERROR: 'An internal server error occurred.',
 }

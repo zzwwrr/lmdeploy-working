@@ -9,15 +9,11 @@ import time
 from lmdeploy.intern_decision_encoding import DecisionOutputError
 from lmdeploy.messages import GenerationConfig
 from lmdeploy.serve.processors.intern_decision.images import load_images
-from lmdeploy.serve.processors.intern_decision.protocol import (
-    DecisionError,
-    DecisionRequest,
-    DecisionResponse,
-    DecisionUnavailable,
-)
 from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
 
 from .base_runner import BaseRunner, DisconnectCheck
+from .decision_protocol import DecisionRequest, DecisionResponse
+from .exceptions import ErrorCode, RequestError
 
 
 class DecideRunner(BaseRunner):
@@ -47,7 +43,7 @@ class DecideRunner(BaseRunner):
                              'truncation is not allowed')
         start = length - self.encoded.tail
         if not 0 <= start < length:
-            raise DecisionError('Decision skeleton is outside the processed input')
+            raise RequestError(ErrorCode.INTERNAL_ERROR, 'Decision skeleton is outside the processed input')
         # Image expansion occurs before the skeleton; score only its rows.
         prepared.gen_config.logprob_start_len = start
 
@@ -74,23 +70,25 @@ class DecideRunner(BaseRunner):
                 pass
 
         if out is not None and out.finish_reason == 'abort':
-            raise DecisionUnavailable('The decision request was aborted by the engine')
+            raise RequestError(ErrorCode.ENGINE_UNAVAILABLE, 'The decision request was aborted by the engine')
         if out is None or out.logprobs is None or out.logprob_token_ids is None:
             reason = getattr(out, 'finish_reason', None)
-            raise DecisionError(f'Scoring returned no input logprobs (finish_reason={reason})')
+            raise RequestError(ErrorCode.INTERNAL_ERROR,
+                               f'Scoring returned no input logprobs (finish_reason={reason})')
         if len(out.logprobs) != len(out.logprob_token_ids):
-            raise DecisionError('Scoring rows and target tokens are misaligned')
+            raise RequestError(ErrorCode.INTERNAL_ERROR, 'Scoring rows and target tokens are misaligned')
         # Row j holds the logits that predict logprob_token_ids[j].
         rows = [
             row for target, row in zip(out.logprob_token_ids, out.logprobs)
             if target == self.runtime.encoder.marker_id
         ]
         if len(rows) != len(encoded.candidate_ids):
-            raise DecisionError(f'Expected {len(encoded.candidate_ids)} decision rows, got {len(rows)}')
+            raise RequestError(ErrorCode.INTERNAL_ERROR,
+                               f'Expected {len(encoded.candidate_ids)} decision rows, got {len(rows)}')
         try:
             logits = [[row[token] for token in ids] for row, ids in zip(rows, encoded.candidate_ids)]
         except KeyError as exc:
-            raise DecisionError('Scoring rows lack a requested candidate token') from exc
+            raise RequestError(ErrorCode.INTERNAL_ERROR, 'Scoring rows lack a requested candidate token') from exc
         return logits, length
 
     async def run(self, request, *, allow_local_paths: bool = False,
@@ -105,8 +103,8 @@ class DecideRunner(BaseRunner):
         if request.model is not None and request.model not in runtime.model_names:
             raise ValueError(f'Unknown model: {request.model}')
         if request.images and not runtime.supports_images:
-            raise DecisionUnavailable('This engine was started without a vision encoder; image requests are '
-                                      'unavailable')
+            raise RequestError(ErrorCode.ENGINE_UNAVAILABLE,
+                               'This engine was started without a vision encoder; image requests are unavailable')
         runtime.acquire()
         prepare_task = None
         try:
@@ -120,7 +118,7 @@ class DecideRunner(BaseRunner):
             try:
                 answers = runtime.output(request.questions, encoded.compiled.fields, logits)
             except DecisionOutputError as exc:
-                raise DecisionError(str(exc)) from exc
+                raise RequestError(ErrorCode.INTERNAL_ERROR, str(exc)) from exc
             response = DecisionResponse(request_id=secrets.token_hex(16),
                                         model=self.async_engine.model_name,
                                         answers=answers,

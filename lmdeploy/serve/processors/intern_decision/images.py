@@ -12,7 +12,7 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
-from .protocol import MAX_IMAGES
+from lmdeploy.serve.core.decision_protocol import MAX_IMAGES
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_UPLOAD_TOTAL = 32 * 1024 * 1024

@@ -28,11 +28,14 @@ def error_response(status: HTTPStatus | int,
     if error_code is None:
         if status_value == HTTPStatus.NOT_FOUND:
             error_code = ErrorCode.MODEL_NOT_FOUND
+        elif status_value == HTTPStatus.TOO_MANY_REQUESTS:
+            error_code = ErrorCode.OVERLOADED
         elif status_value >= HTTPStatus.INTERNAL_SERVER_ERROR:
             error_code = ErrorCode.INTERNAL_ERROR
         else:
             error_code = ErrorCode.INVALID_REQUEST
-    error_type = ('not_found_error' if error_code is ErrorCode.MODEL_NOT_FOUND
+    error_type = ('rate_limit_error' if error_code is ErrorCode.OVERLOADED
+                  else 'not_found_error' if error_code is ErrorCode.MODEL_NOT_FOUND
                   else 'server_error' if error_code in {
                       ErrorCode.ENGINE_UNAVAILABLE,
                       ErrorCode.INTERNAL_ERROR,

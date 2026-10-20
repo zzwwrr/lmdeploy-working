@@ -5,8 +5,7 @@ import os
 from lmdeploy.intern_decision_encoding import DEFAULT_TEMPERATURE, DecisionEncoder, DecisionOutputProcessor
 from lmdeploy.messages import PytorchEngineConfig
 from lmdeploy.pytorch.disagg.config import EngineRole
-
-from .protocol import DecisionQueueFull
+from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
 
 TASK_NAME = 'intern-decision'
 
@@ -53,7 +52,7 @@ class DecisionRuntime:
 
     def acquire(self) -> None:
         if self.pending >= self.max_pending_requests:
-            raise DecisionQueueFull('Too many pending decision requests')
+            raise RequestError(ErrorCode.OVERLOADED, 'Too many pending decision requests')
         self.pending += 1
 
     def release(self) -> None:

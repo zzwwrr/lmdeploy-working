@@ -12,18 +12,6 @@ MAX_QUESTIONS = 16
 MAX_IMAGES = 8
 
 
-class DecisionError(RuntimeError):
-    status_code = 500
-
-
-class DecisionUnavailable(DecisionError):
-    status_code = 503
-
-
-class DecisionQueueFull(DecisionError):
-    status_code = 429
-
-
 class ThinkingOptions(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     enabled: bool = False

@@ -23,7 +23,8 @@ from lmdeploy.intern_decision_encoding import (
 )
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
 from lmdeploy.serve.core.decide_runner import DecideRunner
-from lmdeploy.serve.processors.intern_decision import DecisionError, DecisionQueueFull, DecisionRequest
+from lmdeploy.serve.core.decision_protocol import DecisionRequest
+from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
 from lmdeploy.serve.processors.intern_decision.images import load_images
 from lmdeploy.serve.processors.intern_decision.runtime import DecisionRuntime
 
@@ -288,10 +289,11 @@ def test_score_failure_cleans_up_session():
 
 
 def test_aborted_score_is_unavailable():
-    from lmdeploy.serve.processors.intern_decision import DecisionUnavailable
     engine = FakeEngine(abort=True)
-    with pytest.raises(DecisionUnavailable, match='aborted'):
+    with pytest.raises(RequestError, match='aborted') as exc:
         asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+    assert exc.value.code is ErrorCode.ENGINE_UNAVAILABLE
+    assert exc.value.status_code == 503
     assert not engine.session_mgr.sessions
 
 
@@ -316,8 +318,10 @@ def test_decide_end_to_end_and_admission():
     assert runtime.pending == 0
 
     runtime.pending = runtime.max_pending_requests
-    with pytest.raises(DecisionQueueFull):
+    with pytest.raises(RequestError) as exc:
         asyncio.run(DecideRunner(engine, runtime).run(request))
+    assert exc.value.code is ErrorCode.OVERLOADED
+    assert exc.value.status_code == 429
     with pytest.raises(ValueError, match='Unknown model'):
         asyncio.run(DecideRunner(engine, _runtime(engine)).run({**request, 'model': 'other'}))
 
@@ -381,8 +385,10 @@ def test_cancelled_preparation_keeps_admission_until_worker_releases_images():
             with pytest.raises(asyncio.CancelledError):
                 await task
             assert runtime.pending == 1
-            with pytest.raises(DecisionQueueFull):
+            with pytest.raises(RequestError) as exc:
                 await DecideRunner(engine, runtime).run(request)
+            assert exc.value.code is ErrorCode.OVERLOADED
+            assert exc.value.status_code == 429
         finally:
             release_worker.set()
             await asyncio.wait_for(runner._request_cleanup_task, timeout=5)
@@ -419,8 +425,10 @@ def test_invalid_scoring_output_releases_session(case, message):
         yield SimpleNamespace(logprobs=rows, logprob_token_ids=targets, finish_reason='length')
 
     engine.generate = generate
-    with pytest.raises(DecisionError, match=message):
+    with pytest.raises(RequestError, match=message) as exc:
         asyncio.run(DecideRunner(engine, _runtime(engine))._score(_encoded(), []))
+    assert exc.value.code is ErrorCode.INTERNAL_ERROR
+    assert exc.value.status_code == 500
     assert not engine.session_mgr.sessions
 
 
@@ -477,7 +485,7 @@ def test_http_routes(monkeypatch):
             assert callable(is_disconnected)
             calls.append(allow_local_paths)
             if request.state == 'busy':
-                raise DecisionQueueFull('busy')
+                raise RequestError(ErrorCode.OVERLOADED, 'busy')
             if request.state == 'bad':
                 raise ValueError('bad image')
             return {'ok': True}
@@ -486,7 +494,9 @@ def test_http_routes(monkeypatch):
     context.decision_runtime = object()
     assert client.post('/v1/decisions', json=body).json() == {'ok': True}
     assert client.post('/v1/jev', json=body).json() == {'ok': True}
-    assert client.post('/v1/decisions', json={**body, 'state': 'busy'}).status_code == 429
+    busy = client.post('/v1/decisions', json={**body, 'state': 'busy'})
+    assert busy.status_code == 429
+    assert busy.json()['type'] == 'rate_limit_error'
     assert client.post('/v1/decisions', json={**body, 'state': 'bad'}).status_code == 400
     assert client.post('/v1/decisions', json={'state': 1, 'questions': {}}).status_code == 422
     assert calls and not any(calls)

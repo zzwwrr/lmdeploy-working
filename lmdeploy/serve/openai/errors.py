@@ -14,6 +14,7 @@ _ERROR_CODE_BY_STATUS = {
     HTTPStatus.UNAUTHORIZED.value: ErrorCode.UNAUTHORIZED,
     HTTPStatus.NOT_FOUND.value: ErrorCode.MODEL_NOT_FOUND,
     HTTPStatus.CONFLICT.value: ErrorCode.REQUEST_CONFLICT,
+    HTTPStatus.TOO_MANY_REQUESTS.value: ErrorCode.OVERLOADED,
     HTTPStatus.SERVICE_UNAVAILABLE.value: ErrorCode.ENGINE_UNAVAILABLE,
     499: ErrorCode.REQUEST_CANCELLED,
 }
@@ -21,6 +22,7 @@ _ERROR_CODE_BY_STATUS = {
 _ERROR_TYPE_BY_CODE = {
     ErrorCode.UNAUTHORIZED: 'authentication_error',
     ErrorCode.MODEL_NOT_FOUND: 'not_found_error',
+    ErrorCode.OVERLOADED: 'rate_limit_error',
     ErrorCode.ENGINE_UNAVAILABLE: 'server_error',
     ErrorCode.INTERNAL_ERROR: 'server_error',
 }

@@ -14,6 +14,7 @@ from .protocol import AnthropicError, AnthropicErrorResponse
 _ERROR_TYPE_BY_CODE = {
     ErrorCode.UNAUTHORIZED: 'authentication_error',
     ErrorCode.MODEL_NOT_FOUND: 'not_found_error',
+    ErrorCode.OVERLOADED: 'rate_limit_error',
     ErrorCode.ENGINE_UNAVAILABLE: 'overloaded_error',
     ErrorCode.INTERNAL_ERROR: 'api_error',
 }

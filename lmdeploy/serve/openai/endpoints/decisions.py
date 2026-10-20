@@ -7,9 +7,9 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, Request
 
 from lmdeploy.serve.core.decide_runner import DecideRunner
+from lmdeploy.serve.core.decision_protocol import DecisionRequest
 from lmdeploy.serve.core.exceptions import RequestError
 from lmdeploy.serve.openai.errors import create_error_response, create_request_error_response
-from lmdeploy.serve.processors.intern_decision import DecisionError, DecisionRequest
 from lmdeploy.serve.utils.server_utils import validate_json_request
 from lmdeploy.utils import get_logger
 
@@ -37,8 +37,6 @@ def register(router: APIRouter, server_context) -> None:
             )
         except RequestError as e:
             return create_request_error_response(e)
-        except DecisionError as e:
-            return create_error_response(e.status_code, str(e))
         except ValueError as e:
             return create_error_response(HTTPStatus.BAD_REQUEST, str(e))
         except Exception:
