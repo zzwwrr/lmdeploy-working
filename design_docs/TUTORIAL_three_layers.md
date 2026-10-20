@@ -5,17 +5,48 @@ A beginner's tutorial. It explains how LMDeploy is organised, how Intern-Decisio
 
 > You only need a rough idea of "a request comes in, the model runs, an answer goes out".
 
-> **Runner refactor (2026-10-20):** the walkthrough below describes the original v2 commits.
-> The current implementation splits `DecisionService` into a shared
-> [`DecisionRuntime`](../lmdeploy/serve/processors/intern_decision/runtime.py) and a per-request
-> [`DecideRunner`](../lmdeploy/serve/core/decide_runner.py).
-> `ServerContext.decision_runtime` and `Pipeline.decision_runtime` hold the encoder, calibration and admission state.
-> Both HTTP and `Pipeline.decide()` call `DecideRunner.run()`. `ChatRunner` and `DecideRunner` inherit
-> [`BaseRunner`](../lmdeploy/serve/core/base_runner.py), which owns session creation, epoch stamping,
-> engine preprocessing/generation, disconnect checks and cleanup. Decision's `after_preprocess()` computes the
-> scoring offset after image expansion; raw `GenOut` retains the score target IDs.
-> Image resources and admission remain owned by the decision request until its preparation worker and cleanup finish.
-> The former `service.py` has been removed; the historical references below identify the original implementation.
+> **Migration update (2026-10-20):** the walkthrough below records the original v2 implementation.
+> The entire `serve/processors/intern_decision/` package has now been removed. Its current replacements are listed
+> below; references to the old package in the historical walkthrough do not describe the current file layout.
+
+### Current file layout and execution path
+
+| Responsibility | Current implementation |
+|---|---|
+| Prompt schema, token encoding, candidate probabilities and calibration | [`lmdeploy/intern_decision_encoding.py`](../lmdeploy/intern_decision_encoding.py); independent of the serving layer |
+| Validated request and response models | [`serve/core/decision_protocol.py`](../lmdeploy/serve/core/decision_protocol.py) |
+| Shared encoder, configuration, admission and request orchestration | [`serve/core/decide_runner.py`](../lmdeploy/serve/core/decide_runner.py) |
+| Image decoding and conversion | [`vl/media/image.py`](../lmdeploy/vl/media/image.py); decision-specific input and validation policies remain in `decide_runner.py` |
+| Session, preprocessing, generation, disconnect handling and cleanup | [`serve/core/base_runner.py`](../lmdeploy/serve/core/base_runner.py) |
+| Serving failures and status codes | [`serve/core/exceptions.py`](../lmdeploy/serve/core/exceptions.py); model output errors are translated by `DecideRunner` |
+
+`ServerContext.decision_runner` and `Pipeline.decision_runner` hold one shared `DecideRunner` per engine.
+Both HTTP and `Pipeline.decide()` call its `run()` method. Each call creates its own `BaseRunner`, keeping its
+session, images, encoded input and generator separate from concurrent requests. `ChatRunner` inherits `BaseRunner`;
+`DecideRunner` composes it because the decision runner also owns components shared across requests.
+
+```text
+HTTP /v1/decisions or /v1/jev       Pipeline.decide()
+                 \                  /
+                  shared DecideRunner.run()
+                    | decode images using ImageMediaIO + decision validator
+                    | compile and encode with intern_decision_encoding.py
+                    v
+                  per-request BaseRunner
+                    | AsyncEngine / VLAsyncEngine.preprocess()
+                    | synchronous callback: validate expanded length and set scoring offset
+                    | AsyncEngine.generate() -> raw GenOut scores
+                    v
+                  candidate probabilities -> DecisionResponse
+```
+
+The validator sees image headers and frame counts before RGB conversion. Decision upload limits, MIME checks,
+static-image requirements and Python-only local paths remain in effect; the shared image loader's default policy
+stays suitable for ordinary chat inputs. Model vision preprocessing still runs through `VLAsyncEngine`.
+
+Request cleanup waits for both image preparation and engine preprocessing before closing images and releasing
+admission. Cancelling the request does not cancel these cleanup tasks. Runtime failures use shared `RequestError`:
+overload maps to 429, unavailable engines to 503, and invalid scoring output to 500.
 
 ---
 

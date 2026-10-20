@@ -6,10 +6,13 @@ which was based on `17ed9e54` (March 2026, 371 commits behind).
 Goal of this round: **functional support** on current LMDeploy, built on its scoring-only prefill.
 Performance tuning comes later.
 
-> **Implementation update (2026-10-20):** this document records the original v2 plan and commits.
-> `DecisionService` / `ServerContext.decision_service` have since been replaced by shared `DecisionRuntime`
-> / `decision_runtime` and a per-request `DecideRunner`. Chat and Decision now share the execution lifecycle in
-> `serve/core/base_runner.py`; see the update in [the tutorial](TUTORIAL_three_layers.md).
+> **Implementation update (2026-10-20):** the sections below record the original v2 plan and commits.
+> The `serve/processors/intern_decision/` package has since been removed. Schema, encoding and output processing
+> live in `lmdeploy/intern_decision_encoding.py`; request/response models live in `serve/core/decision_protocol.py`.
+> `ServerContext.decision_runner` and `Pipeline.decision_runner` own a shared `DecideRunner`, which absorbs the
+> former `DecisionRuntime` and creates a `BaseRunner` for each request. Chat and Decision share that execution
+> lifecycle. Image loading reuses `ImageMediaIO` with opt-in validation, while decision input policies stay with
+> the runner. See the current file map and call path in [the tutorial](TUTORIAL_three_layers.md).
 
 ## Why port instead of rebasing commit by commit
 
