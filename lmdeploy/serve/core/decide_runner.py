@@ -17,7 +17,8 @@ from lmdeploy.intern_decision_encoding import (
     DEFAULT_TEMPERATURE,
     DecisionEncoder,
     DecisionOutputError,
-    DecisionOutputProcessor,
+    decode_answers,
+    validate_temperature,
 )
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
 from lmdeploy.pytorch.disagg.config import EngineRole
@@ -150,7 +151,7 @@ class DecideRunner:
         vocab_size = getattr(hf_cfg, 'text_config', hf_cfg).vocab_size
         if any(not 0 <= token < vocab_size for token in [self.encoder.marker_id, *self.encoder.symbol_ids.values()]):
             raise ValueError('Decision tokenizer ids exceed the model vocabulary')
-        self.output = DecisionOutputProcessor(temperature)
+        self.temperature = validate_temperature(temperature)
         self.pending = 0
         self._cleanup_tasks: set[asyncio.Task] = set()
 
@@ -255,7 +256,10 @@ class DecideRunner:
             logits, length = await self._score(execution, encoded, images, is_disconnected=is_disconnected)
             scored = time.perf_counter()
             try:
-                answers = self.output(request.questions, encoded.compiled.fields, logits)
+                answers = decode_answers(request.questions,
+                                         encoded.compiled.fields,
+                                         logits,
+                                         temperature=self.temperature)
             except DecisionOutputError as exc:
                 raise RequestError(ErrorCode.INTERNAL_ERROR, str(exc)) from exc
             response = DecisionResponse(request_id=secrets.token_hex(16),
@@ -271,7 +275,7 @@ class DecideRunner:
                                         thinking=dict(enabled=False,
                                                       confidence_threshold=request.thinking.confidence_threshold,
                                                       tasks=[]),
-                                        calibration=self.output.calibration)
+                                        calibration=dict(method='temperature-scaling', temperature=self.temperature))
             return response.model_dump()
         finally:
 

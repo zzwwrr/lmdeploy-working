@@ -14,13 +14,15 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from lmdeploy.intern_decision_encoding import (
+    DEFAULT_TEMPERATURE,
     DecisionOutputError,
-    DecisionOutputProcessor,
     EncodedDecision,
     compile_row,
+    decode_answers,
     scale_probabilities,
 )
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
+from lmdeploy.serve.core import decide_runner
 from lmdeploy.serve.core.base_runner import BaseRunner
 from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.core.decide_runner import _load_images as load_images
@@ -147,7 +149,7 @@ def test_animated_gif_rejected():
 def test_output_semantics_and_calibration(temperature):
     request = DecisionRequest.model_validate({'state': 1, 'questions': QUESTIONS})
     logits = [[2.0, 0.5], [0.1, 0.7, 1.9], [1.2, -0.3]]
-    answers = DecisionOutputProcessor(temperature)(request.questions, ('action', 'risk', 'red'), logits)
+    answers = decode_answers(request.questions, ('action', 'risk', 'red'), logits, temperature=temperature)
 
     def expected(values, row):
         probs = dict(zip(values, torch.softmax(torch.tensor(row), -1).tolist()))
@@ -178,7 +180,7 @@ def test_temperature_flattens_but_keeps_argmax():
 def test_output_rejects_bad_logits(logits):
     questions = {'q': {'type': 'noul'}}
     with pytest.raises(DecisionOutputError):
-        DecisionOutputProcessor()(questions, ('q', ), logits)
+        decode_answers(questions, ('q', ), logits)
 
 
 # ---------------------------------------------------------------- runner
@@ -253,7 +255,7 @@ def _runner(engine):
     runner.max_pending_requests = 2
     runner.supports_images = True
     runner.encoder = SimpleNamespace(marker_id=MARKER, symbol_ids=SYMBOLS)
-    runner.output = DecisionOutputProcessor()
+    runner.temperature = DEFAULT_TEMPERATURE
     runner.pending = 0
     runner._cleanup_tasks = set()
     return runner
@@ -338,7 +340,7 @@ def test_decide_end_to_end_and_admission():
 
 
 @pytest.mark.parametrize('failure', ['preparation', 'engine', 'output'])
-def test_request_failure_releases_images_and_admission(failure):
+def test_request_failure_releases_images_and_admission(failure, monkeypatch):
     engine = FakeEngine(fail=RuntimeError('failed') if failure == 'engine' else None)
     runner = _runner(engine)
     closed = []
@@ -355,7 +357,7 @@ def test_request_failure_releases_images_and_admission(failure):
         runner._prepare = lambda *args: ([image], _encoded(1))
         request = {'state': 1, 'questions': {'a': QUESTIONS['action'], 'r': QUESTIONS['risk']}}
         if failure == 'output':
-            runner.output = fail
+            monkeypatch.setattr(decide_runner, 'decode_answers', fail)
     with pytest.raises((ValueError, RuntimeError), match='failed'):
         asyncio.run(runner.run(request))
     assert runner.pending == 0

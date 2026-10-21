@@ -56,7 +56,7 @@ HTTP /v1/decisions、/v1/jev          Pipeline.decide()
                       iter_outputs() -> 原始 GenOut
                       取目标 token 为 <decision> 的行及候选 logits
                     |
-                    DecisionOutputProcessor -> DecisionResponse
+                    decode_answers() -> DecisionResponse
                     finally 清理执行资源、关闭图片、释放 pending
 ```
 
@@ -116,7 +116,7 @@ logprob_start_len = 图片展开后的 token 数 - tail
 
 ### 编码语义和错误边界
 
-独立编码模块重点看 `compile_row()`、`question_options()`、`DecisionEncoder.encode()`、`DecisionOutputProcessor.__call__()`：
+独立编码模块重点看 `compile_row()`、`question_options()`、`DecisionEncoder.encode()`、`decode_answers()`：
 
 - 字段和选项保持输入顺序；编译与输出处理共用 `question_options()`，不能排序后改变字母对应关系。
 - 模板参数保持 `add_generation_prompt=False`、`enable_thinking=False`、`add_vision_id=True`；marker 和候选符号必须满足单 token 要求。

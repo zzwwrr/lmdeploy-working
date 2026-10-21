@@ -17,6 +17,8 @@ from typing import Any
 
 DECISION_TOKEN = '<decision>'
 ANSWER_SYMBOLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+# Temperature shipped with Intern-Decision-0.8B (inference.py, DEFAULT_TEMPERATURE).
+DEFAULT_TEMPERATURE = 2.747760550703
 SYSTEM_PROMPT = ('You are a careful decision assistant. Use the state and decision schema in '
                  'the user message to make the requested decisions. For every field, choose '
                  'exactly one answer symbol (e.g. A, B, C, ...) from its listed options and '
@@ -30,6 +32,22 @@ class CompiledExample:
     messages: list[dict[str, Any]]
     fields: tuple[str, ...]
     symbols: dict[str, tuple[str, ...]]
+
+
+@dataclass(frozen=True)
+class EncodedDecision:
+    compiled: CompiledExample
+    # Chat-template token ids; each image is still a single ``<|image_pad|>``.
+    input_ids: list[int]
+    # Tokens from the row before the first ``<decision>`` to the end. Images all precede the skeleton, so this
+    # distance is the same before and after the engine expands the image placeholders.
+    tail: int
+    # Per field, the token ids of its answer symbols in option order.
+    candidate_ids: tuple[tuple[int, ...], ...]
+
+
+class DecisionOutputError(RuntimeError):
+    """Candidate scores cannot be decoded into a consistent decision result."""
 
 
 def _json(value: Any) -> str:
@@ -136,22 +154,11 @@ def compile_row(row: Mapping[str, Any]) -> CompiledExample:
     )
 
 
-@dataclass(frozen=True)
-class EncodedDecision:
-    compiled: CompiledExample
-    # Chat-template token ids; each image is still a single ``<|image_pad|>``.
-    input_ids: list[int]
-    # Tokens from the row before the first ``<decision>`` to the end. Images all precede the skeleton, so this
-    # distance is the same before and after the engine expands the image placeholders.
-    tail: int
-    # Per field, the token ids of its answer symbols in option order.
-    candidate_ids: tuple[tuple[int, ...], ...]
-
-
 class DecisionEncoder:
     """Preserve the trained template, image order and candidate symbol mapping.
 
-    Only tokenizer/processor files are loaded; no model weights.
+    Load tokenizer/processor files and validate token mappings once per engine,
+    then reuse them across requests. No model weights are loaded here.
     """
 
     def __init__(self, checkpoint, trust_remote_code: bool = False):
@@ -210,14 +217,6 @@ class DecisionEncoder:
                                candidate_ids=candidate_ids)
 
 
-class DecisionOutputError(RuntimeError):
-    """Candidate scores cannot be decoded into a consistent decision result."""
-
-
-# Temperature shipped with Intern-Decision-0.8B (inference.py, DEFAULT_TEMPERATURE).
-DEFAULT_TEMPERATURE = 2.747760550703
-
-
 def validate_temperature(temperature) -> float:
     temperature = float(temperature)
     if not math.isfinite(temperature) or temperature <= 0:
@@ -243,42 +242,38 @@ def scale_probabilities(probs: dict[str, float], temperature: float) -> dict[str
     return result
 
 
-class DecisionOutputProcessor:
+def decode_answers(questions: dict,
+                   fields: tuple[str, ...],
+                   candidate_logits: list[list[float]],
+                   *,
+                   temperature: float = DEFAULT_TEMPERATURE) -> dict:
+    """Decode candidate logits in field/option order into calibrated answers."""
+    import torch
 
-    def __init__(self, temperature: float = DEFAULT_TEMPERATURE):
-        self.temperature = validate_temperature(temperature)
-
-    def __call__(self, questions: dict, fields: tuple[str, ...], candidate_logits: list[list[float]]) -> dict:
-        """``candidate_logits[i]`` holds the logits of field ``i``'s answer symbols, in option order."""
-        import torch
-
-        if len(candidate_logits) != len(fields):
-            raise DecisionOutputError('Decision field mapping is inconsistent')
-        answers = {}
-        for field, logits in zip(fields, candidate_logits):
-            question = questions[field]
-            options = question_options(question)
-            values = [value for value, _ in options]
-            logits = torch.tensor(logits, dtype=torch.float32)
-            if logits.numel() != len(values) or not bool(torch.isfinite(logits).all()):
-                raise DecisionOutputError('Expected one finite logit per candidate')
-            probs = dict(zip(values, torch.softmax(logits, dim=-1).tolist()))
-            probs = scale_probabilities(probs, self.temperature)
-            best = argmax(probs)
-            kind = question['type']
-            answer = dict(type=kind, probabilities=probs, confidence=probs[best])
-            if kind == 'noul':
-                answer['noul'] = probs['yes']
-            elif kind == 'score':
-                answer['score'] = sum(float(value) * probs[value] for value in values)
-                answer['legend'] = dict(options)
-            else:
-                answer['choice'] = best
-            answer['source'] = 'local'
-            answer['decision'] = best
-            answers[field] = answer
-        return answers
-
-    @property
-    def calibration(self) -> dict:
-        return {'method': 'temperature-scaling', 'temperature': self.temperature}
+    temperature = validate_temperature(temperature)
+    if len(candidate_logits) != len(fields):
+        raise DecisionOutputError('Decision field mapping is inconsistent')
+    answers = {}
+    for field, logits in zip(fields, candidate_logits):
+        question = questions[field]
+        options = question_options(question)
+        values = [value for value, _ in options]
+        logits = torch.tensor(logits, dtype=torch.float32)
+        if logits.numel() != len(values) or not bool(torch.isfinite(logits).all()):
+            raise DecisionOutputError('Expected one finite logit per candidate')
+        probs = dict(zip(values, torch.softmax(logits, dim=-1).tolist()))
+        probs = scale_probabilities(probs, temperature)
+        best = argmax(probs)
+        kind = question['type']
+        answer = dict(type=kind, probabilities=probs, confidence=probs[best])
+        if kind == 'noul':
+            answer['noul'] = probs['yes']
+        elif kind == 'score':
+            answer['score'] = sum(float(value) * probs[value] for value in values)
+            answer['legend'] = dict(options)
+        else:
+            answer['choice'] = best
+        answer['source'] = 'local'
+        answer['decision'] = best
+        answers[field] = answer
+    return answers
