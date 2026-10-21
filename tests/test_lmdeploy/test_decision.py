@@ -28,7 +28,7 @@ from lmdeploy.serve.core.base_runner import BaseRunner
 from lmdeploy.serve.core.decide_runner import DecideRunner
 from lmdeploy.serve.core.decision_protocol import DecisionRequest
 from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
-from lmdeploy.serve.processors.decision_input import load_decision_images as load_images
+from lmdeploy.serve.processors.decision_image import load_decision_images as load_images
 
 QUESTIONS = {
     'action': {

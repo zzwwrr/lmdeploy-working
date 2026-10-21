@@ -16,7 +16,7 @@ from lmdeploy.intern_decision_encoding import (
 )
 from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
 from lmdeploy.pytorch.disagg.config import EngineRole
-from lmdeploy.serve.processors.decision_input import load_decision_images
+from lmdeploy.serve.processors.decision_image import load_decision_images
 from lmdeploy.utils import get_logger
 
 from .base_runner import BaseRunner, DisconnectCheck
