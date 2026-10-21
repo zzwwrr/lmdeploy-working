@@ -4,6 +4,7 @@ import asyncio
 import base64
 import io
 import math
+import os
 import threading
 from types import SimpleNamespace
 
@@ -25,9 +26,9 @@ from lmdeploy.messages import GenerationConfig, PytorchEngineConfig
 from lmdeploy.serve.core import decide_runner
 from lmdeploy.serve.core.base_runner import BaseRunner
 from lmdeploy.serve.core.decide_runner import DecideRunner
-from lmdeploy.serve.core.decide_runner import _load_images as load_images
 from lmdeploy.serve.core.decision_protocol import DecisionRequest
 from lmdeploy.serve.core.exceptions import ErrorCode, RequestError
+from lmdeploy.serve.processors.decision_input import load_decision_images as load_images
 
 QUESTIONS = {
     'action': {
@@ -140,6 +141,36 @@ def test_animated_gif_rejected():
     frames[0].save(buffer, format='GIF', save_all=True, append_images=frames[1:])
     with pytest.raises(ValueError, match='Animated'):
         load_images([_upload(buffer.getvalue(), 'image/gif')], allow_paths=False)
+
+
+def test_oversized_pixel_count_rejected():
+    # Dimensions are checked from the header, before the pixels are decoded.
+    buffer = io.BytesIO()
+    Image.new('L', (4001, 4000)).save(buffer, format='PNG')
+    with pytest.raises(ValueError, match='16 million pixels'):
+        load_images([_upload(buffer.getvalue())], allow_paths=False)
+
+
+def test_oversized_single_upload_rejected():
+    # Rejected on length, before the payload reaches the image decoder.
+    data = base64.b64encode(b'x' * (12 * 1024 * 1024 + 1)).decode()
+    with pytest.raises(ValueError, match='exceeds'):
+        load_images([{'type': 'image/png', 'data': data}], allow_paths=False)
+
+
+def test_oversized_total_upload_rejected():
+    # Three ~11 MB noise images pass the per-image cap but exceed the 32 MB total.
+    def noise():
+        buffer = io.BytesIO()
+        Image.frombytes('L', (3400, 3400), os.urandom(3400 * 3400)).save(buffer, format='PNG')
+        return _upload(buffer.getvalue())
+
+    uploads = [noise(), noise(), noise()]
+    payloads = [base64.b64decode(upload['data']) for upload in uploads]
+    assert max(len(payload) for payload in payloads) < 12 * 1024 * 1024
+    assert sum(len(payload) for payload in payloads) > 32 * 1024 * 1024
+    with pytest.raises(ValueError, match='32 MB'):
+        load_images(uploads, allow_paths=False)
 
 
 # ---------------------------------------------------------------- output

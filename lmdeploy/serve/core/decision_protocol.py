@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from lmdeploy.intern_decision_encoding import ANSWER_SYMBOLS
 
 MAX_QUESTIONS = 16
+# Jev v1 wire limit; the upload policy reuses it, so this is a protocol change.
 MAX_IMAGES = 8
 
 

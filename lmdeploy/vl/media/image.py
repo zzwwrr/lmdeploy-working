@@ -2,16 +2,71 @@
 # adapted from https://github.com/vllm-project/vllm/blob/main/vllm/multimodal/media/image.py
 
 import binascii
+from functools import partial
 from io import BytesIO
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 import pybase64
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, UnidentifiedImageError
 
 from .base import MediaIO
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+
+def load_images(items: list,
+                *,
+                decode: Callable[[Any], tuple[bytes, str | None]],
+                validate: Callable[[Image.Image, str | None], None] | None,
+                max_images: int,
+                max_total: int,
+                allow_paths: bool,
+                media_root: str | Path = '.') -> list[Image.Image]:
+    """Load a request's images, in order.
+
+    ``decode`` turns a mapping item into ``(payload, expected_format)``; it owns
+    the upload wire format, MIME policy and per-image byte limit. Plain strings
+    are local file paths and are read only when ``allow_paths`` is set (trusted
+    callers); remote URLs are never fetched. ``validate`` sees each image before
+    RGB conversion, so it can enforce format, frame count and pixel limits.
+
+    The returned images are owned by the caller, which must close them.
+    """
+    if not isinstance(items, list) or len(items) > max_images:
+        raise ValueError(f'images must be a list of at most {max_images} items.')
+    images, total = [], 0
+    try:
+        for item in items:
+            if isinstance(item, dict):
+                payload, expected = decode(item)
+                total += len(payload)
+                if total > max_total:
+                    raise ValueError(f'Combined image upload is limited to {max_total // (1024 * 1024)} MB.')
+                source = payload
+            elif isinstance(item, (str, Path)) and str(item):
+                if not allow_paths:
+                    raise ValueError('Upload image bytes; server-side paths are not accepted.')
+                if '://' in str(item):
+                    raise ValueError('Remote image URLs are not supported; pass a local path or upload the bytes.')
+                path = Path(item)
+                source, expected = (path if path.is_absolute() else Path(media_root) / path), None
+                if not source.is_file():
+                    raise ValueError(f'Image file not found: {item}')
+            else:
+                raise ValueError('Each image must be a local path or an uploaded image object.')
+            try:
+                # Validation sees original headers/frames, before RGB conversion.
+                loader = ImageMediaIO(validator=partial(validate, expected_format=expected) if validate else None,
+                                      clear_metadata=True)
+                images.append(loader.load_bytes(source) if isinstance(source, bytes) else loader.load_file(source))
+            except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+                raise ValueError('Invalid, incomplete or oversized image.') from exc
+    except BaseException:
+        for image in images:
+            image.close()
+        raise
+    return images
 
 
 class ImageMediaIO(MediaIO[Image.Image]):
