@@ -797,6 +797,18 @@ class HFChatTemplate(BaseChatTemplate):
         messages = [{'role': 'user', 'content': prompt}]
         return self.messages2prompt(messages, **kwargs)
 
+    @staticmethod
+    def render_complete(messages, template_provider, **kwargs):
+        """Render a complete conversation for input scoring.
+
+        Use the already loaded tokenizer or multimodal processor directly.
+        In particular, preserve the final assistant turn's closing tokens;
+        those tokens belong to the scored input rather than a generation prefix.
+        """
+        kwargs = dict(kwargs)
+        kwargs.update(tokenize=False, add_generation_prompt=False)
+        return template_provider.apply_chat_template(messages, **kwargs)
+
     def messages2prompt(self, messages, **kwargs):
         if isinstance(messages, str):
             messages = [{'role': 'user', 'content': messages}]

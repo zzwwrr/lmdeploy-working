@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 import PIL
 
-from lmdeploy.model import MODELS, BaseChatTemplate
+from lmdeploy.model import MODELS, BaseChatTemplate, HFChatTemplate
 from lmdeploy.tokenizer import Tokenizer
 from lmdeploy.utils import get_logger
 from lmdeploy.vl.constants import Modality
@@ -27,6 +27,34 @@ MULTIMODAL_TYPES = (
     'time_series_url',
     'time_series',
 )
+
+
+async def _finish_image_work(awaitable):
+    """Do not abandon executor work which may still use owned PIL images.
+
+    Cancelling an executor future cannot stop its running thread. Shield the
+    operation and join it before propagating cancellation, including repeated
+    cancellation while that join is in progress.
+    """
+    task = asyncio.ensure_future(awaitable)
+    try:
+        return await asyncio.shield(task)
+    except asyncio.CancelledError:
+        while not task.done():
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                continue
+            except BaseException:
+                break
+        if not task.cancelled():
+            task.exception()
+        raise
+
+
+def _close_images(images):
+    for image in images:
+        image.close()
 
 
 class MultimodalProcessor:
@@ -110,7 +138,8 @@ class MultimodalProcessor:
                                in_messages: list[dict],
                                out_messages: list[dict],
                                media_io_kwargs: dict[str, Any],
-                               allowed_media_domains: list[str] | None = None):
+                               allowed_media_domains: list[str] | None = None,
+                               owned_images: list | None = None):
         """Synchronous helper to parse a single multimodal message item."""
         role = in_messages[i]['role']
         # OpenAI protocol allows tool_call messages without a content key;
@@ -170,6 +199,8 @@ class MultimodalProcessor:
                     data = load_from_url(data_src,
                                          ImageMediaIO(**media_io_kwargs.get('image', {})),
                                          allowed_media_domains=allowed_media_domains)
+                    if owned_images is not None:
+                        owned_images.append(data)
                 else:
                     raise ValueError(f'Invalid multimodal image item at index {i}: {item}. '
                                      'Expected a str URL/path/data URL or PIL.Image.Image.')
@@ -200,20 +231,39 @@ class MultimodalProcessor:
     @staticmethod
     async def async_parse_multimodal_item(messages: list[dict],
                                           media_io_kwargs: dict[str, Any] | None = None,
-                                          allowed_media_domains: list[str] | None = None) -> list[dict]:
-        """Convert user-input multimodal data into GPT4V message format."""
+                                          allowed_media_domains: list[str] | None = None,
+                                          *,
+                                          owned_images: list | None = None) -> list[dict]:
+        """Convert user-input multimodal data into GPT4V message format.
+
+        ``owned_images`` records only images created here; incoming PIL objects
+        are borrowed. Standalone callers own newly loaded images on success.
+        """
         if isinstance(messages, dict):
             messages = [messages]
         assert isinstance(messages, list)
 
+        owns_scope = owned_images is None
+        owned_images = [] if owns_scope else owned_images
         out_messages = [None] * len(messages)
         media_io_kwargs = media_io_kwargs or {}
         loop = asyncio.get_event_loop()
 
-        await asyncio.gather(*[
-            loop.run_in_executor(None, MultimodalProcessor._parse_multimodal_item, i, messages, out_messages,
-                                 media_io_kwargs, allowed_media_domains) for i in range(len(messages))
-        ])
+        try:
+            # gather(return_exceptions=True) joins every worker even when one
+            # fails, so partial-success images can be safely closed afterwards.
+            results = await _finish_image_work(asyncio.gather(*[
+                loop.run_in_executor(None, MultimodalProcessor._parse_multimodal_item, i, messages, out_messages,
+                                     media_io_kwargs, allowed_media_domains, owned_images)
+                for i in range(len(messages))
+            ], return_exceptions=True))
+            for result in results:
+                if isinstance(result, BaseException):
+                    raise result
+        except BaseException:
+            if owns_scope:
+                _close_images(owned_images)
+            raise
         return out_messages
 
     async def get_prompt_input(self,
@@ -225,6 +275,7 @@ class MultimodalProcessor:
                                chat_template_kwargs: dict | None = None,
                                media_io_kwargs: dict[str, Any] | None = None,
                                mm_processor_kwargs: dict[str, Any] | None = None,
+                               scoring_input: bool = False,
                                **kwargs):
         """Process prompt and return prompt string and input_ids.
 
@@ -240,6 +291,7 @@ class MultimodalProcessor:
             chat_template_kwargs: Optional kwargs for chat template.
             media_io_kwargs: Optional kwargs for media IO operations.
             mm_processor_kwargs: Optional kwargs for multimodal processor.
+            scoring_input: Internal complete-conversation scoring mode.
             **kwargs: Additional keyword arguments.
 
         Returns:
@@ -257,6 +309,7 @@ class MultimodalProcessor:
                                                      tools=tools,
                                                      reasoning_effort=reasoning_effort,
                                                      chat_template_kwargs=chat_template_kwargs,
+                                                     scoring_input=scoring_input,
                                                      **kwargs)
 
         # Handle list input
@@ -275,6 +328,7 @@ class MultimodalProcessor:
                                                          tools=tools,
                                                          reasoning_effort=reasoning_effort,
                                                          chat_template_kwargs=chat_template_kwargs,
+                                                         scoring_input=scoring_input,
                                                          **kwargs)
 
             # Process multimodal input
@@ -285,6 +339,7 @@ class MultimodalProcessor:
                                                            chat_template_kwargs=chat_template_kwargs,
                                                            media_io_kwargs=media_io_kwargs,
                                                            mm_processor_kwargs=mm_processor_kwargs,
+                                                           scoring_input=scoring_input,
                                                            **kwargs)
         else:
             raise RuntimeError(f'unsupported prompt type: {type(prompt)}')
@@ -392,8 +447,24 @@ class MultimodalProcessor:
                                      tools: list[object] | None = None,
                                      reasoning_effort: Literal['low', 'medium', 'high', 'max'] | None = None,
                                      chat_template_kwargs: dict | None = None,
+                                     scoring_input: bool = False,
                                      **kwargs):
         """Process text-only prompt and return prompt string and input_ids."""
+        if scoring_input:
+            if not isinstance(prompt, list):
+                raise ValueError('Complete input scoring requires a conversation.')
+            # Reuse the engine's HF tokenizer instead of loading a second one
+            # or mutating the shared multimodal processor's tokenizer.
+            tokenizer = self.tokenizer
+            while not callable(getattr(tokenizer, 'apply_chat_template', None)):
+                tokenizer = getattr(tokenizer, 'model', None)
+                if tokenizer is None:
+                    raise ValueError('Complete input scoring requires a HuggingFace chat template.')
+            prompt = HFChatTemplate.render_complete(prompt,
+                                                     tokenizer,
+                                                     **(chat_template_kwargs or {}))
+            return {'prompt': prompt,
+                    'input_ids': self.tokenizer.encode(prompt, add_bos=False, add_special_tokens=False)}
         # Change multimodal data to openai text messages
         if isinstance(prompt, list):
             prompt = [self.merge_message_content(msg) for msg in prompt]
@@ -429,13 +500,56 @@ class MultimodalProcessor:
                                            chat_template_kwargs: dict | None = None,
                                            media_io_kwargs: dict[str, Any] | None = None,
                                            mm_processor_kwargs: dict[str, Any] | None = None,
+                                           scoring_input: bool = False,
                                            **kwargs):
         """Process multimodal prompt and return processed data for inference
         engines."""
+        owned_images = []
+
+        async def preprocess():
+            try:
+                return await self._process_multimodal_messages(
+                    messages, do_preprocess, tools, chat_template_kwargs, media_io_kwargs,
+                    mm_processor_kwargs, scoring_input, owned_images)
+            finally:
+                _close_images(owned_images)
+
+        # The preprocessing coroutine owns images until the final visual worker
+        # finishes. Shielding the whole operation keeps executor futures alive
+        # when the HTTP/request task is cancelled.
+        return await _finish_image_work(preprocess())
+
+    async def _process_multimodal_messages(self,
+                                           messages,
+                                           do_preprocess,
+                                           tools,
+                                           chat_template_kwargs,
+                                           media_io_kwargs,
+                                           mm_processor_kwargs,
+                                           scoring_input,
+                                           owned_images):
         chat_template = self.chat_template if do_preprocess else BaseChatTemplate()
         messages = await self.async_parse_multimodal_item(messages,
                                                           media_io_kwargs,
-                                                          allowed_media_domains=self.allowed_media_domains)
+                                                          allowed_media_domains=self.allowed_media_domains,
+                                                          owned_images=owned_images)
+
+        if scoring_input:
+            if not self.vl_encoder._uses_new_preprocess:
+                raise ValueError('Complete multimodal input scoring requires the processor preprocessing API.')
+            input_prompt = HFChatTemplate.render_complete(messages,
+                                                         self.vl_encoder.model.processor,
+                                                         **(chat_template_kwargs or {}))
+            image_token = getattr(self.vl_encoder.model.processor, 'image_token', None)
+            if image_token:
+                num_images = sum(item.get('type') == Modality.IMAGE
+                                 for message in messages if isinstance(message.get('content'), list)
+                                 for item in message['content'])
+                if input_prompt.count(image_token) != num_images:
+                    raise ValueError('Image placeholder count does not match the supplied images.')
+            return await self.vl_encoder.preprocess(messages,
+                                                     input_prompt=input_prompt,
+                                                     mm_processor_kwargs=mm_processor_kwargs)
 
         if self.backend == 'turbomind':
             if self.vl_encoder._uses_new_preprocess:
