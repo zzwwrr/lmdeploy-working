@@ -1,0 +1,2354 @@
+{
+  "provenance": {
+    "lmdeploy_revision": "0f925435eb6afdea945ed91d91d26bfada00b7d4",
+    "source_revision": "0a8a23882e04918d430b85b6c34fd13e9a32f9a5",
+    "checkpoint_revision": "85a0cc5a99d67ea8d56dfe98115689212867171d",
+    "dtype": "bfloat16",
+    "tp": 1
+  },
+  "cases": {
+    "text": {
+      "input_tokens": 279,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          256,
+          264,
+          272
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              279
+            ],
+            "dtype": "torch.int64",
+            "sha256": "1a3ad075fba658d62078b4de8fb98e1db8f089f50dc6b381cffac1f705f06644"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              279
+            ],
+            "dtype": "torch.int64",
+            "sha256": "57ba5cacbb77ace05e65d7e3413464213d65d979c5f273e1031c4ed1f42086d0"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.875,
+          26.0
+        ],
+        [
+          25.75,
+          30.25
+        ],
+        [
+          25.75,
+          28.125,
+          28.875
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9796676635742188,
+          0.020332353189587593
+        ],
+        [
+          0.010986942797899246,
+          0.9890130758285522
+        ],
+        [
+          0.02897634543478489,
+          0.31152504682540894,
+          0.6594985723495483
+        ]
+      ]
+    },
+    "long_text": {
+      "input_tokens": 1835,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          1812,
+          1820,
+          1828
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              1835
+            ],
+            "dtype": "torch.int64",
+            "sha256": "9ad8a2594238fb1ee39f76dfb44b9738ff35ade349c8f7d8add7b2833eba5890"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              1835
+            ],
+            "dtype": "torch.int64",
+            "sha256": "372c9c018f2792064ffdf0b3c0584ec9f14656a4877dd0cc5d96ff4e32982378"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          31.0,
+          25.75
+        ],
+        [
+          26.875,
+          30.0
+        ],
+        [
+          27.875,
+          27.875,
+          28.875
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9947799444198608,
+          0.005220125894993544
+        ],
+        [
+          0.04208773002028465,
+          0.957912266254425
+        ],
+        [
+          0.21194155514240265,
+          0.21194155514240265,
+          0.5761168599128723
+        ]
+      ]
+    },
+    "red_image": {
+      "input_tokens": 248,
+      "fields": [
+        "color"
+      ],
+      "encoding": {
+        "marker_positions": [
+          241
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              248
+            ],
+            "dtype": "torch.int64",
+            "sha256": "83e0c3bce245a4d3c3f93adf87724884eee0d78e7250b5bcd2fee1c3ed0245ad"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              248
+            ],
+            "dtype": "torch.int64",
+            "sha256": "4037adf099b2d2a8b45398303d2983d70cd5d09b13192bab507d1baaef3de9d8"
+          },
+          "mm_token_type_ids": {
+            "shape": [
+              1,
+              248
+            ],
+            "dtype": "torch.int64",
+            "sha256": "0020e76804491ca966d07d5c5a837795a447a55b94bfbf2d17bb91f85d828a40"
+          },
+          "pixel_values": {
+            "shape": [
+              256,
+              1536
+            ],
+            "dtype": "torch.float32",
+            "sha256": "6a3da8b1b634eda0ecf19f84031da9e0a5a2d1932cf2a616a912974623261c34"
+          },
+          "image_grid_thw": {
+            "shape": [
+              1,
+              3
+            ],
+            "dtype": "torch.int64",
+            "sha256": "53389fa912f56f81bbbe0669ab378c489b4cfaf9501876dcaec451ae86db735b"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.625,
+          22.875,
+          22.375
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9949127435684204,
+          0.003166589420288801,
+          0.0019206334836781025
+        ]
+      ]
+    },
+    "blue_image": {
+      "input_tokens": 304,
+      "fields": [
+        "color"
+      ],
+      "encoding": {
+        "marker_positions": [
+          297
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              304
+            ],
+            "dtype": "torch.int64",
+            "sha256": "ae9c0d98ec07779a8f00981872d9cb90026094dc11a39056c7961c7b0871a0b7"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              304
+            ],
+            "dtype": "torch.int64",
+            "sha256": "244987749dd65ba6165599c8f411cbd01e5126baabf80973a810fb9c3d9934c8"
+          },
+          "mm_token_type_ids": {
+            "shape": [
+              1,
+              304
+            ],
+            "dtype": "torch.int64",
+            "sha256": "80e54d2dd7484b3131d1e3e3e8d132c873a9dde2df97540eb8b2185b5fa66016"
+          },
+          "pixel_values": {
+            "shape": [
+              480,
+              1536
+            ],
+            "dtype": "torch.float32",
+            "sha256": "8429eb7f1f29795d9fefdac288d2c90b92d0293dd442804cb57c52806aa6898f"
+          },
+          "image_grid_thw": {
+            "shape": [
+              1,
+              3
+            ],
+            "dtype": "torch.int64",
+            "sha256": "03d3cb11a9b85165fa15cc6df9fc6dbe29a67d0d8d3ddb722138cb4638c9c646"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          24.125,
+          29.5,
+          21.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.004607596900314093,
+          0.9949638843536377,
+          0.0004285732575226575
+        ]
+      ]
+    },
+    "two_images": {
+      "input_tokens": 375,
+      "fields": [
+        "color"
+      ],
+      "encoding": {
+        "marker_positions": [
+          368
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "599c9da8dad3175d3af1fcbdc10baa7b3eb9596f3621c8f601d069479045a620"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "a699a2d08a2745258b6134aae18be4544c2a6b1b4c2dbfe366dea71282c6df21"
+          },
+          "mm_token_type_ids": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "a5f3c361e986cb6e6e6fb3298a67902f541aab5ab637c09a09db752450dec485"
+          },
+          "pixel_values": {
+            "shape": [
+              736,
+              1536
+            ],
+            "dtype": "torch.float32",
+            "sha256": "368f31b64a224becb13f8af0cf270634145b636e571bca468e4d06b224bae790"
+          },
+          "image_grid_thw": {
+            "shape": [
+              2,
+              3
+            ],
+            "dtype": "torch.int64",
+            "sha256": "c8304fb8ce4b03e55d54c6f6e057e42dbe7a5af56de9e71abe9babc10a61ad7c"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.875,
+          24.625,
+          24.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9738498330116272,
+          0.013891221024096012,
+          0.01225895993411541
+        ]
+      ]
+    },
+    "two_images_reversed": {
+      "input_tokens": 375,
+      "fields": [
+        "color"
+      ],
+      "encoding": {
+        "marker_positions": [
+          368
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "83fff74393bad70e48d5e36b74c606e3992bc01fc9565a40d0b784dbe94467f0"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "a699a2d08a2745258b6134aae18be4544c2a6b1b4c2dbfe366dea71282c6df21"
+          },
+          "mm_token_type_ids": {
+            "shape": [
+              1,
+              375
+            ],
+            "dtype": "torch.int64",
+            "sha256": "32c250651b96c39c5c1b8da9c61f777bdec2c85c7f23ad7f14f7c33ef32f1585"
+          },
+          "pixel_values": {
+            "shape": [
+              736,
+              1536
+            ],
+            "dtype": "torch.float32",
+            "sha256": "6c9a7a58f964f6028c440a756a426161729e57a9a01dbd57fadfee5547197c66"
+          },
+          "image_grid_thw": {
+            "shape": [
+              2,
+              3
+            ],
+            "dtype": "torch.int64",
+            "sha256": "2605a7b26cde7411e98e4128b760a7f0135c44bc24dbfeda9e2842742e87b939"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          24.5,
+          29.125,
+          23.25
+        ]
+      ],
+      "probabilities": [
+        [
+          0.009681547060608864,
+          0.9875446557998657,
+          0.002773809712380171
+        ]
+      ]
+    },
+    "eight_images": {
+      "input_tokens": 969,
+      "fields": [
+        "color"
+      ],
+      "encoding": {
+        "marker_positions": [
+          962
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              969
+            ],
+            "dtype": "torch.int64",
+            "sha256": "dad6989b785b5fb648028d2be760703798bde5db50b2eebf4e67e07a99a6e256"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              969
+            ],
+            "dtype": "torch.int64",
+            "sha256": "74b1349eb44d10e33945ae9d656c6d47723e0fc1c44aa59999e2319f5fe81fc4"
+          },
+          "mm_token_type_ids": {
+            "shape": [
+              1,
+              969
+            ],
+            "dtype": "torch.int64",
+            "sha256": "ca35781937f201ab132107aad96b86d2868d86881ff7b3645060a33900ceec18"
+          },
+          "pixel_values": {
+            "shape": [
+              2944,
+              1536
+            ],
+            "dtype": "torch.float32",
+            "sha256": "13d70b9b3df93739e31187204f7227f4263f55b5cea6c21d55688658c27f7ea6"
+          },
+          "image_grid_thw": {
+            "shape": [
+              8,
+              3
+            ],
+            "dtype": "torch.int64",
+            "sha256": "84568ac97477c9ef6bbb73efc60c9fb38a090eeb084842a24974a2164df05e8e"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.75,
+          24.625,
+          24.125
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9746900796890259,
+          0.015754397958517075,
+          0.00955552514642477
+        ]
+      ]
+    },
+    "fixed_00": {
+      "input_tokens": 279,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          256,
+          264,
+          272
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              279
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d58b9c85e5f995d2e1c95350a6b8c4e46c4eac9c988d8680d1b245c21cf69d39"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              279
+            ],
+            "dtype": "torch.int64",
+            "sha256": "57ba5cacbb77ace05e65d7e3413464213d65d979c5f273e1031c4ed1f42086d0"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.5,
+          28.875
+        ],
+        [
+          29.125,
+          26.625
+        ],
+        [
+          28.5,
+          27.5,
+          25.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.4073334336280823,
+          0.5926666259765625
+        ],
+        [
+          0.9241418242454529,
+          0.07585818320512772
+        ],
+        [
+          0.7053845524787903,
+          0.2594964802265167,
+          0.03511902689933777
+        ]
+      ]
+    },
+    "fixed_01": {
+      "input_tokens": 274,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          251,
+          259,
+          267
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "821fbb3505d440a62fdd931d9b3f1bc7df04fa6748c76f7047ab6d9b394b2869"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d7d0a9ae1b3676a1065e506c351a602b5db332d4dc3f8949fc834ddaf36d1057"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.375,
+          28.875
+        ],
+        [
+          28.625,
+          28.125
+        ],
+        [
+          27.625,
+          28.875,
+          26.625
+        ]
+      ],
+      "probabilities": [
+        [
+          0.3775406777858734,
+          0.622459352016449
+        ],
+        [
+          0.622459352016449,
+          0.3775406777858734
+        ],
+        [
+          0.20583660900592804,
+          0.7184403538703918,
+          0.07572305202484131
+        ]
+      ]
+    },
+    "fixed_02": {
+      "input_tokens": 278,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          255,
+          263,
+          271
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "43aca0751d47d9054313a2cebffbac735a649f1f9cf1700b8a2c4784ac6b353c"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "467a80a455535d2031af7127ad3b7605e8deacc59636aefd9e09fb7ff7f66891"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          30.75,
+          25.25
+        ],
+        [
+          26.375,
+          30.0
+        ],
+        [
+          27.5,
+          28.5,
+          28.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9959298968315125,
+          0.004070138093084097
+        ],
+        [
+          0.02595735527575016,
+          0.9740425944328308
+        ],
+        [
+          0.15536241233348846,
+          0.42231881618499756,
+          0.42231881618499756
+        ]
+      ]
+    },
+    "fixed_03": {
+      "input_tokens": 278,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          255,
+          263,
+          271
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "fbadb09e047a96e87760682e45d13a88cd47ac2f33d1a75ea3c8d0bbadc8d24a"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "467a80a455535d2031af7127ad3b7605e8deacc59636aefd9e09fb7ff7f66891"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          30.5,
+          24.125
+        ],
+        [
+          25.5,
+          30.125
+        ],
+        [
+          26.875,
+          28.375,
+          28.625
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9982993006706238,
+          0.0017007224960252643
+        ],
+        [
+          0.00970847625285387,
+          0.9902915358543396
+        ],
+        [
+          0.08899732679128647,
+          0.39885836839675903,
+          0.5121442675590515
+        ]
+      ]
+    },
+    "fixed_04": {
+      "input_tokens": 278,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          255,
+          263,
+          271
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "cb538f69cc8f3e653ae158474f4f32718b21390c3d8aa675d0806d5510b5f01e"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "467a80a455535d2031af7127ad3b7605e8deacc59636aefd9e09fb7ff7f66891"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.125,
+          28.75
+        ],
+        [
+          28.625,
+          28.375
+        ],
+        [
+          28.625,
+          27.25,
+          24.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.3486451804637909,
+          0.6513549089431763
+        ],
+        [
+          0.562176525592804,
+          0.4378235340118408
+        ],
+        [
+          0.785179615020752,
+          0.19852448999881744,
+          0.01629588194191456
+        ]
+      ]
+    },
+    "fixed_05": {
+      "input_tokens": 280,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          257,
+          265,
+          273
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              280
+            ],
+            "dtype": "torch.int64",
+            "sha256": "85e1dfb79b9c0a500f0addc8f5c26a94434ab91cffdc251d8433ca9ffa273023"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              280
+            ],
+            "dtype": "torch.int64",
+            "sha256": "766ff8c654df08cfb08c385f6040981da32887aae180d4162107d0dd44e2643d"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.75,
+          26.5
+        ],
+        [
+          26.25,
+          29.375
+        ],
+        [
+          28.125,
+          27.75,
+          26.375
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9626730680465698,
+          0.037326883524656296
+        ],
+        [
+          0.04208773002028465,
+          0.957912266254425
+        ],
+        [
+          0.537327229976654,
+          0.3692992627620697,
+          0.09337347000837326
+        ]
+      ]
+    },
+    "fixed_06": {
+      "input_tokens": 274,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          251,
+          259,
+          267
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "476e104d76dd83b57d11e126cb9cdc7481905b38e45e2ec4a12552d786e5e71f"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d7d0a9ae1b3676a1065e506c351a602b5db332d4dc3f8949fc834ddaf36d1057"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.0,
+          28.125
+        ],
+        [
+          28.5,
+          28.5
+        ],
+        [
+          27.75,
+          28.875,
+          28.0
+        ]
+      ],
+      "probabilities": [
+        [
+          0.7057850360870361,
+          0.29421496391296387
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.18641962110996246,
+          0.5742128491401672,
+          0.2393675297498703
+        ]
+      ]
+    },
+    "fixed_07": {
+      "input_tokens": 278,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          255,
+          263,
+          271
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "280f48b196ffc526ffdf6e17bfc861f929aeaa362b335812b7d7b0e0eb4c690f"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "467a80a455535d2031af7127ad3b7605e8deacc59636aefd9e09fb7ff7f66891"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          30.0,
+          26.125
+        ],
+        [
+          25.625,
+          30.125
+        ],
+        [
+          27.625,
+          28.125,
+          27.875
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9796676635742188,
+          0.020332353189587593
+        ],
+        [
+          0.010986942797899246,
+          0.9890130758285522
+        ],
+        [
+          0.25427523255348206,
+          0.4192289710044861,
+          0.32649585604667664
+        ]
+      ]
+    },
+    "fixed_08": {
+      "input_tokens": 276,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          253,
+          261,
+          269
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "9944bf8a53e5c38ffd836ba8d6245b58efc9096c1b9ed38d44138b5d680474be"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "5f4b2c78876bd79542b357f32545c695b2fd9a8306b81d54b84526f4f5d0fc33"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.375,
+          28.0
+        ],
+        [
+          28.25,
+          28.5
+        ],
+        [
+          25.5,
+          28.5,
+          28.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.7981867790222168,
+          0.2018132209777832
+        ],
+        [
+          0.4378235340118408,
+          0.562176525592804
+        ],
+        [
+          0.021332934498786926,
+          0.4284834563732147,
+          0.5501836538314819
+        ]
+      ]
+    },
+    "fixed_09": {
+      "input_tokens": 276,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          253,
+          261,
+          269
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "72060a97604c45a227194fb7d3f39f8a0709d7a4aa8cdcef8ae1a6f016b55f02"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "5f4b2c78876bd79542b357f32545c695b2fd9a8306b81d54b84526f4f5d0fc33"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.25,
+          28.875
+        ],
+        [
+          28.5,
+          28.25
+        ],
+        [
+          26.875,
+          29.0,
+          28.625
+        ]
+      ],
+      "probabilities": [
+        [
+          0.5926666259765625,
+          0.4073334336280823
+        ],
+        [
+          0.562176525592804,
+          0.4378235340118408
+        ],
+        [
+          0.06610478460788727,
+          0.553488552570343,
+          0.38040676712989807
+        ]
+      ]
+    },
+    "fixed_10": {
+      "input_tokens": 275,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          252,
+          260,
+          268
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "43982ab10ac82c90aa4b9af2a20e52a295ba7bf23b64715767fc03af2aa43609"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "2e6fb4c8166befd2adaa355156720277f6ab792f502000acc30c3e7ca723f31d"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.625,
+          29.0
+        ],
+        [
+          28.875,
+          26.375
+        ],
+        [
+          27.375,
+          29.0,
+          28.0
+        ]
+      ],
+      "probabilities": [
+        [
+          0.6513549089431763,
+          0.3486451804637909
+        ],
+        [
+          0.9241418242454529,
+          0.07585818320512772
+        ],
+        [
+          0.12583895027637482,
+          0.6390628814697266,
+          0.23509810864925385
+        ]
+      ]
+    },
+    "fixed_11": {
+      "input_tokens": 278,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          255,
+          263,
+          271
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d034ff9679db1863a37d5d5ebbb1cd154656ad987d8f03d9fa6879a4e413a1e8"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              278
+            ],
+            "dtype": "torch.int64",
+            "sha256": "467a80a455535d2031af7127ad3b7605e8deacc59636aefd9e09fb7ff7f66891"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.875,
+          27.875
+        ],
+        [
+          28.375,
+          28.875
+        ],
+        [
+          27.375,
+          29.0,
+          28.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.8807970285415649,
+          0.11920291185379028
+        ],
+        [
+          0.3775406777858734,
+          0.622459352016449
+        ],
+        [
+          0.09966615587472916,
+          0.5061464905738831,
+          0.3941872715950012
+        ]
+      ]
+    },
+    "fixed_12": {
+      "input_tokens": 275,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          252,
+          260,
+          268
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "78444e081c587a8e95f2155d0af3f0743fcf505e1724daeaae7086011494c183"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "2e6fb4c8166befd2adaa355156720277f6ab792f502000acc30c3e7ca723f31d"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.875,
+          29.5
+        ],
+        [
+          28.75,
+          28.125
+        ],
+        [
+          28.0,
+          29.0,
+          27.25
+        ]
+      ],
+      "probabilities": [
+        [
+          0.3486451804637909,
+          0.6513549089431763
+        ],
+        [
+          0.6513549089431763,
+          0.3486451804637909
+        ],
+        [
+          0.23862655460834503,
+          0.6486542224884033,
+          0.11271920055150986
+        ]
+      ]
+    },
+    "fixed_13": {
+      "input_tokens": 277,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          254,
+          262,
+          270
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              277
+            ],
+            "dtype": "torch.int64",
+            "sha256": "1a2cee0c73bc0b2ec97adcb009ba97a6f7c664672bf6176417796c47f1836c4f"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              277
+            ],
+            "dtype": "torch.int64",
+            "sha256": "19825880761a67a6d94bf5aee31e78ce182dfbbee87195cc4ec18e243735c804"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          30.125,
+          27.5
+        ],
+        [
+          27.375,
+          29.625
+        ],
+        [
+          27.5,
+          28.5,
+          28.125
+        ]
+      ],
+      "probabilities": [
+        [
+          0.9324532747268677,
+          0.06754668802022934
+        ],
+        [
+          0.09534946084022522,
+          0.9046505093574524
+        ],
+        [
+          0.1790020763874054,
+          0.4865780770778656,
+          0.3344199061393738
+        ]
+      ]
+    },
+    "fixed_14": {
+      "input_tokens": 275,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          252,
+          260,
+          268
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "0a4fe9cbdf3c3940f2d4a9458de7f04b710e36391c6d4bd0638af8922755c009"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "2e6fb4c8166befd2adaa355156720277f6ab792f502000acc30c3e7ca723f31d"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.75,
+          28.75
+        ],
+        [
+          28.125,
+          28.75
+        ],
+        [
+          26.75,
+          29.0,
+          28.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.3486451804637909,
+          0.6513549089431763
+        ],
+        [
+          0.055938441306352615,
+          0.5307291746139526,
+          0.4133322834968567
+        ]
+      ]
+    },
+    "fixed_15": {
+      "input_tokens": 275,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          252,
+          260,
+          268
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d2e8ec97c9eafe4c8e5835e987df7fb5bac2cc448a914a9082a18920a35ff50e"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              275
+            ],
+            "dtype": "torch.int64",
+            "sha256": "2e6fb4c8166befd2adaa355156720277f6ab792f502000acc30c3e7ca723f31d"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.0,
+          28.125
+        ],
+        [
+          28.0,
+          28.875
+        ],
+        [
+          27.375,
+          28.75,
+          28.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.7057850360870361,
+          0.29421496391296387
+        ],
+        [
+          0.29421496391296387,
+          0.7057850360870361
+        ],
+        [
+          0.12445096671581268,
+          0.4922131299972534,
+          0.38333597779273987
+        ]
+      ]
+    },
+    "fixed_16": {
+      "input_tokens": 276,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          253,
+          261,
+          269
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "22439bdb1f9956905fab89b06599ebce0abeec3c3304709273645f3cbd34face"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "5f4b2c78876bd79542b357f32545c695b2fd9a8306b81d54b84526f4f5d0fc33"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.625,
+          28.375
+        ],
+        [
+          28.5,
+          27.375
+        ],
+        [
+          26.0,
+          28.875,
+          28.75
+        ]
+      ],
+      "probabilities": [
+        [
+          0.562176525592804,
+          0.4378235340118408
+        ],
+        [
+          0.7549149990081787,
+          0.24508501589298248
+        ],
+        [
+          0.029096784070134163,
+          0.5157528519630432,
+          0.4551502764225006
+        ]
+      ]
+    },
+    "fixed_17": {
+      "input_tokens": 276,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          253,
+          261,
+          269
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "33e9124b8896df997263045538f64a603f7f7c4bc6dc9dce026f0e7fb8d61cee"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              276
+            ],
+            "dtype": "torch.int64",
+            "sha256": "5f4b2c78876bd79542b357f32545c695b2fd9a8306b81d54b84526f4f5d0fc33"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.125,
+          28.375
+        ],
+        [
+          28.5,
+          28.0
+        ],
+        [
+          25.125,
+          28.625,
+          29.0
+        ]
+      ],
+      "probabilities": [
+        [
+          0.4378235340118408,
+          0.562176525592804
+        ],
+        [
+          0.622459352016449,
+          0.3775406777858734
+        ],
+        [
+          0.012150940485298634,
+          0.4023839235305786,
+          0.585465133190155
+        ]
+      ]
+    },
+    "fixed_18": {
+      "input_tokens": 274,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          251,
+          259,
+          267
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "1dd1d15fdb4f9ef8a1e24e5e826ead74038836dc96a12466a4b7f360712e9385"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              274
+            ],
+            "dtype": "torch.int64",
+            "sha256": "d7d0a9ae1b3676a1065e506c351a602b5db332d4dc3f8949fc834ddaf36d1057"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.75,
+          28.625
+        ],
+        [
+          28.75,
+          28.125
+        ],
+        [
+          27.25,
+          29.375,
+          28.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.7549149990081787,
+          0.24508501589298248
+        ],
+        [
+          0.6513549089431763,
+          0.3486451804637909
+        ],
+        [
+          0.07774091511964798,
+          0.6509166955947876,
+          0.2713424563407898
+        ]
+      ]
+    },
+    "fixed_19": {
+      "input_tokens": 277,
+      "fields": [
+        "action",
+        "red",
+        "risk"
+      ],
+      "encoding": {
+        "marker_positions": [
+          254,
+          262,
+          270
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              277
+            ],
+            "dtype": "torch.int64",
+            "sha256": "6900c93985c0f788b0285d066bfea02311099a6d22b3b06faecdec2878c83e2a"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              277
+            ],
+            "dtype": "torch.int64",
+            "sha256": "19825880761a67a6d94bf5aee31e78ce182dfbbee87195cc4ec18e243735c804"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33,
+          34
+        ]
+      ],
+      "candidate_logits": [
+        [
+          29.25,
+          28.625
+        ],
+        [
+          28.25,
+          29.125
+        ],
+        [
+          28.25,
+          29.0,
+          27.5
+        ]
+      ],
+      "probabilities": [
+        [
+          0.6513549089431763,
+          0.3486451804637909
+        ],
+        [
+          0.29421496391296387,
+          0.7057850360870361
+        ],
+        [
+          0.27860066294670105,
+          0.5897976160049438,
+          0.13160164654254913
+        ]
+      ]
+    },
+    "sixteen_fields": {
+      "input_tokens": 1102,
+      "fields": [
+        "field_0",
+        "field_1",
+        "field_2",
+        "field_3",
+        "field_4",
+        "field_5",
+        "field_6",
+        "field_7",
+        "field_8",
+        "field_9",
+        "field_10",
+        "field_11",
+        "field_12",
+        "field_13",
+        "field_14",
+        "field_15"
+      ],
+      "encoding": {
+        "marker_positions": [
+          939,
+          949,
+          959,
+          969,
+          979,
+          989,
+          999,
+          1009,
+          1019,
+          1029,
+          1040,
+          1051,
+          1062,
+          1073,
+          1084,
+          1095
+        ],
+        "tensors": {
+          "input_ids": {
+            "shape": [
+              1,
+              1102
+            ],
+            "dtype": "torch.int64",
+            "sha256": "4cc5b213d0897d030b3cdfd1912da0622c318045b040080716a9ad5f8818ee84"
+          },
+          "attention_mask": {
+            "shape": [
+              1,
+              1102
+            ],
+            "dtype": "torch.int64",
+            "sha256": "8620f64442e93e1acd27e1a3c21dc9f8ffc78cd97cc06473f4cb81589e1440ca"
+          }
+        }
+      },
+      "candidate_ids": [
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          32,
+          33
+        ]
+      ],
+      "candidate_logits": [
+        [
+          28.625,
+          28.75
+        ],
+        [
+          27.625,
+          28.25
+        ],
+        [
+          27.25,
+          27.75
+        ],
+        [
+          27.5,
+          27.25
+        ],
+        [
+          27.375,
+          27.25
+        ],
+        [
+          27.125,
+          27.125
+        ],
+        [
+          27.125,
+          26.75
+        ],
+        [
+          26.875,
+          26.875
+        ],
+        [
+          26.875,
+          27.0
+        ],
+        [
+          26.875,
+          26.875
+        ],
+        [
+          27.0,
+          27.125
+        ],
+        [
+          25.25,
+          25.5
+        ],
+        [
+          25.25,
+          25.0
+        ],
+        [
+          26.5,
+          24.75
+        ],
+        [
+          25.75,
+          24.375
+        ],
+        [
+          25.25,
+          26.0
+        ]
+      ],
+      "probabilities": [
+        [
+          0.4687906503677368,
+          0.531209409236908
+        ],
+        [
+          0.3486451804637909,
+          0.6513549089431763
+        ],
+        [
+          0.3775406777858734,
+          0.622459352016449
+        ],
+        [
+          0.562176525592804,
+          0.4378235340118408
+        ],
+        [
+          0.531209409236908,
+          0.4687906503677368
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.5926666259765625,
+          0.4073334336280823
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.4687906503677368,
+          0.531209409236908
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.4687906503677368,
+          0.531209409236908
+        ],
+        [
+          0.4378235340118408,
+          0.562176525592804
+        ],
+        [
+          0.562176525592804,
+          0.4378235340118408
+        ],
+        [
+          0.8519527316093445,
+          0.14804719388484955
+        ],
+        [
+          0.7981867790222168,
+          0.2018132209777832
+        ],
+        [
+          0.3208213150501251,
+          0.6791787147521973
+        ]
+      ]
+    }
+  }
+}
