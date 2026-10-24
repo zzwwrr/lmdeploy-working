@@ -1,0 +1,108 @@
+# Copyright (c) OpenMMLab. All rights reserved.
+"""HTTP service entry points for Intern-Decision."""
+from types import SimpleNamespace
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from lmdeploy.intern_decision_encoding import DEFAULT_TEMPERATURE
+from lmdeploy.serve.core.async_engine import GenOut
+from lmdeploy.serve.parsers.decision_parser import DecisionConfig, DecisionParser
+
+QUESTION = {'q': {'type': 'noul'}}
+MARKER, IMAGE_PAD = 900, 800
+SYMBOLS = {'A': 32, 'B': 33, 'C': 34}
+
+
+def config(**kwargs):
+    values = dict(model_name='intern-decision', model_names=frozenset(('intern-decision', 'Intern-Decision-0.8B')),
+                  marker_id=MARKER, symbol_ids=SYMBOLS, image_token_id=IMAGE_PAD, supports_images=True,
+                  max_length=8191, temperature=DEFAULT_TEMPERATURE)
+    return DecisionConfig(**{**values, **kwargs})
+
+
+class FakeSessionManager:
+
+    def __init__(self):
+        self.sessions = {}
+        self.count = 0
+
+    def get(self):
+        self.count += 1
+        session = SimpleNamespace(session_id=self.count, epoch=None)
+        self.sessions[session.session_id] = session
+        return session
+
+    def remove(self, session):
+        self.sessions.pop(session.session_id, None)
+
+
+class FakeEngine:
+    epoch = 0
+    model_name = 'intern-decision'
+
+    def __init__(self, *, expand=4):
+        self.session_mgr = FakeSessionManager()
+        self.requests = []
+        self.expand = expand
+
+    async def preprocess(self, messages, session, *, gen_config, input_ids=None, **kwargs):
+        assert input_ids is None and kwargs['scoring_input']
+        content = messages[1]['content']
+        images = sum(part['type'] == 'image_url' for part in content) if isinstance(content, list) else 0
+        if images:
+            assert all(not isinstance(part.get('image_url', {}).get('url'), Image.Image) for part in content)
+        fields = messages[-1]['content'].count('<decision>')
+        ids = [1] + [IMAGE_PAD] * (self.expand * images) + [2, 3]
+        for _ in range(fields):
+            ids.extend([2, MARKER, 3])
+        prepared = SimpleNamespace(session=session, inputs={'input_ids': ids}, input_token_len=len(ids),
+                                   gen_config=gen_config)
+        self.requests.append(prepared)
+        return prepared
+
+    async def generate(self, request, stream_response=True):
+        assert stream_response is False
+        targets = request.inputs['input_ids'][request.gen_config.logprob_start_len + 1:]
+        rows = [{token: float(token) for token in request.gen_config.logprob_extra_token_ids} for _ in targets]
+        yield GenOut(response='', token_ids=[], input_token_len=request.input_token_len, generate_token_len=0,
+                     logprobs=rows, finish_reason='length')
+
+
+def test_http_routes(monkeypatch):
+    from lmdeploy.serve.openai.api_server import ServerContext
+    from lmdeploy.serve.openai.endpoints import create_openai_router
+    context = ServerContext()
+    app = FastAPI()
+    app.include_router(create_openai_router(context))
+    body = {'state': 1, 'questions': QUESTION}
+    with TestClient(app) as client:
+        assert client.post('/v1/decisions', json=body).status_code == 503
+        context.async_engine = FakeEngine()
+        context.decision_config = config()
+        observed = []
+        sessions = []
+        original_create_session = context.create_session
+
+        def create_session(session_id=None):
+            session = original_create_session(session_id)
+            sessions.append(session)
+            return session
+
+        monkeypatch.setattr(context, 'create_session', create_session)
+        original = DecisionParser.prepare_input
+
+        def prepare(parser):
+            observed.append(parser.request.state)
+            return original(parser)
+
+        monkeypatch.setattr(DecisionParser, 'prepare_input', prepare)
+        assert client.post('/v1/decisions', json=body).status_code == 200
+        assert client.post('/v1/jev', json=body).status_code == 200
+        assert client.post('/v1/decisions', json={**body, 'model': 'unknown'}).status_code == 400
+        assert client.post('/v1/decisions', json={'state': 1, 'questions': {}}).status_code == 422
+        assert observed == [1, 1]
+        assert len(sessions) == 2 and sessions[0] is not sessions[1]
+        assert all(session.epoch == context.async_engine.epoch for session in sessions)
+        assert not context.session_manager.sessions
