@@ -80,6 +80,13 @@ class SubCliServe:
                             type=str,
                             default=None,
                             help='Exact hostnames allowed for HTTP(S) media URLs.')
+        parser.add_argument('--task',
+                            type=str,
+                            default=None,
+                            help='Serve a task protocol on top of the model. Set it to the '
+                            'Intern-Decision checkpoint name (e.g. "Intern-Decision-4B") to add '
+                            'POST /v1/decisions with that checkpoint calibration. Requires the '
+                            'PyTorch backend')
         # common args
         ArgumentHelper.backend(parser)
         ArgumentHelper.log_level(parser)
@@ -238,6 +245,9 @@ class SubCliServe:
         max_batch_size = args.max_batch_size if args.max_batch_size \
             else get_max_batch_size(args.device)
         backend = args.backend
+        if args.task is not None:
+            # task protocols score through input logprobs, which only the PyTorch engine provides
+            backend = 'pytorch'
         if backend != 'pytorch':
             # set auto backend mode
             backend = autoget_backend(args.model_path, trust_remote_code=args.trust_remote_code)
@@ -355,6 +365,7 @@ class SubCliServe:
                 speculative_config=speculative_config,
                 allowed_media_domains=args.allowed_media_domains,
                 generation_config=args.generation_config,
+                task=args.task,
             )
         else:
             from lmdeploy.serve.openai.launch_server import launch_server
@@ -389,6 +400,7 @@ class SubCliServe:
                 speculative_config=speculative_config,
                 allowed_media_domains=args.allowed_media_domains,
                 generation_config=args.generation_config,
+                task=args.task,
             )
 
     @staticmethod

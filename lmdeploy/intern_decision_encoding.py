@@ -23,7 +23,10 @@ DECISION_TEMPERATURES = {
     'Intern-Decision-2B': 2.100509348278,
     'Intern-Decision-4B': 1.99241824,
 }
-DEFAULT_TEMPERATURE = DECISION_TEMPERATURES['Intern-Decision-0.8B']
+# The 4B checkpoint is the deployed model, so it owns the fallback value. Every
+# production path resolves the temperature from `--task` instead of using this;
+# it only covers direct callers that have no checkpoint name at hand.
+DEFAULT_TEMPERATURE = DECISION_TEMPERATURES['Intern-Decision-4B']
 SYSTEM_PROMPT = ('You are a careful decision assistant. Use the state and decision schema in '
                  'the user message to make the requested decisions. For every field, choose '
                  'exactly one answer symbol (e.g. A, B, C, ...) from its listed options and '
