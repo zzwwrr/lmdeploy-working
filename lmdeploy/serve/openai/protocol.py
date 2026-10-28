@@ -1,11 +1,16 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 # Modified from
 # https://github.com/lm-sys/FastChat/blob/168ccc29d3f7edc50823016105c024fe2282732a/fastchat/protocol/openai_api_protocol.py
+import json
+import math
 import time
 from typing import Any, Literal
 
 import shortuuid
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import (AliasChoices, AliasPath, BaseModel, ConfigDict, Field,
+                      field_validator)
+
+from lmdeploy.intern_decision_encoding import ANSWER_SYMBOLS
 
 
 class ErrorResponse(BaseModel):
@@ -659,3 +664,73 @@ class AbortRequest(BaseModel):
     abort_message: str | None = None
     # The session ID to abort. If `abort_all` is True, this field is ignored.
     session_id: int | None = -1
+
+
+# Intern-Decision requests and responses
+# Question-count limit inherited from the upstream Intern-Decision request validation.
+MAX_QUESTIONS = 16
+
+
+class DecisionRequest(BaseModel):
+    """One Jev-style request: ``state``, ``questions`` and optional images.
+
+    Images use the same URL/data URL/path strings or parameter dictionaries as ``/generate``.
+    A single reference or a list is accepted; shared multimodal preprocessing validates and loads them.
+    """
+    model_config = ConfigDict(extra='forbid', strict=True)
+    state: Any
+    questions: dict[str, dict[str, Any]]
+    images: ImageDataFormat = Field(default_factory=list)
+    model: str | None = None
+    # Training-only metadata is accepted but never enters the inference prompt.
+    targets: Any = Field(default=None, exclude=True)
+    answer: Any = Field(default=None, exclude=True)
+    id: Any = Field(default=None, exclude=True)
+
+    @field_validator('state')
+    @classmethod
+    def json_state(cls, value):
+        try:
+            json.dumps(value, ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ValueError('state must contain finite JSON data') from exc
+        return value
+
+    @field_validator('questions')
+    @classmethod
+    def valid_questions(cls, questions):
+        if not 1 <= len(questions) <= MAX_QUESTIONS:
+            raise ValueError(f'Supply 1–{MAX_QUESTIONS} questions')
+        clean = {}
+        for name, question in questions.items():
+            if not name:
+                raise ValueError('Question names must be nonempty strings')
+            kind, criteria = question.get('type'), question.get('criteria')
+            if kind not in ('choice', 'score', 'noul'):
+                raise ValueError('Question type must be choice, score, or noul')
+            if kind == 'choice' and not isinstance(criteria, dict):
+                raise ValueError('Choice criteria must be an object')
+            if kind == 'score':
+                if not isinstance(criteria, (list, dict)):
+                    raise ValueError('Score criteria must be a list or object')
+                if isinstance(criteria, dict):
+                    try:
+                        if any(isinstance(key, bool) or not math.isfinite(float(key)) for key in criteria):
+                            raise ValueError('Score option keys must be finite numbers')
+                    except (TypeError, ValueError) as exc:
+                        raise ValueError('Score option keys must be finite numbers') from exc
+            if kind != 'noul' and not 1 <= len(criteria) <= len(ANSWER_SYMBOLS):
+                raise ValueError(f'Supply 1–{len(ANSWER_SYMBOLS)} options')
+            if isinstance(criteria, dict) and any(not isinstance(key, str) for key in criteria):
+                raise ValueError('Option keys must be strings')
+            clean[name] = {key: question[key] for key in ('type', 'instructions', 'criteria') if key in question}
+        return clean
+
+
+class DecisionResponse(BaseModel):
+    request_id: str
+    model: str
+    answers: dict[str, dict[str, Any]]
+    usage: dict[str, int]
+    timing: dict[str, float]
+    calibration: dict[str, Any]
