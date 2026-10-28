@@ -63,6 +63,8 @@ class ServerContext:
         self.enable_abort_handling = False
         self.response_parser_cls: type[ResponseParser] | None = None
         self.default_gen_config: dict = {}
+        # Set by serve(task='<Intern-Decision checkpoint name>'); POST /v1/decisions returns 503 otherwise.
+        self.decision_config = None
 
     @property
     def engine_config(self):
@@ -281,6 +283,7 @@ def serve(model_path: str,
           speculative_config: SpeculativeConfig | None = None,
           allowed_media_domains: list[str] | None = None,
           generation_config: str = 'auto',
+          task: str | None = None,
           **kwargs):
     """An example to perform model inference through the command line
     interface.
@@ -334,6 +337,10 @@ def serve(model_path: str,
         allow_terminate_by_client (bool): Allow request from client to terminate server.
         allowed_media_domains (list[str] | None): Optional exact hostname
             allowlist for HTTP(S) media URLs.
+        task (str | None): Optional task protocol named after its checkpoint. A
+            known Intern-Decision name such as ``'Intern-Decision-4B'`` enables
+            ``POST /v1/decisions`` with that checkpoint's calibrated temperature
+            (PyTorch backend only).
     """
     if os.getenv('TM_LOG_LEVEL') is None:
         os.environ['TM_LOG_LEVEL'] = log_level
@@ -358,6 +365,19 @@ def serve(model_path: str,
         ssl_certfile = os.environ['SSL_CERTFILE']
         http_or_https = 'https'
 
+    if task is not None:
+        from lmdeploy.intern_decision_encoding import resolve_temperature
+        if backend_config is not None and not isinstance(backend_config, PytorchEngineConfig):
+            raise ValueError(f'{task} requires the PyTorch backend')
+        # input logprobs are PyTorch-only; like the CLI, the task selects that backend
+        backend = 'pytorch'
+        backend_config = backend_config or PytorchEngineConfig()
+        # The task name identifies the checkpoint, which selects its calibrated
+        # temperature. An unknown name fails here instead of using another
+        # checkpoint's calibration.
+        task_temperature = resolve_temperature(task)
+        logger.info(f'{task} uses the calibrated temperature {task_temperature}.')
+
     handle_torchrun()
     _, pipeline_class = get_task(backend,
                                  model_path,
@@ -380,6 +400,15 @@ def serve(model_path: str,
         allowed_media_domains=allowed_media_domains,
         **kwargs)
     set_parsers(server_context, reasoning_parser, tool_call_parser)
+    if task is not None:
+        from lmdeploy.serve.parsers.decision_parser import create_decision_config
+        try:
+            server_context.decision_config = create_decision_config(server_context.async_engine,
+                                                                    model_path,
+                                                                    temperature=task_temperature)
+        except BaseException:
+            server_context.async_engine.close()
+            raise
 
     # create FastAPI lifespan events
     lifespan = create_lifespan_handler(backend_config,
