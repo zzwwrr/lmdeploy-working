@@ -225,6 +225,7 @@ class MultimodalProcessor:
                                chat_template_kwargs: dict | None = None,
                                media_io_kwargs: dict[str, Any] | None = None,
                                mm_processor_kwargs: dict[str, Any] | None = None,
+                               scoring_input: bool = False,
                                **kwargs):
         """Process prompt and return prompt string and input_ids.
 
@@ -240,6 +241,7 @@ class MultimodalProcessor:
             chat_template_kwargs: Optional kwargs for chat template.
             media_io_kwargs: Optional kwargs for media IO operations.
             mm_processor_kwargs: Optional kwargs for multimodal processor.
+            scoring_input: Internal complete-conversation scoring mode.
             **kwargs: Additional keyword arguments.
 
         Returns:
@@ -257,6 +259,7 @@ class MultimodalProcessor:
                                                      tools=tools,
                                                      reasoning_effort=reasoning_effort,
                                                      chat_template_kwargs=chat_template_kwargs,
+                                                     scoring_input=scoring_input,
                                                      **kwargs)
 
         # Handle list input
@@ -275,6 +278,7 @@ class MultimodalProcessor:
                                                          tools=tools,
                                                          reasoning_effort=reasoning_effort,
                                                          chat_template_kwargs=chat_template_kwargs,
+                                                         scoring_input=scoring_input,
                                                          **kwargs)
 
             # Process multimodal input
@@ -285,6 +289,7 @@ class MultimodalProcessor:
                                                            chat_template_kwargs=chat_template_kwargs,
                                                            media_io_kwargs=media_io_kwargs,
                                                            mm_processor_kwargs=mm_processor_kwargs,
+                                                           scoring_input=scoring_input,
                                                            **kwargs)
         else:
             raise RuntimeError(f'unsupported prompt type: {type(prompt)}')
@@ -392,8 +397,32 @@ class MultimodalProcessor:
                                      tools: list[object] | None = None,
                                      reasoning_effort: Literal['low', 'medium', 'high', 'max'] | None = None,
                                      chat_template_kwargs: dict | None = None,
+                                     scoring_input: bool = False,
                                      **kwargs):
         """Process text-only prompt and return prompt string and input_ids."""
+        if scoring_input:
+            if not isinstance(prompt, list):
+                raise ValueError('Complete input scoring requires a message list, not a prompt string: '
+                                 'the trailing assistant turn that carries the scoring targets cannot be '
+                                 'expressed as a bare string.')
+            # Reuse the engine's HF tokenizer instead of loading a second one
+            # or mutating the shared multimodal processor's tokenizer. The
+            # engine's chat template is bypassed on purpose: scoring needs the
+            # model's own HF template even when `--chat-template` selects a
+            # hand-written one that cannot render a complete conversation.
+            tokenizer = self.tokenizer
+            while not callable(getattr(tokenizer, 'apply_chat_template', None)):
+                tokenizer = getattr(tokenizer, 'model', None)
+                if tokenizer is None:
+                    raise ValueError('Complete input scoring requires a HuggingFace chat template.')
+            # Keep the trailing assistant end-of-turn tokens: they are part of
+            # the scored conversation rather than a generation prefix.
+            prompt = tokenizer.apply_chat_template(prompt,
+                                                   tokenize=False,
+                                                   add_generation_prompt=False,
+                                                   **(chat_template_kwargs or {}))
+            return {'prompt': prompt,
+                    'input_ids': self.tokenizer.encode(prompt, add_bos=False, add_special_tokens=False)}
         # Change multimodal data to openai text messages
         if isinstance(prompt, list):
             prompt = [self.merge_message_content(msg) for msg in prompt]
@@ -429,6 +458,7 @@ class MultimodalProcessor:
                                            chat_template_kwargs: dict | None = None,
                                            media_io_kwargs: dict[str, Any] | None = None,
                                            mm_processor_kwargs: dict[str, Any] | None = None,
+                                           scoring_input: bool = False,
                                            **kwargs):
         """Process multimodal prompt and return processed data for inference
         engines."""
@@ -436,6 +466,30 @@ class MultimodalProcessor:
         messages = await self.async_parse_multimodal_item(messages,
                                                           media_io_kwargs,
                                                           allowed_media_domains=self.allowed_media_domains)
+
+        if scoring_input:
+            if not self.vl_encoder._uses_new_preprocess:
+                raise ValueError('Complete multimodal input scoring requires the processor preprocessing API.')
+            # Render through the model's own multimodal processor, bypassing
+            # the engine chat template for the same reason as the text-only
+            # path: a hand-written template cannot express a complete
+            # conversation that ends with an assistant turn. The trailing
+            # assistant end-of-turn tokens are kept on purpose.
+            processor = self.vl_encoder.model.processor
+            input_prompt = processor.apply_chat_template(messages,
+                                                         tokenize=False,
+                                                         add_generation_prompt=False,
+                                                         **(chat_template_kwargs or {}))
+            image_token = getattr(processor, 'image_token', None)
+            if image_token:
+                num_images = sum(item.get('type') == Modality.IMAGE
+                                 for message in messages if isinstance(message.get('content'), list)
+                                 for item in message['content'])
+                if input_prompt.count(image_token) != num_images:
+                    raise ValueError('Image placeholder count does not match the supplied images.')
+            return await self.vl_encoder.preprocess(messages,
+                                                     input_prompt=input_prompt,
+                                                     mm_processor_kwargs=mm_processor_kwargs)
 
         if self.backend == 'turbomind':
             if self.vl_encoder._uses_new_preprocess:
