@@ -1,17 +1,31 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-"""Exercise the production wire models and parser with fixed engine scores."""
+"""Exercise the production wire models, parser and HTTP routes with fixed engine scores."""
+import asyncio
+import base64
 import copy
 import math
+import socket
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
-from test_decision import MARKER, config
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.testclient import TestClient
+from PIL import Image, UnidentifiedImageError
+from test_decision_service import MARKER, FakeEngine, config
 
 from lmdeploy.intern_decision_encoding import compile_row
 from lmdeploy.serve.core.async_engine import GenOut
 from lmdeploy.serve.core.exceptions import RequestError
+from lmdeploy.serve.openai.api_server import ServerContext, validation_exception_handler
 from lmdeploy.serve.openai.decision_protocol import OpenAIDecisionRequest
+from lmdeploy.serve.openai.endpoints import create_openai_router
 from lmdeploy.serve.parsers.decision_parser import DecisionParser
+from lmdeploy.serve.processors.multimodal import MultimodalProcessor
 
 
 def request(questions=None, **kwargs):
@@ -106,6 +120,24 @@ def test_names_preserve_order_without_collisions():
     assert 'question_0' in parser.compiled.fields and '_question_0' in parser.compiled.fields
 
 
+@pytest.mark.parametrize('name', ['Intern-Decision-0.8B', 'Intern-Decision-2B', 'Intern-Decision-4B'])
+def test_model_identity_comes_from_engine(http_service, name):
+    client, context = http_service
+    context.async_engine.model_name = name
+    body = request([dict(type='predicate', instructions='Check')])
+    body['model'] = name
+    response = client.post('/v1/decisions', json=body)
+    assert response.status_code == 200
+    assert response.json()['model'] == name
+    # A directory basename is not an alias when the service has another name.
+    context.async_engine.model_name = '/models/' + name
+    assert client.post('/v1/decisions', json=body).status_code == 400
+    body['model'] = context.async_engine.model_name
+    response = client.post('/v1/decisions', json=body)
+    assert response.status_code == 200
+    assert response.json()['model'] == context.async_engine.model_name
+
+
 @pytest.mark.parametrize('change', [
     {'input': []},
     {'input': 1}, {'model': None}, {'state': 'mixed protocols'}, {'images': []},
@@ -146,6 +178,96 @@ def test_single_string_message_preserves_text_prompt():
     assert DecisionParser(body, config()).prepare_input().messages == plain.messages
 
 
+@pytest.fixture
+def image_input():
+    def png(color):
+        with Image.new('RGB', (28, 28), color) as image, BytesIO() as buffer:
+            image.save(buffer, format='PNG')
+            return buffer.getvalue()
+
+    red = 'data:image/png;base64,' + base64.b64encode(png('red')).decode()
+    blue, fetched = png('blue'), []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            fetched.append(self.path)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(blue if self.path == '/blue.png' else b'not an image')
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f'http://127.0.0.1:{server.server_port}/blue.png'
+    value = [
+        dict(role='user', content=[dict(type='input_text', text='Compare these images.'),
+                                   dict(type='input_image', image_url=red, detail='auto')]),
+        dict(type='message', role='user', content=[dict(type='input_image', image_url=url, detail=None),
+              dict(type='input_text', text='The first image appears again.'),
+              dict(type='input_image', image_url=red)]),
+    ]
+    try:
+        yield value, [red, url, red], fetched
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(5)
+
+
+def test_image_mapping_and_real_loader(http_service, image_input, monkeypatch):
+    from lmdeploy.vl.media import connection
+
+    value, images, fetched = image_input
+    original_url_check = connection._is_safe_url
+    # Allow only this fixture's loopback server; keep real HTTP transport and decoding.
+    monkeypatch.setattr(connection, '_is_safe_url',
+                        lambda url: (True, 'test server') if url.startswith(images[1]) else original_url_check(url))
+    body = {**request(), 'input': value}
+    original = copy.deepcopy(body)
+    parser = DecisionParser(body, config())
+    expected_state = [
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'Compare these images.'},
+                                     {'type': 'image', 'image_index': 1}]},
+        {'role': 'user', 'content': [{'type': 'image', 'image_index': 2},
+                                     {'type': 'text', 'text': 'The first image appears again.'},
+                                     {'type': 'image', 'image_index': 3}]},
+    ]
+    assert parser.request.state == expected_state
+    assert parser.request.images == images
+    legacy = dict(state=expected_state, images=images, questions=parser.request.questions)
+    assert parser.prepare_input().messages == DecisionParser(legacy, config()).prepare_input().messages
+    assert fetched == [] and body == original
+
+    client, context = http_service
+    preprocess = context.async_engine.preprocess
+    colors = []
+
+    async def with_loader(messages, *args, **kwargs):
+        decoded = await MultimodalProcessor.async_parse_multimodal_item(messages)
+        for part in decoded[1]['content']:
+            if part['type'] == 'image':
+                with part['data'] as image:
+                    colors.append(image.getpixel((0, 0)))
+        return await preprocess(messages, *args, **kwargs)
+
+    monkeypatch.setattr(context.async_engine, 'preprocess', with_loader)
+    response = client.post('/v1/decisions', json=body)
+    assert response.status_code == 200, response.text
+    assert colors == [(255, 0, 0), (0, 0, 255), (255, 0, 0)]
+    assert fetched == ['/blue.png']
+    assert not context.session_manager.sessions
+    # A syntactically valid reference must still pass real image decoding.
+    body['input'] = [dict(role='user', content=[dict(type='input_image', image_url=images[1] + '?broken')])]
+    bad_messages = DecisionParser(body, config()).prepare_input().messages
+    with pytest.raises(UnidentifiedImageError):
+        asyncio.run(MultimodalProcessor.async_parse_multimodal_item(bad_messages))
+    assert len(context.async_engine.requests) == 1
+    assert not context.session_manager.sessions
+
+
 def test_reserved_marker_and_missing_scores():
     parser = DecisionParser({**request(), 'input': '<decision>'}, config())
     with pytest.raises(ValueError, match='Reserved'):
@@ -155,3 +277,98 @@ def test_reserved_marker_and_missing_scores():
     del output.logprobs[0][33]
     with pytest.raises(RequestError, match='lack a requested candidate'):
         parser.parse_output(output, model_name='intern-decision', timing={})
+
+
+@pytest.fixture
+def http_service():
+    context = ServerContext()
+    context.async_engine = FakeEngine()
+    context.decision_context = config(temperature=1.)
+    app = FastAPI()
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.include_router(create_openai_router(context))
+    with TestClient(app) as client:
+        yield client, context
+
+
+def test_http_protocol_dispatch_and_validation(http_service):
+    client, context = http_service
+    result = client.post('/v1/decisions', json=request())
+    assert result.status_code == 200
+    assert [a['type'] for a in result.json()['answers']] == ['predicate', 'choice', 'score']
+    assert result.json()['usage']['output_tokens'] == 0
+    count = len(context.async_engine.requests)
+    for path, body in [('/v1/jev', request()), ('/v1/decisions', {**request(), 'state': 'ambiguous'}),
+                       ('/v1/decisions', {**request(), 'model': 'wrong'}),
+                       ('/v1/decisions', {**request(), 'input': '<decision>'})]:
+        assert client.post(path, json=body).status_code == 400
+    assert len(context.async_engine.requests) == count
+    legacy = dict(state='old', questions={'q': {'type': 'noul'}})
+    for path in ('/v1/decisions', '/v1/jev'):
+        result = client.post(path, json=legacy)
+        assert result.status_code == 200
+        assert result.json()['answers']['q']['type'] == 'noul'
+        assert result.json()['usage']['output_tokens'] == 1
+    assert not context.session_manager.sessions
+    context.decision_context = None
+    assert client.post('/v1/decisions', json=request()).status_code == 503
+
+
+def test_openapi_exposes_both_protocols(http_service):
+    client, _ = http_service
+    schema = client.get('/openapi.json').json()
+    decisions = schema['paths']['/v1/decisions']['post']['requestBody']['content']['application/json']['schema']
+    jev = schema['paths']['/v1/jev']['post']['requestBody']['content']['application/json']['schema']
+    assert {x['$ref'].rsplit('/', 1)[1] for x in decisions['anyOf']} == {'DecisionRequest', 'OpenAIDecisionRequest'}
+    assert jev['$ref'].endswith('/DecisionRequest')
+
+
+@pytest.fixture
+def sdk_server(http_service):
+    pytest.importorskip('openai.types.decision', reason='Install an OpenAI SDK with Decisions support')
+    import uvicorn
+
+    client, _ = http_service
+    sock = socket.socket()
+    sock.bind(('127.0.0.1', 0))
+    server = uvicorn.Server(uvicorn.Config(client.app, log_level='error', access_log=False))
+    thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+    thread.start()
+    try:
+        deadline = time.monotonic() + 10
+        while not server.started and thread.is_alive() and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert server.started, 'Local HTTP server did not start'
+        yield f'http://127.0.0.1:{sock.getsockname()[1]}/v1'
+    finally:
+        server.should_exit = True
+        thread.join(10)
+        sock.close()
+        assert not thread.is_alive(), 'Local HTTP server did not stop'
+
+
+@pytest.mark.parametrize('asynchronous', [False, True])
+@pytest.mark.parametrize('with_images', [False, True])
+def test_official_sdk_over_http(sdk_server, asynchronous, with_images, image_input):
+    import openai
+
+    body = request()
+    if with_images:
+        body['input'] = image_input[0]
+    body['questions'][1]['choices'] = [dict(value=True), dict(value='true')]
+    kwargs = dict(api_key='local-test', base_url=sdk_server, max_retries=0, timeout=10,
+                  _strict_response_validation=True)
+    if asynchronous:
+        async def run():
+            async with openai.AsyncOpenAI(**kwargs) as client:
+                return await client.decisions.create(**body)
+        result = asyncio.run(run())
+    else:
+        with openai.OpenAI(**kwargs) as client:
+            result = client.decisions.create(**body)
+            with pytest.raises(openai.BadRequestError):
+                client.decisions.create(**{**body, 'model': 'not-loaded'})
+    assert [a.type for a in result.answers] == ['predicate', 'choice', 'score']
+    assert [p.value for p in result.answers[1].probabilities] == [True, 'true']
+    assert result.usage.output_tokens == 0
+    assert result.usage.total_tokens == result.usage.input_tokens
