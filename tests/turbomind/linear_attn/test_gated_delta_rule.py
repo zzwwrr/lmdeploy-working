@@ -24,6 +24,7 @@ from .cases import (
     make_input_tensors,
     make_packed_qkv_views,
     make_state_buffer,
+    state_torch_dtype,
 )
 from .reference import chunk_gated_delta_rule_fwd
 
@@ -185,6 +186,16 @@ def _supported_arch_cases():
             cases.append((input_dtype, state_dtype, 1, 'recurrent'))
             cases.append((input_dtype, state_dtype, chunk_size, 'chunked'))
     return cases
+
+
+def _supported_chunked_arch_cases():
+    return [case[:3] for case in _supported_arch_cases() if case[3] == 'chunked']
+
+
+def _edge_case_tolerances():
+    if _expected_arch_class() == 'pre_sm90':
+        return {'rtol': 3e-2, 'atol': 1e-3}
+    return {'rtol': 8e-2, 'atol': 8e-2}
 
 
 @cuda_required
@@ -711,19 +722,19 @@ def test_grouped_partial_head_block_and_nonzero_layer_offset_match_reference():
 
 
 @cuda_required
-@pytest.mark.skipif(non_sm90_or_sm120, reason='optimized GDR target requires SM90 or SM120')
-def test_chunked_nonzero_physical_start_matches_compact_reference():
+@pytest.mark.parametrize('input_dtype,state_dtype,chunk_size', _supported_chunked_arch_cases())
+def test_chunked_nonzero_physical_start_matches_compact_reference(input_dtype, state_dtype, chunk_size):
     case = InputCase(
         layout=Fixed(batch_size=1, seq_len=128),
-        heads=Heads(hq=1, hv=4),
-        input_dtype=torch.bfloat16,
+        heads=Heads(hq=16, hv=32),
+        input_dtype=input_dtype,
         has_h0=True,
         seed=71002,
     )
     inputs = make_input_tensors(case, device='cuda')
     native_inputs = _canonical_native_inputs(inputs)
-    q_offsets = torch.tensor([7, 64, 128], device='cuda', dtype=torch.int32)
-    compact_offsets = torch.tensor([0, 57, 121], device='cuda', dtype=torch.int32)
+    q_offsets = torch.tensor([7, 128], device='cuda', dtype=torch.int32)
+    compact_offsets = torch.tensor([0, 121], device='cuda', dtype=torch.int32)
     compact = replace(
         inputs,
         q=inputs.q[:, 7:128].contiguous(),
@@ -733,36 +744,36 @@ def test_chunked_nonzero_physical_start_matches_compact_reference():
         beta=inputs.beta[:, 7:128].contiguous(),
         offsets=compact_offsets,
     )
-    initial = inputs.h0.repeat(2, 1, 1, 1)
+    storage = inputs.h0.to(state_torch_dtype(state_dtype))
+    initial = storage.float().clone()
     expected_o, expected_state = chunk_gated_delta_rule_fwd(
         compact.q, compact.k, compact.v, compact.g, compact.beta,
         initial_state=initial.clone(), cu_seqlens=compact_offsets,
-        chunk_size=64 if _expected_arch_class() == 'sm90' else 32)
-    storage = initial.clone()
-    ptrs = torch.tensor([storage[i].data_ptr() for i in range(2)], device='cuda', dtype=torch.int64)[:, None]
+        chunk_size=chunk_size)
+    ptrs = torch.tensor([[storage.data_ptr()]], device='cuda', dtype=torch.int64)
+    output = torch.full_like(inputs.v, 123)
     actual_o = turbomind_gated_delta_rule.chunk_gated_delta_rule_fwd(
         native_inputs.q, native_inputs.k, native_inputs.v,
         native_inputs.g, native_inputs.beta,
-        state_ptrs=ptrs, q_offsets=q_offsets,
-        finished=torch.zeros(2, device='cuda', dtype=torch.bool),
-        state_dtype='f32', mode='chunked', num_head_groups=1, heads_per_block=4)
-    torch.testing.assert_close(actual_o[:, 7:128], expected_o, rtol=8e-2, atol=8e-2)
-    torch.testing.assert_close(storage, expected_state, rtol=8e-2, atol=8e-2)
+        state_ptrs=ptrs, q_offsets=q_offsets, out=output,
+        finished=torch.zeros(1, device='cuda', dtype=torch.bool),
+        state_dtype=state_dtype, mode='chunked', num_head_groups=1, heads_per_block=32)
+    torch.testing.assert_close(actual_o[:, 7:128], expected_o, **_edge_case_tolerances())
+    torch.testing.assert_close(storage.float(), expected_state, **_edge_case_tolerances())
+    torch.testing.assert_close(actual_o[:, :7], torch.full_like(actual_o[:, :7], 123), rtol=0, atol=0)
 
 
 @cuda_required
-@pytest.mark.skipif(non_sm90_or_sm120, reason='optimized GDR target requires SM90 or SM120')
-@pytest.mark.parametrize('mode', ('recurrent', 'chunked'))
-def test_finished_sequence_produces_output_without_storing_state(mode):
-    chunk_size = 1 if mode == 'recurrent' else (64 if _expected_arch_class() == 'sm90' else 32)
+@pytest.mark.parametrize('input_dtype,state_dtype,chunk_size,mode', _supported_arch_cases())
+def test_finished_sequence_produces_output_without_storing_state(input_dtype, state_dtype, chunk_size, mode):
     case = InputCase(
-        layout=Fixed(batch_size=2, seq_len=1 if mode == 'recurrent' else chunk_size + 7),
-        heads=Heads(hq=2, hv=10),
-        input_dtype=torch.bfloat16,
+        layout=Fixed(batch_size=2, seq_len=1) if mode == 'recurrent' else Fixed(batch_size=1, seq_len=121),
+        heads=Heads(hq=2, hv=10) if mode == 'recurrent' else Heads(hq=16, hv=32),
+        input_dtype=input_dtype,
         has_h0=True,
         seed=71003,
     )
-    run = RunCase(input=case, state_dtype='f32', chunk_size=chunk_size)
+    run = RunCase(input=case, state_dtype=state_dtype, chunk_size=chunk_size)
     inputs = make_input_tensors(case, device='cuda')
     native_inputs = _canonical_native_inputs(inputs)
     state = make_state_buffer(inputs.h0, run, torch.device('cuda'))
@@ -777,21 +788,21 @@ def test_finished_sequence_produces_output_without_storing_state(mode):
         native_inputs.q, native_inputs.k, native_inputs.v,
         native_inputs.g, native_inputs.beta,
         state_ptrs=state.ptrs[:, None], q_offsets=q_offsets, finished=finished,
-        state_dtype='f32', mode=mode, cp_level='off',
-        num_head_groups=1, heads_per_block=10)
-    torch.testing.assert_close(actual_o, expected_o, rtol=8e-2, atol=8e-2)
+        state_dtype=state_dtype, mode=mode, cp_level='off',
+        num_head_groups=1, heads_per_block=case.heads.hv)
+    torch.testing.assert_close(actual_o, expected_o, **_edge_case_tolerances())
     torch.testing.assert_close(state.storage[0].float(), initial[0], rtol=0, atol=0)
-    torch.testing.assert_close(state.storage[1:].float(), expected_state[1:], rtol=8e-2, atol=8e-2)
+    if case.real_batch_size > 1:
+        torch.testing.assert_close(state.storage[1:].float(), expected_state[1:], **_edge_case_tolerances())
 
 
 @cuda_required
-@pytest.mark.skipif(non_sm90_or_sm120, reason='optimized GDR target requires SM90 or SM120')
-def test_one_chunked_plan_reuses_grouped_state_across_layer_offsets():
-    chunk_size = 64 if _expected_arch_class() == 'sm90' else 32
+@pytest.mark.parametrize('input_dtype,state_dtype,chunk_size', _supported_chunked_arch_cases())
+def test_one_chunked_plan_reuses_grouped_state_across_layer_offsets(input_dtype, state_dtype, chunk_size):
     case = InputCase(
-        layout=Fixed(batch_size=2, seq_len=chunk_size + 7),
-        heads=Heads(hq=2, hv=10),
-        input_dtype=torch.bfloat16,
+        layout=Fixed(batch_size=1, seq_len=121),
+        heads=Heads(hq=16, hv=32),
+        input_dtype=input_dtype,
         has_h0=True,
         seed=71004,
     )
@@ -799,36 +810,37 @@ def test_one_chunked_plan_reuses_grouped_state_across_layer_offsets():
     native_inputs = _canonical_native_inputs(inputs)
     grouped = make_grouped_state_buffer(
         inputs.h0,
-        state_dtype=torch.float32,
+        state_dtype=state_torch_dtype(state_dtype),
         layers_per_block=2,
-        heads_per_block=4,
+        heads_per_block=12,
         layer=0,
     )
     grouped.set_logical(1, inputs.h0.float() * 0.5)
     q_offsets = torch.arange(
         0,
-        3 * case.layout.seq_len,
+        (case.real_batch_size + 1) * case.layout.seq_len,
         case.layout.seq_len,
         device='cuda',
         dtype=torch.int32,
     )
-    finished = torch.zeros(2, device='cuda', dtype=torch.bool)
+    finished = torch.zeros(case.real_batch_size, device='cuda', dtype=torch.bool)
     bridge = turbomind_gated_delta_rule.NativeBridge(
         turbomind_gated_delta_rule._require_native_bridge())
     plan = bridge.plan(
         native_inputs,
-        state_dtype='f32',
+        state_dtype=state_dtype,
         mode='chunked',
         chunk_size=None,
         cp_level='off',
         q_offsets=q_offsets,
         num_head_groups=3,
-        heads_per_block=4,
+        heads_per_block=12,
     )
 
     layer_one_before = grouped.logical(1).clone()
+    padding_before = grouped.blocks[:, -1, :, 8:].clone()
     for layer in (0, 1):
-        initial = grouped.logical(layer).clone()
+        initial = grouped.logical(layer).float().clone()
         expected_o, expected_state = chunk_gated_delta_rule_fwd(
             inputs.q, inputs.k, inputs.v, inputs.g, inputs.beta,
             initial_state=initial, chunk_size=chunk_size)
@@ -838,19 +850,60 @@ def test_one_chunked_plan_reuses_grouped_state_across_layer_offsets():
             state_ptrs=grouped.ptrs,
             q_offsets=q_offsets,
             finished=finished,
-            state_dtype='f32',
+            state_dtype=state_dtype,
             mode='chunked',
-            state_layer_offset=layer * 4 * 128 * 128,
+            state_layer_offset=layer * 12 * 128 * 128,
             num_head_groups=3,
-            heads_per_block=4,
+            heads_per_block=12,
             layer_groups=1,
             layers_per_block=2,
             plan=plan,
         )
-        torch.testing.assert_close(actual_o, expected_o, rtol=8e-2, atol=8e-2)
-        torch.testing.assert_close(grouped.logical(layer), expected_state, rtol=8e-2, atol=8e-2)
+        torch.testing.assert_close(actual_o, expected_o, **_edge_case_tolerances())
+        torch.testing.assert_close(grouped.logical(layer).float(), expected_state, **_edge_case_tolerances())
         if layer == 0:
             torch.testing.assert_close(grouped.logical(1), layer_one_before, rtol=0, atol=0)
+    torch.testing.assert_close(grouped.blocks[:, -1, :, 8:], padding_before, rtol=0, atol=0)
+
+
+@cuda_required
+@pytest.mark.parametrize('input_dtype,state_dtype,chunk_size', _supported_chunked_arch_cases())
+def test_pre_sm90_chunked_empty_sequences_preserve_state(input_dtype, state_dtype, chunk_size):
+    if _expected_arch_class() != 'pre_sm90':
+        pytest.skip('empty-sequence regression targets the pre_sm90 chunked kernel')
+    offsets = (0, 0, 17, 17, 52, 52)
+    case = InputCase(
+        layout=Varlen(offsets=offsets),
+        heads=Heads(hq=2, hv=10),
+        input_dtype=input_dtype,
+        has_h0=True,
+        seed=71005,
+    )
+    run = RunCase(input=case, state_dtype=state_dtype, chunk_size=chunk_size)
+    inputs = make_input_tensors(case, device='cuda')
+    native_inputs = _canonical_native_inputs(inputs)
+    state = make_state_buffer(inputs.h0, run, torch.device('cuda'))
+    initial = state.storage.float().clone()
+    actual_o = turbomind_gated_delta_rule.chunk_gated_delta_rule_fwd(
+        native_inputs.q, native_inputs.k, native_inputs.v,
+        native_inputs.g, native_inputs.beta,
+        state_ptrs=state.ptrs[:, None], q_offsets=inputs.offsets,
+        finished=torch.zeros(case.real_batch_size, device='cuda', dtype=torch.bool),
+        state_dtype=state_dtype, mode='chunked', cp_level='off',
+        num_head_groups=1, heads_per_block=case.heads.hv)
+    for sequence, (begin, end) in enumerate(zip(offsets, offsets[1:])):
+        if begin == end:
+            torch.testing.assert_close(state.storage[sequence].float(), initial[sequence], rtol=0, atol=0)
+            continue
+        # The reference varlen validator excludes empty sequences; evaluate each active sequence separately.
+        expected_o, expected_state = chunk_gated_delta_rule_fwd(
+            inputs.q[:, begin:end].contiguous(), inputs.k[:, begin:end].contiguous(),
+            inputs.v[:, begin:end].contiguous(), inputs.g[:, begin:end].contiguous(),
+            inputs.beta[:, begin:end].contiguous(),
+            initial_state=initial[sequence:sequence + 1], chunk_size=chunk_size)
+        torch.testing.assert_close(actual_o[:, begin:end], expected_o, **_edge_case_tolerances())
+        torch.testing.assert_close(state.storage[sequence:sequence + 1].float(), expected_state,
+                                   **_edge_case_tolerances())
 
 
 @cuda_required

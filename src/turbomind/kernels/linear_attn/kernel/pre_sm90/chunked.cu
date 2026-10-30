@@ -15,7 +15,7 @@ namespace turbomind::linear_attn::delta_rule::detail {
 
 using namespace gemm;
 
-template<int HeadDim, int ChunkSize, int BlockDim, class T, class StateT>
+template<int HeadDim, int ChunkSize, int BlockDim, bool SplitValue, class T, class StateT>
 __global__ void ChunkedGdrKernel(T*             out,
                                  int64_t        out_batch_stride,
                                  int64_t        out_token_stride,
@@ -47,6 +47,7 @@ __global__ void ChunkedGdrKernel(T*             out,
     constexpr int D = HeadDim;
 
     const int sequence        = int(blockIdx.x) / hv;
+    const int value_offset    = SplitValue ? int(blockIdx.y) * (D / 2) : 0;
     const int value_head      = int(blockIdx.x) % hv;
     const int key_head        = value_head / (hv / hq);
     const int token_begin     = q_offsets[sequence];
@@ -57,11 +58,13 @@ __global__ void ChunkedGdrKernel(T*             out,
     auto* state = reinterpret_cast<StateT*>(static_cast<uintptr_t>(state_ptrs[sequence * num_head_groups + head_group]))
                   + state_layer_offset + int64_t(local_head) * D * D;
 
+    constexpr int value_dim = SplitValue ? D / 2 : D;
     constexpr int tile_k    = 8;
-    constexpr int tile_v    = 8;
+    constexpr int tile_v    = SplitValue ? 4 : 8;
     constexpr int k_threads = D / tile_k;
     constexpr int v_threads = BlockDim / k_threads;
-    constexpr int v_iters   = (D / tile_v + v_threads - 1) / v_threads;
+    constexpr int v_iters   = (value_dim / tile_v + v_threads - 1) / v_threads;
+    static_assert(value_dim % (tile_v * v_threads) == 0);
 
     const int offset_k = threadIdx.x % k_threads;
     const int offset_v = threadIdx.x / k_threads;
@@ -70,7 +73,21 @@ __global__ void ChunkedGdrKernel(T*             out,
 
     extern __shared__ __align__(16) char smem_buf[];
 
-    {
+    if constexpr (SplitValue) {
+        // Each CTA owns disjoint value columns; read its state directly into registers.
+        PRAGMA_UNROLL
+        for (int v_iter = 0; v_iter < v_iters; ++v_iter) {
+            PRAGMA_UNROLL
+            for (int k_idx = 0; k_idx < tile_k; ++k_idx) {
+                Array<StateT, tile_v> tmp;
+                Load(tmp,
+                     state + (offset_k * tile_k + k_idx) * D + value_offset
+                         + (offset_v + v_iter * v_threads) * tile_v);
+                vec_S[v_iter][k_idx] = cast<float>(tmp);
+            }
+        }
+    }
+    else {
         using Map_S          = ThreadMap_V2<D, D, sizeof(uint4) / sizeof(StateT), Raked, BlockDim / WARP_SIZE>;
         constexpr int kBase  = sizeof(StateT) == 4 ? 2 : 3;
         constexpr int kShift = 10 - kBase;
@@ -112,13 +129,16 @@ __global__ void ChunkedGdrKernel(T*             out,
             }
         }
     }
-    __syncthreads();
+    if constexpr (!SplitValue) {
+        __syncthreads();
+    }
 
-    constexpr int kSmemStride = D + 4;
+    constexpr int kSmemStride  = D + 4;
+    constexpr int kValueStride = value_dim + 4;
     float*        k_smem      = reinterpret_cast<float*>(smem_buf);
     float*        q_smem      = k_smem + C * kSmemStride;
     float*        v_smem      = q_smem + C * kSmemStride;
-    float*        beta_vals   = v_smem + C * kSmemStride;
+    float*        beta_vals   = v_smem + C * kValueStride;
     float*        g_vals      = beta_vals + C;
 
     constexpr int kThreadsPerToken   = BlockDim / C;
@@ -143,16 +163,33 @@ __global__ void ChunkedGdrKernel(T*             out,
                              + int64_t(value_head) * D;
             PRAGMA_UNROLL
             for (int element = 0; element < kElementsPerThread; ++element) {
-                const int d                          = load_lane * kElementsPerThread + element;
-                k_smem[load_token * kSmemStride + d] = float(k_ptr[d]);
-                q_smem[load_token * kSmemStride + d] = float(q_ptr[d]);
-                v_smem[load_token * kSmemStride + d] = float(v_ptr[d]);
+                const int d = load_lane * kElementsPerThread + element;
+                // Transposing the K tile gives adjacent lanes adjacent shared-memory banks.
+                const int smem_d = SplitValue ? (d % tile_k) * k_threads + d / tile_k : d;
+                k_smem[load_token * kSmemStride + smem_d] = float(k_ptr[d]);
+                q_smem[load_token * kSmemStride + smem_d] = float(q_ptr[d]);
+                if constexpr (!SplitValue) {
+                    v_smem[load_token * kValueStride + d] = float(v_ptr[d]);
+                }
+            }
+            if constexpr (SplitValue) {
+                PRAGMA_UNROLL
+                for (int element = 0; element < value_dim / kThreadsPerToken; ++element) {
+                    const int d = load_lane * (value_dim / kThreadsPerToken) + element;
+                    v_smem[load_token * kValueStride + d] = float(v_ptr[value_offset + d]);
+                }
             }
             if (load_lane == 0) {
                 beta_vals[load_token] =
                     beta[int64_t(physical_batch) * gate_batch_stride + int64_t(token) * gate_token_stride + value_head];
-                g_vals[load_token] =
-                    g[int64_t(physical_batch) * gate_batch_stride + int64_t(token) * gate_token_stride + value_head];
+                if constexpr (SplitValue) {
+                    g_vals[load_token] =
+                        expf(g[int64_t(physical_batch) * gate_batch_stride + int64_t(token) * gate_token_stride + value_head]);
+                }
+                else {
+                    g_vals[load_token] =
+                        g[int64_t(physical_batch) * gate_batch_stride + int64_t(token) * gate_token_stride + value_head];
+                }
             }
         }
         else {
@@ -161,7 +198,9 @@ __global__ void ChunkedGdrKernel(T*             out,
                 const int d                          = load_lane * kElementsPerThread + element;
                 k_smem[load_token * kSmemStride + d] = 0.f;
                 q_smem[load_token * kSmemStride + d] = 0.f;
-                v_smem[load_token * kSmemStride + d] = 0.f;
+                if constexpr (!SplitValue) {
+                    v_smem[load_token * kValueStride + d] = 0.f;
+                }
             }
         }
         __syncthreads();
@@ -173,13 +212,14 @@ __global__ void ChunkedGdrKernel(T*             out,
             }
 
             const float beta_value = beta_vals[token_in_chunk];
-            const float decay      = expf(g_vals[token_in_chunk]);
+            const float decay      = SplitValue ? g_vals[token_in_chunk] : expf(g_vals[token_in_chunk]);
             float       vec_k[tile_k];
             float       vec_q[tile_k];
             PRAGMA_UNROLL
             for (int k_idx = 0; k_idx < tile_k; ++k_idx) {
-                vec_k[k_idx] = k_smem[token_in_chunk * kSmemStride + offset_k * tile_k + k_idx];
-                vec_q[k_idx] = q_smem[token_in_chunk * kSmemStride + offset_k * tile_k + k_idx];
+                const int smem_d = SplitValue ? k_idx * k_threads + offset_k : offset_k * tile_k + k_idx;
+                vec_k[k_idx] = k_smem[token_in_chunk * kSmemStride + smem_d];
+                vec_q[k_idx] = q_smem[token_in_chunk * kSmemStride + smem_d];
             }
 
             const int global_token   = chunk_start + token_in_chunk;
@@ -194,7 +234,7 @@ __global__ void ChunkedGdrKernel(T*             out,
                 float     vec_v[tile_v];
                 PRAGMA_UNROLL
                 for (int v_idx = 0; v_idx < tile_v; ++v_idx) {
-                    vec_v[v_idx] = v_smem[token_in_chunk * kSmemStride + value_base + v_idx];
+                    vec_v[v_idx] = v_smem[token_in_chunk * kValueStride + value_base + v_idx];
                 }
 
                 Array<T, tile_v> vec_out;
@@ -232,7 +272,7 @@ __global__ void ChunkedGdrKernel(T*             out,
                     vec_out[v_idx] = T(value * rsqrtf(float(D)));
                 }
                 if (offset_k == 0) {
-                    Store(&out_ptr[value_base], vec_out);
+                    Store(&out_ptr[value_offset + value_base], vec_out);
                 }
             }
         }
@@ -240,55 +280,71 @@ __global__ void ChunkedGdrKernel(T*             out,
     }
 
     if (!finished[sequence]) {
-        using Map_S          = ThreadMap_V2<D, D, sizeof(uint4) / sizeof(StateT), Raked, BlockDim / WARP_SIZE>;
-        constexpr int kBase  = sizeof(StateT) == 4 ? 2 : 3;
-        constexpr int kShift = 10 - kBase;
-        using Layout         = SmemLayoutV2<D, D, -1, -1, Swizzle<4, kBase, kShift>>;
-        SmemAccessor<StateT, Layout> smem_S{reinterpret_cast<StateT*>(smem_buf)};
-        constexpr int                kAccessC = Map_S::kAccessC;
-
-        PRAGMA_UNROLL
-        for (int v_iter = 0; v_iter < v_iters; ++v_iter) {
+        if constexpr (SplitValue) {
             PRAGMA_UNROLL
-            for (int k_idx = 0; k_idx < tile_k; ++k_idx) {
+            for (int v_iter = 0; v_iter < v_iters; ++v_iter) {
                 PRAGMA_UNROLL
-                for (int c = 0; c < tile_v / kAccessC; ++c) {
-                    auto tmp =
-                        cast<StateT>(reinterpret_cast<Array<float, kAccessC>&>(vec_S[v_iter][k_idx][c * kAccessC]));
-                    Store(&smem_S(offset_k * tile_k + k_idx, (offset_v + v_iter * v_threads) * tile_v + c * kAccessC),
+                for (int k_idx = 0; k_idx < tile_k; ++k_idx) {
+                    auto tmp = cast<StateT>(vec_S[v_iter][k_idx]);
+                    Store(state + (offset_k * tile_k + k_idx) * D + value_offset
+                              + (offset_v + v_iter * v_threads) * tile_v,
                           tmp);
                 }
             }
         }
-        __syncthreads();
+        else {
+            using Map_S          = ThreadMap_V2<D, D, sizeof(uint4) / sizeof(StateT), Raked, BlockDim / WARP_SIZE>;
+            constexpr int kBase  = sizeof(StateT) == 4 ? 2 : 3;
+            constexpr int kShift = 10 - kBase;
+            using Layout         = SmemLayoutV2<D, D, -1, -1, Swizzle<4, kBase, kShift>>;
+            SmemAccessor<StateT, Layout> smem_S{reinterpret_cast<StateT*>(smem_buf)};
+            constexpr int                kAccessC = Map_S::kAccessC;
 
-        const int warp_id = threadIdx.x / WARP_SIZE;
-        const int lane_id = threadIdx.x % WARP_SIZE;
-        PRAGMA_UNROLL
-        for (int s = 0; s < Map_S::kIterS; ++s) {
-            Array<StateT, Map_S::kAccessC> vec;
             PRAGMA_UNROLL
-            for (int c = 0; c < Map_S::kIterC; ++c) {
-                const auto [vd, kd] = Map_S::get_offset(warp_id, lane_id);
-                const int final_vd  = vd + c * Map_S::kDeltaC;
-                const int final_kd  = kd + s * Map_S::kDeltaS;
-                Load(vec, &smem_S(final_kd, final_vd));
-                Store(state + final_kd * D + final_vd, vec);
+            for (int v_iter = 0; v_iter < v_iters; ++v_iter) {
+                PRAGMA_UNROLL
+                for (int k_idx = 0; k_idx < tile_k; ++k_idx) {
+                    PRAGMA_UNROLL
+                    for (int c = 0; c < tile_v / kAccessC; ++c) {
+                        auto tmp =
+                            cast<StateT>(reinterpret_cast<Array<float, kAccessC>&>(vec_S[v_iter][k_idx][c * kAccessC]));
+                        Store(&smem_S(offset_k * tile_k + k_idx, (offset_v + v_iter * v_threads) * tile_v + c * kAccessC),
+                              tmp);
+                    }
+                }
+            }
+            __syncthreads();
+
+            const int warp_id = threadIdx.x / WARP_SIZE;
+            const int lane_id = threadIdx.x % WARP_SIZE;
+            PRAGMA_UNROLL
+            for (int s = 0; s < Map_S::kIterS; ++s) {
+                Array<StateT, Map_S::kAccessC> vec;
+                PRAGMA_UNROLL
+                for (int c = 0; c < Map_S::kIterC; ++c) {
+                    const auto [vd, kd] = Map_S::get_offset(warp_id, lane_id);
+                    const int final_vd  = vd + c * Map_S::kDeltaC;
+                    const int final_kd  = kd + s * Map_S::kDeltaS;
+                    Load(vec, &smem_S(final_kd, final_vd));
+                    Store(state + final_kd * D + final_vd, vec);
+                }
             }
         }
     }
 }
 
-template<class T, class StateT>
-void RunPreSm90Chunk16(const Arguments& args, const Plan& plan, cudaStream_t stream)
+template<bool SplitValue, class T, class StateT>
+void RunChunk16(const Arguments& args, const Plan& plan, cudaStream_t stream)
 {
     constexpr int kBlockDim  = 256;
     constexpr int kChunkSize = 16;
-    const int     grid       = plan.problem.sequence_num * plan.problem.hv;
-    const size_t  state_smem = 128 * 128 * sizeof(StateT);
-    const size_t  chunk_smem = 3 * kChunkSize * (128 + 4) * sizeof(float) + 2 * kChunkSize * sizeof(float);
-    const size_t  smem_bytes = std::max(state_smem, chunk_smem);
-    auto          kernel     = ChunkedGdrKernel<128, kChunkSize, kBlockDim, T, StateT>;
+    constexpr int kValueDim  = SplitValue ? 64 : 128;
+    const dim3 grid(plan.problem.sequence_num * plan.problem.hv, 128 / kValueDim);
+    const size_t state_smem = SplitValue ? 0 : 128 * 128 * sizeof(StateT);
+    const size_t chunk_smem =
+        (2 * kChunkSize * (128 + 4) + kChunkSize * (kValueDim + 4) + 2 * kChunkSize) * sizeof(float);
+    const size_t smem_bytes = std::max(state_smem, chunk_smem);
+    auto kernel = ChunkedGdrKernel<128, kChunkSize, kBlockDim, SplitValue, T, StateT>;
     if (smem_bytes > (48u << 10)) {
         TM_CUDA_CHECK(
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, static_cast<int>(smem_bytes)));
@@ -320,6 +376,22 @@ void RunPreSm90Chunk16(const Arguments& args, const Plan& plan, cudaStream_t str
                                                     plan.problem.num_head_groups,
                                                     plan.problem.heads_per_block);
     TM_CUDA_CHECK(cudaGetLastError());
+}
+
+template<class T, class StateT>
+void RunPreSm90Chunk16(const Arguments& args, const Plan& plan, cudaStream_t stream)
+{
+    const auto& problem = plan.problem;
+    // The A100 single-sequence prefill benefits from two CTAs per value head and
+    // transposed Q/K shared-memory tiles. Keep the original path for other workloads.
+    // Chunk count comes from live q_offsets, rather than the physical token capacity.
+    if (problem.arch == 800 && problem.sequence_num == 1 && problem.hq == 16 && problem.hv == 32
+        && problem.max_sequence_chunks >= 8) {
+        RunChunk16<true, T, StateT>(args, plan, stream);
+    }
+    else {
+        RunChunk16<false, T, StateT>(args, plan, stream);
+    }
 }
 
 #define DEFINE_PRE_SM90_CALLBACK(name, implementation, InputT, StateT)                                                 \
