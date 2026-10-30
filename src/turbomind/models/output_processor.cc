@@ -97,6 +97,10 @@ struct OutputProcessor::Impl {
             auto& g = r.gen_cfg;
             if (g.output_logits) {
                 c.output_logits = g.output_logits == kAll ? Interval{c.step0} : Interval{c.prompt_len - 1};
+                if (g.logprob_start_len >= 0) {
+                    // Only rows with an observed next prompt token belong to the scoring suffix.
+                    c.output_logits = {c.step0 + g.logprob_start_len, c.prompt_len - 1};
+                }
                 c.logits_offset = c.output_logits.begin();
             }
             if (g.return_ppl) {

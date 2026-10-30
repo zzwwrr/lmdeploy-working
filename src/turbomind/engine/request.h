@@ -57,6 +57,10 @@ struct GenerationConfig {
     };
     int output_last_hidden_state = 0;
     int output_logits            = 0;
+
+    // Probe-only: restrict all-token logits to prompt source rows [start, prompt_len - 1).
+    // This returns raw logits, not input logprobs. -1 preserves the normal output path.
+    int logprob_start_len = -1;
 };
 
 std::ostream& operator<<(std::ostream& os, const GenerationConfig& c);
@@ -287,6 +291,7 @@ void serdes(Archive& ar, GenerationConfig& g)
     ar & g.return_ppl;
     ar & g.output_last_hidden_state;
     ar & g.output_logits;
+    ar & g.logprob_start_len;
     // clang-format on
 }
 

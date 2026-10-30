@@ -582,7 +582,7 @@ MoeFfnLayer::MoeFfnLayer(const EngineParam& engine, const Context& ctx, const Mo
 {
     const auto& moe = *TM_CHECK_NOTNULL(weights);
 
-#ifdef BUILD_MULTI_GPU
+#if defined(BUILD_MULTI_GPU) && defined(USE_NCCL)
     if (engine.ep_size > 1 && engine.moe_a2a_backend == "deepep") {
         impl_ = std::make_unique<MoeFfnA2AImpl>(engine, ctx, moe);
         return;

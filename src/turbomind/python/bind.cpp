@@ -540,6 +540,7 @@ PYBIND11_MODULE(_turbomind, m)
         .def_readwrite("return_ppl", &ft::GenerationConfig::return_ppl)
         .def_readwrite("output_last_hidden_state", &ft::GenerationConfig::output_last_hidden_state)
         .def_readwrite("output_logits", &ft::GenerationConfig::output_logits)
+        .def_readwrite("logprob_start_len", &ft::GenerationConfig::logprob_start_len)
         .def("__repr__", [](const ft::GenerationConfig& c) {
             std::ostringstream oss;
             oss << c;

@@ -443,11 +443,14 @@ class TurboMind:
         return await loop.run_in_executor(self.health_executor, self._get_health_status)
 
 
-def _get_logits(outputs, offset: int):
+def _get_logits(outputs, offset: int, max_rows: int | None = None):
     logits = outputs['logits']
 
     def _func(out: EngineOutput, step: int, **kwargs):
-        out.logits = logits[:step - offset - 1, :]
+        rows = step - offset - 1
+        if max_rows is not None:
+            rows = min(max(rows, 0), max_rows)
+        out.logits = logits[:rows, :]
 
     return _func
 
@@ -619,7 +622,11 @@ class TurboMindInstance:
         fs = []
         if gen_config.output_logits:
             offset = _get_offset(gen_config.output_logits)
-            fs.append(_get_logits(outputs, offset))
+            max_rows = None
+            if gen_config.logprob_start_len >= 0:
+                offset = gen_config.logprob_start_len
+                max_rows = input_len - offset - 1
+            fs.append(_get_logits(outputs, offset, max_rows))
         if gen_config.return_ppl:
             fs.append(_get_ce_loss(outputs))
         if gen_config.output_last_hidden_state:
@@ -798,7 +805,13 @@ class TurboMindInstance:
         return EngineOutput(status=self.errcode_map[status], token_ids=[])
 
     def _get_generation_config(self, cfg: GenerationConfig):
+        if cfg.logprob_start_len >= 0:
+            if (cfg.output_logits != 'all' or cfg.max_new_tokens != 1 or cfg.logprobs != 0
+                    or cfg.logprob_extra_token_ids is not None):
+                raise ValueError("Tail-logits probe requires output_logits='all', max_new_tokens=1, "
+                                 'logprobs=0 and no logprob_extra_token_ids; input logprobs are not implemented')
         c = _tm.GenerationConfig()
+        c.logprob_start_len = cfg.logprob_start_len
         c.max_new_tokens = cfg.max_new_tokens
         c.top_k = cfg.top_k
         c.top_p = cfg.top_p

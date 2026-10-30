@@ -40,6 +40,7 @@ std::ostream& operator<<(std::ostream& os, const GenerationConfig& c)
     os << ", return_ppl=" << c.return_ppl;
     os << ", output_hidden_states=" << c.output_last_hidden_state;
     os << ", output_logits=" << c.output_logits;
+    os << ", logprob_start_len=" << c.logprob_start_len;
     os << " }";
     return os;
 }

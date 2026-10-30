@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
@@ -56,6 +57,16 @@ auto ModelRequest::Forward(InputParam param, std::function<void()> cb) -> Output
     const int input_len  = inputs.at("input_ids").shape(0);
     const int output_len = param.gen_cfg.max_new_tokens;
 
+    const int logits_start = param.gen_cfg.logprob_start_len;
+    if (logits_start < -1
+        || (logits_start >= 0
+            && (logits_start >= input_len || param.gen_cfg.output_logits != GenerationConfig::kAll
+                || output_len != 1 || param.gen_cfg.output_logprobs != 0))) {
+        throw std::invalid_argument(
+            "Tail-logits probe requires 0 <= logprob_start_len < input_len, output_logits='all', "
+            "max_new_tokens=1 and logprobs=0");
+    }
+
     // Max possible length of a sequence, this depends on `history_len` which isn't available here, so `session_len`
     // is used instead
     const int max_seq_len = session_len_ + 1;
@@ -71,7 +82,11 @@ auto ModelRequest::Forward(InputParam param, std::function<void()> cb) -> Output
     add(outputs_, "sequence_length", data_type_v<int>, kCPU, 1);
 
     if (param.gen_cfg.output_logits) {
-        const int len = param.gen_cfg.output_logits == GenerationConfig::kAll ? max_in_out_len : max_out_len;
+        int len = param.gen_cfg.output_logits == GenerationConfig::kAll ? max_in_out_len : max_out_len;
+        if (logits_start >= 0) {
+            // Keep a nonempty backing tensor for DLPack even when the requested suffix is empty.
+            len = std::max(1, input_len - logits_start - 1);
+        }
         add(outputs_, "logits", data_type_, kCPU, len, vocab_size_);
     }
 
