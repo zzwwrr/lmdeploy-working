@@ -1,0 +1,377 @@
+diff --git a/docs/en/index.rst b/docs/en/index.rst
+index 2837c8d5..b62fd369 100644
+--- a/docs/en/index.rst
++++ b/docs/en/index.rst
+@@ -58,6 +58,7 @@ Documentation
+ 
+    llm/pipeline.md
+    llm/api_server.md
++   llm/intern_decision.md
+    llm/api_server_tools.md
+    llm/api_server_reasoning.md
+    llm/api_server_anthropic.md
+diff --git a/docs/en/llm/intern_decision.md b/docs/en/llm/intern_decision.md
+index 9f61d0a8..093d9328 100644
+--- a/docs/en/llm/intern_decision.md
++++ b/docs/en/llm/intern_decision.md
+@@ -1,6 +1,6 @@
+ # Intern-Decision
+ 
+-[Intern-Decision-0.8B](https://huggingface.co/internlm/Intern-Decision-0.8B) answers structured questions by
++The Intern-Decision family (0.8B, 2B and 4B) answers structured questions by
+ **scoring** instead of generating. A Systemone request holds a `state`, up to 16 `questions` and optional image `assets`. The model
+ reads one prompt that ends in a JSON skeleton with a `<decision>` marker per question, and the logits right before
+ each marker, restricted to that question's answer symbols (`A`, `B`, ...), give the answer distribution.
+@@ -15,6 +15,20 @@ Only `SystemoneRequest` / `SystemoneResponse` and `OpenAIDecisionRequest` / `Ope
+ are wire schemas. The parser adapts OpenAI input into a private `_DecisionRow` containing `state`, `questions`
+ and `images`; it does not accept the former native request format or emit its response envelope.
+ 
++## Supported checkpoints
++
++| Checkpoint weights | Calibration temperature | Backend | HTTP protocols |
++| --- | ---: | --- | --- |
++| [Intern-Decision-0.8B](https://huggingface.co/internlm/Intern-Decision-0.8B) | 2.747760550703 | PyTorch | OpenAI Decisions subset / Systemone |
++| [Intern-Decision-2B](https://huggingface.co/internlm/Intern-Decision-2B) | 2.100509348278 | PyTorch | OpenAI Decisions subset / Systemone |
++| [Intern-Decision-4B](https://huggingface.co/internlm/Intern-Decision-4B) | 1.99241824 | PyTorch | OpenAI Decisions subset / Systemone |
++
++All three checkpoints share the parser and scoring implementation. Local checkpoint metadata, tokenizer and
++processor checks cover all three sizes; these CPU checks do not load model weights or establish GPU accuracy
++or latency parity. Historical full-dataset GPU evaluation is available for 4B only; equivalent evaluation on
++the current revision for all three sizes remains pending. The tested GPU precision is BF16; quantized decision
++scoring has not been validated. TurboMind decision scoring and a Python Pipeline decision entry point are not supported.
++
+ ## HTTP
+ 
+ ```shell
+@@ -25,10 +39,15 @@ lmdeploy serve api_server /path/to/Intern-Decision-0.8B --task intern-decision -
+ no longer accepted. All PyTorch engine options (batch size, TP, prefix caching, ...) remain available. Decision
+ requests use input scoring and generate no tokens.
+ 
+-Startup reads a finite positive `DEFAULT_TEMPERATURE` constant from the local checkpoint's `inference.py` using
+-AST parsing, without executing that file. Missing, unreadable or invalid metadata produces a warning and falls
+-back to the 4B temperature `1.99241824`. This is a best-effort read: it does not download metadata for remote IDs
+-or verify that calibration belongs to the loaded weights. Warnings follow `--log-level` (CLI default: `WARNING`).
++Local checkpoint directories and remote model IDs are accepted. For the decision task, startup first resolves
++a remote ID with the configured download directory and revision, then uses that same local path for the engine
++and calibration metadata. An explicit `--model-name` is preserved; otherwise the supplied model ID remains the
++service name. For example, use `internlm/Intern-Decision-2B` instead of the local path above, with
++`--model-name Intern-Decision-2B`.
++
++Startup reads a finite positive `DEFAULT_TEMPERATURE` constant from that checkpoint's `inference.py` using AST
++parsing, without executing the file. Missing, unreadable or invalid metadata prevents startup; no other model's
++temperature is substituted. Custom checkpoints must provide this constant for their own calibration.
+ 
+ A read-only `DecisionContext` holds only the marker ID, answer-symbol IDs, image-token ID and temperature.
+ It is initialized once from existing engine resources; its presence enables the decision endpoints.
+@@ -213,7 +232,7 @@ Shape of a response (values are illustrative):
+ ```
+ 
+ Probabilities use the same candidate softmax and temperature calibration as the checkpoint's `inference.py`
+-(`2.747760550703` when read from the official Intern-Decision-0.8B checkpoint), with the fallback described above.
++(see the checkpoint temperatures above).
+ Different inference kernels and floating-point dtypes can introduce small numerical differences from the official
+ `DecisionEngine`. `score` is the probability-weighted mean of numeric option keys (or list indices); `noul` is
+ P(yes). The response contains only `model`, `answers` and `usage`; temperature and timing metadata are not returned.
+diff --git a/docs/en/supported_models/supported_models.md b/docs/en/supported_models/supported_models.md
+index e46ed896..27cd32d9 100644
+--- a/docs/en/supported_models/supported_models.md
++++ b/docs/en/supported_models/supported_models.md
+@@ -56,6 +56,7 @@ The following tables detail the models supported by LMDeploy's TurboMind engine
+ 
+ |             Model              |      Size       | Type | FP16/BF16 | KV INT8 | KV INT4 | W8A8 | W4A16 |
+ | :----------------------------: | :-------------: | :--: | :-------: | :-----: | :-----: | :--: | :---: |
++| [Intern-Decision](../llm/intern_decision.md) | 0.8B, 2B, 4B | MLLM | BF16 | - | - | - | - |
+ |             Llama              |    7B - 65B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+ |             Llama2             |    7B - 70B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+ |             Llama3             |     8B, 70B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+@@ -126,6 +127,8 @@ The following tables detail the models supported by LMDeploy's TurboMind engine
+ |             GLM-5              |      754B       | LLM  |    Yes    |   No    |   No    |  No  |  No   |
+ |            GLM-5.2             |      754B       | LLM  |    Yes    |   No    |   No    |  No  |  No   |
+ 
++Intern-Decision requires `--task intern-decision` and exposes the OpenAI Decisions subset and Systemone HTTP APIs. Its row describes decision scoring; BF16 is the tested GPU precision, and `-` marks unvalidated quantization modes. See the [checkpoint and validation matrix](../llm/intern_decision.md#supported-checkpoints).
++
+ ```{note}
+ * [1] PyTorch engine removes the support of original llava models after v0.6.4. Please use their corresponding transformers models instead, which can be found in https://huggingface.co/llava-hf
+ Starting from version 0.11.1, PytorchEngine no longer provides support for mllama.
+diff --git a/docs/zh_cn/index.rst b/docs/zh_cn/index.rst
+index fa7c6049..f5480955 100644
+--- a/docs/zh_cn/index.rst
++++ b/docs/zh_cn/index.rst
+@@ -58,6 +58,7 @@ LMDeploy 工具箱提供以下核心功能：
+ 
+    llm/pipeline.md
+    llm/api_server.md
++   llm/intern_decision.md
+    llm/api_server_tools.md
+    llm/api_server_reasoning.md
+    llm/api_server_anthropic.md
+diff --git a/docs/zh_cn/llm/intern_decision.md b/docs/zh_cn/llm/intern_decision.md
+index 14086971..17ca7e3c 100644
+--- a/docs/zh_cn/llm/intern_decision.md
++++ b/docs/zh_cn/llm/intern_decision.md
+@@ -1,6 +1,6 @@
+ # Intern-Decision
+ 
+-[Intern-Decision-0.8B](https://huggingface.co/internlm/Intern-Decision-0.8B) 通过**打分**而不是生成来回答结构化问题。一个 Systemone 请求包含
++Intern-Decision 系列（0.8B、2B、4B）通过**打分**而不是生成来回答结构化问题。一个 Systemone 请求包含
+ `state`、最多 16 个 `questions` 和可选图片 `assets`。模型读取一个以 JSON 骨架结尾的提示，骨架中每个问题对应一个 `<decision>`
+ 标记；取每个标记前一位置的 logits，并限定在该问题的答案符号（`A`、`B`……）上，即得到答案分布。
+ 
+@@ -12,6 +12,19 @@ LMDeploy 在 PyTorch 引擎上以 `intern-decision` 任务提供该模型。模
+ Parser 将 OpenAI 请求转换成私有 `_DecisionRow`，只保存 `state`、`questions` 和 `images`；
+ 不再接受旧原生请求格式或返回旧响应封装。
+ 
++## 支持的模型
++
++| 模型权重 | 校准温度 | 后端 | HTTP 协议 |
++| --- | ---: | --- | --- |
++| [Intern-Decision-0.8B](https://huggingface.co/internlm/Intern-Decision-0.8B) | 2.747760550703 | PyTorch | OpenAI Decisions 子集 / Systemone |
++| [Intern-Decision-2B](https://huggingface.co/internlm/Intern-Decision-2B) | 2.100509348278 | PyTorch | OpenAI Decisions 子集 / Systemone |
++| [Intern-Decision-4B](https://huggingface.co/internlm/Intern-Decision-4B) | 1.99241824 | PyTorch | OpenAI Decisions 子集 / Systemone |
++
++三种模型共用解析器和评分实现。本地 checkpoint 元数据、tokenizer 和 processor 检查覆盖三种规模；
++这些 CPU 检查不加载模型权重，也不能证明 GPU 准确率或延迟持平。历史完整数据集 GPU 评测仅覆盖 4B，
++当前版本三种模型的同口径评测仍待补充。GPU 已测精度为 BF16，量化决策评分尚未验证；
++暂不支持 TurboMind 决策评分及 Python Pipeline 决策入口。
++
+ ## HTTP
+ 
+ ```shell
+@@ -21,9 +34,13 @@ lmdeploy serve api_server /path/to/Intern-Decision-0.8B --task intern-decision -
+ `--task intern-decision` 只启用决策评分并选择 PyTorch 后端，不再接受旧的模型检查点名称作为任务名。
+ 其余 PyTorch 参数（批大小、TP、前缀缓存等）照常可用，决策请求只做输入评分，不生成 token。
+ 
+-启动时用 AST 尝试读取本地模型检查点的 `inference.py` 中有限且为正的 `DEFAULT_TEMPERATURE` 常量，
+-不执行该文件。文件或常量缺失、读取/解析失败、数值非法时记录警告，回退到 4B 温度 `1.99241824`。
+-不为温度单独下载远程模型文件，也不验证温度与权重的对应关系。警告遵循 `--log-level`（命令行默认 `WARNING`）。
++支持本地 checkpoint 目录和远程模型 ID。决策任务启动时，先按配置的下载目录和 revision 将远程 ID 解析为
++本地路径，再将同一路径用于引擎加载和温度读取。显式指定的 `--model-name` 保持不变；未指定时，服务名称仍为
++传入的模型 ID。例如，可以将上面的本地路径替换为 `internlm/Intern-Decision-2B`，并设置
++`--model-name Intern-Decision-2B`。
++
++启动时用 AST 读取该 checkpoint 的 `inference.py` 中有限且为正的 `DEFAULT_TEMPERATURE` 常量，不执行该文件。
++文件或常量缺失、读取/解析失败、数值非法时拒绝启动，不再套用其他模型的温度；自定义 checkpoint 需提供自己的校准常量。
+ 
+ 只读共享对象 `DecisionContext` 仅保存标记 ID、答案符号 ID、图片 token ID 和温度，复用已有引擎资源初始化一次；
+ 对象存在即表示决策端点已启用。
+@@ -143,7 +160,7 @@ choice/score 的选项 description 仍是字符串。例如：
+ 
+ `model` 必填，接受 `/v1/models` 返回的服务模型名、`InternLM/<服务模型名>` 或
+ `internlm/<转为小写的服务模型名>`，不用于切换权重。
+-模型身份由 HTTP 端点处理，两种协议共用同一个 `DecisionContext` 和实际读取或回退得到的温度。
++模型身份由 HTTP 端点处理，两种协议共用同一个 `DecisionContext` 和从 checkpoint 读取的温度。
+ 可选的 `safety_identifier` 接受最长 64 字符的字符串或 `null`，表示调用方提供的终端用户标识。
+ 本服务仅兼容接收并校验；它不是鉴权凭据，不进入提示，也不影响评分。
+ 其他消息角色、音频/视频/文件内容块、工具记录、缓存控制和未知字段均返回 422。
+@@ -165,8 +182,8 @@ OpenAI 格式与 Systemone 格式均将 assistant 答案骨架分词后的 token
+ 
+ 响应仅包含 `model`、`answers` 和 `usage`。choice 和 score 答案包含 `probabilities`、`confidence`，
+ 以及对应的 `choice` 或 `score`/`legend` 字段。noul 答案仅包含 `type` 和 `noul`（P(yes)）。
+-候选 softmax 与温度校准沿用模型检查点的 `inference.py`；官方 0.8B 检查点的温度为 2.747760550703，
+-读取失败时使用上文所述的 4B 默认值。响应不返回温度和耗时元数据。
++候选 softmax 与温度校准沿用模型检查点的 `inference.py`，三种模型的温度见上表。
++响应不返回温度和耗时元数据。
+ 不同推理内核与浮点精度可能使结果与官方 `DecisionEngine` 存在小幅数值差异。
+ `usage.output_tokens` 统计包含决策标记的 assistant 答案骨架分词后的 token 数，实际不生成 token。
+ 
+diff --git a/docs/zh_cn/supported_models/supported_models.md b/docs/zh_cn/supported_models/supported_models.md
+index 922f398d..ee53a0bb 100644
+--- a/docs/zh_cn/supported_models/supported_models.md
++++ b/docs/zh_cn/supported_models/supported_models.md
+@@ -57,6 +57,7 @@
+ 
+ |             Model              |      Size       | Type | FP16/BF16 | KV INT8 | KV INT4 | W8A8 | W4A16 |
+ | :----------------------------: | :-------------: | :--: | :-------: | :-----: | :-----: | :--: | :---: |
++| [Intern-Decision](../llm/intern_decision.md) | 0.8B, 2B, 4B | MLLM | BF16 | - | - | - | - |
+ |             Llama              |    7B - 65B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+ |             Llama2             |    7B - 70B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+ |             Llama3             |     8B, 70B     | LLM  |    Yes    |   Yes   |   Yes   | Yes  |  Yes  |
+@@ -127,6 +128,8 @@
+ |         Phi-3.5-vision         |      4.2B       | MLLM |    Yes    |   Yes   |   No    |  -   |   -   |
+ |              SDAR              |    1.7B-30B     | LLM  |    Yes    |   Yes   |   No    |  -   |   -   |
+ 
++Intern-Decision 需通过 `--task intern-decision` 启用，提供 OpenAI Decisions 子集和 Systemone HTTP 接口。该行描述决策评分能力，GPU 已测精度为 BF16，`-` 表示量化模式尚未验证。模型与验证范围见 [Intern-Decision 文档](../llm/intern_decision.md)。
++
+ ```{note}
+ * [1] 自 0.6.4 之后，PyTorch 引擎移除了对 llava 模型原始格式的支持。我们建议使用它们对应的 transformers 格式的模型。这些模型可以在 https://huggingface.co/llava-hf 中找到
+ 自 0.11.1 起，PytorchEngine 移除了 mllama 的支持
+diff --git a/lmdeploy/intern_decision_encoding.py b/lmdeploy/intern_decision_encoding.py
+index 8cbad7d6..0ef94533 100644
+--- a/lmdeploy/intern_decision_encoding.py
++++ b/lmdeploy/intern_decision_encoding.py
+@@ -22,7 +22,7 @@ logger = logging.getLogger('lmdeploy')
+ 
+ DECISION_TOKEN = '<decision>'
+ ANSWER_SYMBOLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+-# Fall back to the official 4B calibration when checkpoint metadata is unavailable.
++# Official 4B calibration, also used by standalone scoring helpers.
+ DEFAULT_TEMPERATURE = 1.99241824
+ SYSTEM_PROMPT = ('You are a careful decision assistant. Use the state and decision schema in '
+                  'the user message to make the requested decisions. For every field, choose '
+@@ -160,8 +160,9 @@ def resolve_temperature(model_path: str | Path) -> float:
+     This reader follows the Intern-Decision-specific convention of a top-level
+     numeric DEFAULT_TEMPERATURE in the checkpoint's inference.py. It is not a
+     general checkpoint metadata format. Parse the constant without importing or
+-    executing the module or downloading files. Missing or invalid metadata falls
+-    back to the official Intern-Decision-4B calibration.
++    executing the module or downloading files. The caller must resolve remote
++    model IDs first. Missing or invalid metadata is an error: calibration from a
++    different checkpoint must not be substituted.
+     """
+     source = Path(model_path) / 'inference.py'
+     try:
+@@ -183,9 +184,8 @@ def resolve_temperature(model_path: str | Path) -> float:
+             raise ValueError('DEFAULT_TEMPERATURE must be a numeric constant')
+         temperature = validate_temperature(value)
+     except (OSError, UnicodeError, SyntaxError, ValueError, TypeError, OverflowError) as exc:
+-        logger.warning(f'Cannot read decision temperature from {source}: {exc}; '
+-                       f'using the 4B default {DEFAULT_TEMPERATURE}.')
+-        return DEFAULT_TEMPERATURE
++        raise ValueError(f'Cannot read decision temperature from {source}: {exc}. '
++                         'Provide a checkpoint with a finite positive DEFAULT_TEMPERATURE in inference.py.') from exc
+     logger.info(f'Decision temperature from {source}: {temperature}.')
+     return temperature
+ 
+diff --git a/lmdeploy/pytorch/messages.py b/lmdeploy/pytorch/messages.py
+index 074ad3d7..60aa500c 100644
+--- a/lmdeploy/pytorch/messages.py
++++ b/lmdeploy/pytorch/messages.py
+@@ -76,6 +76,7 @@ class SamplingParam:
+     out_ce_loss: bool = False
+     num_logprobs: int = -1
+     logprob_start_len: int = -1
++    # Token IDs whose scores must be returned regardless of top-k selection.
+     logprob_extra_token_ids: tuple[int, ...] | None = None
+     return_routed_experts: bool = False
+ 
+diff --git a/lmdeploy/serve/openai/api_server.py b/lmdeploy/serve/openai/api_server.py
+index 838a7291..199c8cb2 100644
+--- a/lmdeploy/serve/openai/api_server.py
++++ b/lmdeploy/serve/openai/api_server.py
+@@ -41,7 +41,7 @@ from lmdeploy.serve.utils.server_utils import (
+     EngineSleepingMiddleware,
+     protocol_error_response,
+ )
+-from lmdeploy.utils import get_logger
++from lmdeploy.utils import get_logger, get_model
+ 
+ if TYPE_CHECKING:
+     from lmdeploy.serve.managers import Session
+@@ -338,8 +338,8 @@ def serve(model_path: str,
+         allowed_media_domains (list[str] | None): Optional exact hostname
+             allowlist for HTTP(S) media URLs.
+         task (str | None): Set to ``'intern-decision'`` to enable decision scoring
+-            on the PyTorch backend. Temperature is read from local checkpoint
+-            metadata when available, otherwise the 4B default is used.
++            on the PyTorch backend. Temperature is read from the resolved
++            checkpoint metadata; missing or invalid calibration is rejected.
+     """
+     if os.getenv('TM_LOG_LEVEL') is None:
+         os.environ['TM_LOG_LEVEL'] = log_level
+@@ -373,6 +373,10 @@ def serve(model_path: str,
+         # input logprobs are PyTorch-only; like the CLI, the task selects that backend
+         backend = 'pytorch'
+         backend_config = backend_config or PytorchEngineConfig()
++        if not os.path.exists(model_path):
++            # Load weights and calibration metadata from the same resolved checkpoint.
++            model_name = model_name if model_name is not None else model_path
++            model_path = get_model(model_path, backend_config.download_dir, backend_config.revision)
+ 
+     handle_torchrun()
+     _, pipeline_class = get_task(backend,
+diff --git a/tests/test_lmdeploy/test_decision_metadata.py b/tests/test_lmdeploy/test_decision_metadata.py
+index 9148fb1d..3b3e75fc 100644
+--- a/tests/test_lmdeploy/test_decision_metadata.py
++++ b/tests/test_lmdeploy/test_decision_metadata.py
+@@ -4,7 +4,7 @@ from unittest.mock import Mock
+ 
+ import pytest
+ 
+-from lmdeploy.intern_decision_encoding import DEFAULT_TEMPERATURE, resolve_temperature
++from lmdeploy.intern_decision_encoding import resolve_temperature
+ 
+ 
+ @pytest.mark.parametrize('assignment, expected', [
+@@ -28,29 +28,20 @@ def test_checkpoint_temperature_without_executing_source(tmp_path, assignment, e
+     'DEFAULT_TEMPERATURE = 1e999', 'DEFAULT_TEMPERATURE: float',
+     'DEFAULT_TEMPERATURE = 2\nDEFAULT_TEMPERATURE = 3',
+ ])
+-def test_unreadable_temperature_warns_and_falls_back(tmp_path, monkeypatch, source):
+-    from lmdeploy import intern_decision_encoding as encoding
+-
++def test_unreadable_temperature_rejected(tmp_path, source):
+     if source is not None:
+         (tmp_path / 'inference.py').write_bytes(source if isinstance(source, bytes) else source.encode())
+-    warning = Mock()
+-    monkeypatch.setattr(encoding.logger, 'warning', warning)
+-    assert resolve_temperature(tmp_path) == DEFAULT_TEMPERATURE
+-    warning.assert_called_once()
+-    message = warning.call_args.args[0]
+-    assert str(tmp_path / 'inference.py') in message
+-    assert str(DEFAULT_TEMPERATURE) in message
++    with pytest.raises(ValueError, match='Cannot read decision temperature') as exc:
++        resolve_temperature(tmp_path)
++    assert str(tmp_path / 'inference.py') in str(exc.value)
+ 
+ 
+ def test_remote_id_does_not_download_temperature(tmp_path, monkeypatch):
+-    from lmdeploy import intern_decision_encoding as encoding
+     from lmdeploy import utils
+ 
+     monkeypatch.chdir(tmp_path)
+     download = Mock(side_effect=AssertionError('Temperature reading must not download models'))
+-    warning = Mock()
+     monkeypatch.setattr(utils, 'get_model', download)
+-    monkeypatch.setattr(encoding.logger, 'warning', warning)
+-    assert resolve_temperature('organization/decision-model') == DEFAULT_TEMPERATURE
++    with pytest.raises(ValueError, match='Cannot read decision temperature'):
++        resolve_temperature('organization/decision-model')
+     download.assert_not_called()
+-    warning.assert_called_once()
+diff --git a/tests/test_lmdeploy/test_decision_startup.py b/tests/test_lmdeploy/test_decision_startup.py
+index 427f8334..57749946 100644
+--- a/tests/test_lmdeploy/test_decision_startup.py
++++ b/tests/test_lmdeploy/test_decision_startup.py
+@@ -98,3 +98,42 @@ def test_invalid_checkpoint_closes_engine(server_startup, tmp_path):
+         api_server.serve(str(tmp_path), task='intern-decision', generation_config='lmdeploy')
+     engine.close.assert_called_once()
+     run.assert_not_called()
++
++
++@pytest.mark.parametrize('size, temperature', [
++    ('0.8B', 2.747760550703), ('2B', 2.100509348278), ('4B', 1.99241824),
++])
++@pytest.mark.parametrize('model_name', [None, 'custom-name'])
++def test_remote_checkpoint_uses_resolved_calibration(
++        server_startup, monkeypatch, tmp_path, size, temperature, model_name):
++    api_server, build, run = server_startup
++    context = api_server.ServerContext()
++    monkeypatch.setattr(api_server, 'ServerContext', lambda: context)
++    monkeypatch.chdir(tmp_path)
++    checkpoint = tmp_path / 'cached-snapshot'
++    checkpoint.mkdir()
++    (checkpoint / 'inference.py').write_text(f'DEFAULT_TEMPERATURE = {temperature}')
++    download = Mock(return_value=str(checkpoint))
++    monkeypatch.setattr(api_server, 'get_model', download)
++    model_id = f'internlm/Intern-Decision-{size}'
++    backend_config = PytorchEngineConfig(download_dir=str(tmp_path / 'cache'), revision='pinned-revision')
++
++    api_server.serve(model_id, model_name=model_name, backend_config=backend_config,
++                     task='intern-decision', generation_config='lmdeploy')
++
++    download.assert_called_once_with(model_id, backend_config.download_dir, 'pinned-revision')
++    assert build.call_args.kwargs['model_path'] == str(checkpoint)
++    assert build.call_args.kwargs['model_name'] == (model_name or model_id)
++    assert context.decision_context.temperature == temperature
++    run.assert_called_once()
++
++
++def test_missing_calibration_closes_engine_without_starting_server(server_startup, monkeypatch, tmp_path):
++    api_server, build, run = server_startup
++    download = Mock(side_effect=AssertionError('Local checkpoints must not be downloaded'))
++    monkeypatch.setattr(api_server, 'get_model', download)
++    with pytest.raises(ValueError, match='Cannot read decision temperature'):
++        api_server.serve(str(tmp_path), task='intern-decision', generation_config='lmdeploy')
++    download.assert_not_called()
++    build.return_value.close.assert_called_once()
++    run.assert_not_called()

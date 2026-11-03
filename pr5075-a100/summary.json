@@ -1,0 +1,96 @@
+{
+  "scope": "Historical A100 text quality evaluation; production Systemone handler without HTTP transport. Performance comparisons are outside this report.",
+  "official_source": "https://github.com/InternLM/Intern-Decision#benchmark-accuracy",
+  "official_readme_blob": "c7c2535c29830cb69495c8e66a598303ac2cdcf7",
+  "official_accuracy_precision": "Published averages are rounded to two decimal places.",
+  "results": {
+    "0.8B": {
+      "actual": {
+        "macro7_percent": 79.16165524319425,
+        "hard_brier": 0.5290834419963855,
+        "hard_ece": 0.09134618279342326
+      },
+      "official": {
+        "macro7_percent": 79.38,
+        "hard_brier": 0.529519,
+        "hard_ece": 0.06571
+      },
+      "delta": {
+        "macro7_percent": -0.21834475680574883,
+        "hard_brier": -0.00043555800361450014,
+        "hard_ece": 0.02563618279342325
+      },
+      "weighted_accuracy_percent": 82.11480851752894,
+      "correct": 10142,
+      "fields": 12351,
+      "temperature": 2.747760550703,
+      "revision": "3df76b5bda652d4f8ba5fc056e1acf773bc2ab36",
+      "diff_sha256": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+      "evidence_sha256": {
+        "metadata.json": "1cdeccaaa2222b93b3db3db9fd0105d87333fdac905d86dbe44490d711f99cb5",
+        "source.patch": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+        "responses.jsonl": "98601eb4e1135ae43cd2d8a931a50be16b5b1a4ae1342658f181bad3f098bdb9",
+        "metrics.json": "2183a485825c3c1c70883d3c9d861c58f0e4be0a1c134e48248082f8f483c0e7"
+      }
+    },
+    "2B": {
+      "actual": {
+        "macro7_percent": 84.91288177941028,
+        "hard_brier": 0.4375784891478426,
+        "hard_ece": 0.07151027092653953
+      },
+      "official": {
+        "macro7_percent": 84.68,
+        "hard_brier": 0.437256,
+        "hard_ece": 0.100208
+      },
+      "delta": {
+        "macro7_percent": 0.23288177941027755,
+        "hard_brier": 0.0003224891478426084,
+        "hard_ece": -0.02869772907346048
+      },
+      "weighted_accuracy_percent": 86.08209861549672,
+      "correct": 10632,
+      "fields": 12351,
+      "temperature": 2.100509348278,
+      "revision": "3df76b5bda652d4f8ba5fc056e1acf773bc2ab36",
+      "diff_sha256": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+      "evidence_sha256": {
+        "metadata.json": "6c22e5a26f47085fed2549d16e8c21cdb5226dbe915d9b28582c255ceceba478",
+        "source.patch": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+        "responses.jsonl": "d74f1cc06fa6cfc715b115dac27484cec588514bb516c17d38eaed377d52cee9",
+        "metrics.json": "692cb02ebd175b5eb21b5d047c3610752c0230703ec93cfae411605434be5e32"
+      }
+    },
+    "4B": {
+      "actual": {
+        "macro7_percent": 89.84082406184174,
+        "hard_brier": 0.34718238946827734,
+        "hard_ece": 0.08156449044132041
+      },
+      "official": {
+        "macro7_percent": 90.02,
+        "hard_brier": 0.346762,
+        "hard_ece": 0.065267
+      },
+      "delta": {
+        "macro7_percent": -0.17917593815825228,
+        "hard_brier": 0.0004203894682773268,
+        "hard_ece": 0.01629749044132041
+      },
+      "weighted_accuracy_percent": 88.96445631932637,
+      "correct": 10988,
+      "fields": 12351,
+      "temperature": 1.99241824,
+      "revision": "3df76b5bda652d4f8ba5fc056e1acf773bc2ab36",
+      "diff_sha256": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+      "evidence_sha256": {
+        "metadata.json": "eccd61d233a220a303c1713e8aaee08c49d0bfe3c2cf8e6b8d63b5681060171e",
+        "source.patch": "cf192a3507fb57be9ab2e427fbedd383b791491db2499ffdc58ca9a1b5e44a4e",
+        "responses.jsonl": "d9f800f82f7c4d3cf99069fce60133657886badf1784f081ff9973bdcf8fde0c",
+        "metrics.json": "1993209177cad224bf9e7c072ae4a4a7254e0bffc4d23b1a6d17033c7baf9d92"
+      }
+    }
+  },
+  "production_sources_identical_across_runs": true
+}
