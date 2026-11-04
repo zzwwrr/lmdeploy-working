@@ -1,6 +1,6 @@
 # PR 5075: historical A100 text quality evidence
 
-This evidence branch preserves the evaluated LMDeploy source at its parent commit
+This evidence branch preserves the evaluated LMDeploy source at commit
 `cda4c3b5`. It is separate from the implementation PR to keep raw benchmark artifacts
 out of the upstream source diff. Results are from 2026-11-03 and are not a rerun of
 the latest PR head. No speedup or latency comparison is made here.
@@ -38,7 +38,7 @@ Accuracy below is the unweighted mean of seven suites. Brier/ECE below are Jevbe
 | 2B | 84.68% | 84.9129% | +0.2329 | 0.437256 / 0.100208 | 0.437578 / 0.071510 |
 | 4B | 90.02% | 89.8408% | -0.1792 | 0.346762 / 0.065267 | 0.347182 / 0.081564 |
 
-Official values: https://github.com/InternLM/Intern-Decision#benchmark-accuracy (README blob c7c2535c29830cb69495c8e66a598303ac2cdcf7). Differences are comparisons with published values, not a controlled attribution of backend errors.
+Official values: https://github.com/InternLM/Intern-Decision/blob/565350244af860e1c276768cd80bdd9b8be93913/README.md#benchmark-accuracy (README blob c7c2535c29830cb69495c8e66a598303ac2cdcf7). Differences are comparisons with published values, not a controlled attribution of backend errors.
 
 Per-suite LMDeploy accuracy (%):
 
