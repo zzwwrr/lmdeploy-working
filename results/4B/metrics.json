@@ -1,0 +1,786 @@
+{
+  "suites": {
+    "jevbench-easy": {
+      "rows": 48,
+      "correct": 48,
+      "total": 48,
+      "accuracy": 1.0,
+      "brier": 0.0011094099135899346,
+      "ece": {
+        "ece": 0.02107477609765107,
+        "n": 48,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 48,
+            "mean_confidence": 0.9789252239023489,
+            "accuracy": 1.0
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "intent": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "fact": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "extraction": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "tool_selection": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        }
+      },
+      "category_macro_accuracy": 1.0,
+      "temperature": 1.99241824,
+      "data_sha256": "3b8afa6e55e4decf1c8e116910443215690951dd51e15b7a6e4b813bc83c1eae",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "jevbench-original": {
+      "rows": 72,
+      "correct": 71,
+      "total": 72,
+      "accuracy": 0.9861111111111112,
+      "brier": 0.03404528756499774,
+      "ece": {
+        "ece": 0.09538025051863976,
+        "n": 72,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 1,
+            "mean_confidence": 0.479627383748828,
+            "accuracy": 0.0
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 1,
+            "mean_confidence": 0.5930110454411601,
+            "accuracy": 1.0
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 3,
+            "mean_confidence": 0.6863454179784475,
+            "accuracy": 1.0
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 5,
+            "mean_confidence": 0.7541334698556099,
+            "accuracy": 1.0
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 11,
+            "mean_confidence": 0.8733236086761083,
+            "accuracy": 1.0
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 51,
+            "mean_confidence": 0.9526073529865691,
+            "accuracy": 1.0
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "policy": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "intent": {
+          "correct": 11,
+          "total": 12,
+          "accuracy": 0.9166666666666666
+        },
+        "ordinal": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "extraction": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "adequacy": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        },
+        "routing": {
+          "correct": 12,
+          "total": 12,
+          "accuracy": 1.0
+        }
+      },
+      "category_macro_accuracy": 0.9861111111111112,
+      "temperature": 1.99241824,
+      "data_sha256": "157c355d5d07fba47d516acdb048607a5ee4ef14347bbf87cf67dac73d1a193e",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "jevbench-hard": {
+      "rows": 111,
+      "correct": 82,
+      "total": 111,
+      "accuracy": 0.7387387387387387,
+      "brier": 0.3481560478037778,
+      "ece": {
+        "ece": 0.08724921738130502,
+        "n": 111,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 10,
+            "mean_confidence": 0.3597750069939071,
+            "accuracy": 0.3
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 4,
+            "mean_confidence": 0.4483597995914744,
+            "accuracy": 0.0
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 11,
+            "mean_confidence": 0.56491500040697,
+            "accuracy": 0.8181818181818182
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 16,
+            "mean_confidence": 0.64964641339547,
+            "accuracy": 0.5625
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 18,
+            "mean_confidence": 0.7589910830287515,
+            "accuracy": 0.6666666666666666
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 23,
+            "mean_confidence": 0.8625253250922641,
+            "accuracy": 0.8695652173913043
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 29,
+            "mean_confidence": 0.9555365781457384,
+            "accuracy": 1.0
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "long_policy": {
+          "correct": 12,
+          "total": 19,
+          "accuracy": 0.631578947368421
+        },
+        "probability": {
+          "correct": 7,
+          "total": 10,
+          "accuracy": 0.7
+        },
+        "temporal_numeric": {
+          "correct": 5,
+          "total": 15,
+          "accuracy": 0.3333333333333333
+        },
+        "ambiguous": {
+          "correct": 5,
+          "total": 7,
+          "accuracy": 0.7142857142857143
+        },
+        "multi_hop": {
+          "correct": 15,
+          "total": 18,
+          "accuracy": 0.8333333333333334
+        },
+        "tradeoff": {
+          "correct": 4,
+          "total": 6,
+          "accuracy": 0.6666666666666666
+        },
+        "adversarial": {
+          "correct": 6,
+          "total": 6,
+          "accuracy": 1.0
+        },
+        "trap": {
+          "correct": 7,
+          "total": 8,
+          "accuracy": 0.875
+        },
+        "judge_hard": {
+          "correct": 16,
+          "total": 17,
+          "accuracy": 0.9411764705882353
+        },
+        "routing_hard": {
+          "correct": 5,
+          "total": 5,
+          "accuracy": 1.0
+        }
+      },
+      "category_macro_accuracy": 0.7695374465575704,
+      "temperature": 1.99241824,
+      "data_sha256": "5ed49f0a43a468993747a22b007fe65fc1187ed433d3c3a95ff9b69a293a8e34",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "agnews-test": {
+      "rows": 7600,
+      "correct": 6903,
+      "total": 7600,
+      "accuracy": 0.9082894736842105,
+      "brier": 0.15452397128387863,
+      "ece": {
+        "ece": 0.0762785995015428,
+        "n": 7600,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 14,
+            "mean_confidence": 0.37079551887257617,
+            "accuracy": 0.5
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 114,
+            "mean_confidence": 0.4692107241444999,
+            "accuracy": 0.5614035087719298
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 461,
+            "mean_confidence": 0.5511096397591413,
+            "accuracy": 0.5726681127982647
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 584,
+            "mean_confidence": 0.6535389350480075,
+            "accuracy": 0.7414383561643836
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 1164,
+            "mean_confidence": 0.7556018322330638,
+            "accuracy": 0.897766323024055
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 2268,
+            "mean_confidence": 0.8589253319263398,
+            "accuracy": 0.9559082892416225
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 2995,
+            "mean_confidence": 0.9353288869603874,
+            "accuracy": 0.9756260434056762
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "qa_reasoning": {
+          "correct": 6903,
+          "total": 7600,
+          "accuracy": 0.9082894736842105
+        }
+      },
+      "category_macro_accuracy": 0.9082894736842105,
+      "temperature": 1.99241824,
+      "data_sha256": "4ff1cad1531f29cbfce572e3ddb73666626fd19663691ea3cb4093f46e1edd08",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "toolace-test": {
+      "rows": 310,
+      "correct": 300,
+      "total": 310,
+      "accuracy": 0.967741935483871,
+      "brier": 0.05426277585982495,
+      "ece": {
+        "ece": 0.03879556684990173,
+        "n": 310,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 2,
+            "mean_confidence": 0.4934037000102051,
+            "accuracy": 1.0
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 7,
+            "mean_confidence": 0.5544216306119324,
+            "accuracy": 0.7142857142857143
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 4,
+            "mean_confidence": 0.626289857134213,
+            "accuracy": 0.5
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 11,
+            "mean_confidence": 0.7495355948765048,
+            "accuracy": 0.7272727272727273
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 36,
+            "mean_confidence": 0.8641867005299387,
+            "accuracy": 0.9444444444444444
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 250,
+            "mean_confidence": 0.9709797808613085,
+            "accuracy": 0.996
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "routing_tools": {
+          "correct": 300,
+          "total": 310,
+          "accuracy": 0.967741935483871
+        }
+      },
+      "category_macro_accuracy": 0.967741935483871,
+      "temperature": 1.99241824,
+      "data_sha256": "259a600d06c616c6b8bcc2138ec1e96be9eda0eb1817e871e57509c1be94ab2b",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "typed_decisions-test": {
+      "rows": 400,
+      "correct": 1613,
+      "total": 2000,
+      "accuracy": 0.8065,
+      "brier": 0.2759144211753283,
+      "ece": {
+        "ece": 0.0713809283391255,
+        "n": 2000,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 25,
+            "mean_confidence": 0.3739444858242792,
+            "accuracy": 0.28
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 131,
+            "mean_confidence": 0.45545415225853975,
+            "accuracy": 0.48854961832061067
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 368,
+            "mean_confidence": 0.550199242739945,
+            "accuracy": 0.6141304347826086
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 361,
+            "mean_confidence": 0.6473741445983895,
+            "accuracy": 0.7451523545706371
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 298,
+            "mean_confidence": 0.7517844597214252,
+            "accuracy": 0.8355704697986577
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 319,
+            "mean_confidence": 0.8503487062859457,
+            "accuracy": 0.9529780564263323
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 498,
+            "mean_confidence": 0.9527186098212198,
+            "accuracy": 0.9919678714859438
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "verification_policy": {
+          "correct": 1188,
+          "total": 1500,
+          "accuracy": 0.792
+        },
+        "routing_tools": {
+          "correct": 425,
+          "total": 500,
+          "accuracy": 0.85
+        }
+      },
+      "category_macro_accuracy": 0.821,
+      "temperature": 1.99241824,
+      "data_sha256": "fa43c0389d9dbdf18cf1afe75c73f320d7620f3bb2a8be19e7cca7df5e78588f",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    },
+    "wildjailbreak-test": {
+      "rows": 2210,
+      "correct": 1983,
+      "total": 2210,
+      "accuracy": 0.8972850678733032,
+      "brier": 0.1351883369328678,
+      "ece": {
+        "ece": 0.037512911005034684,
+        "n": 2210,
+        "bins": [
+          {
+            "lo": 0.0,
+            "hi": 0.1,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 0,
+            "mean_confidence": null,
+            "accuracy": null
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 99,
+            "mean_confidence": 0.5503485951955372,
+            "accuracy": 0.5151515151515151
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 106,
+            "mean_confidence": 0.6513313578420573,
+            "accuracy": 0.49056603773584906
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 173,
+            "mean_confidence": 0.7527398354950194,
+            "accuracy": 0.6242774566473989
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 316,
+            "mean_confidence": 0.8631929453955217,
+            "accuracy": 0.8417721518987342
+          },
+          {
+            "lo": 0.9,
+            "hi": 1.0,
+            "n": 1516,
+            "mean_confidence": 0.9713819682190717,
+            "accuracy": 0.9934036939313984
+          }
+        ]
+      },
+      "tvd": null,
+      "tvd_n": 0,
+      "families": {
+        "verification_policy": {
+          "correct": 1983,
+          "total": 2210,
+          "accuracy": 0.8972850678733032
+        }
+      },
+      "category_macro_accuracy": 0.8972850678733032,
+      "temperature": 1.99241824,
+      "data_sha256": "2b14e5449850463b530e92493244c4f4a888d91ff4b458130e17f661d2ce8938",
+      "checkpoint": "/workspace/decision-sandbox/models/Intern-Decision-4B",
+      "objective_revision": "masked-next-token-v4",
+      "inference_backend": "lmdeploy-pytorch"
+    }
+  },
+  "macro7_accuracy": 0.9006666181273192,
+  "fields": 12351,
+  "correct": 11000,
+  "weighted_accuracy": 0.8906161444417456,
+  "hard_brier": 0.3481560478037778,
+  "hard_ece": 0.08724921738130502
+}

@@ -1,0 +1,13 @@
+{
+  "CUDA_VISIBLE_DEVICES": "7",
+  "CUDA_HOME": "/usr/local/cuda",
+  "TOKENIZERS_PARALLELISM": "false",
+  "OMP_NUM_THREADS": "4",
+  "MKL_NUM_THREADS": "4",
+  "HF_HUB_OFFLINE": "1",
+  "TRANSFORMERS_OFFLINE": "1",
+  "EVAL_SOURCE": "/workspace/dev/lmdeploy-decision-parser/scratch/a100_current_20261109_7801fd7c/source",
+  "PYTHONDONTWRITEBYTECODE": "1",
+  "PYTHONPATH": "/workspace/dev/lmdeploy-decision-parser/scratch/a100_current_20261109_7801fd7c/source:/tmp/lmdeploy-rebase-main-20261030-site:/workspace/dev/cache/uv/archive-v0/H54tyfQwHbSJOSGYJch_7",
+  "LD_LIBRARY_PATH": "/tmp/lmdeploy-rebase-main-20261030-site/z3/lib:/usr/local/cuda/lib64"
+}

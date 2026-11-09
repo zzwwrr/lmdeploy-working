@@ -1,0 +1,19 @@
+{
+  "selected_gpu": 7,
+  "source": "7801fd7cdad7495633bf0c3d6be978eec32f0b1a",
+  "first": {
+    "uuid": "GPU-cf298831-61c8-9603-28b3-463bcbeb4831",
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_mib": 4,
+    "utilization": 0,
+    "pids": []
+  },
+  "second": {
+    "uuid": "GPU-cf298831-61c8-9603-28b3-463bcbeb4831",
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_mib": 4,
+    "utilization": 0,
+    "pids": []
+  },
+  "time": 1794195729.886265
+}

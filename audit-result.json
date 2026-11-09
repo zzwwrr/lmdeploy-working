@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "results": {
+    "0.8B": {
+      "requests": 10751,
+      "fields": 12351,
+      "correct": 10157,
+      "macro7_accuracy": 0.7928544492100869,
+      "hard_brier": 0.5292005796605125,
+      "hard_ece": 0.09051056285884548,
+      "source_files": 764
+    },
+    "2B": {
+      "requests": 10751,
+      "fields": 12351,
+      "correct": 10631,
+      "macro7_accuracy": 0.8479063556830959,
+      "hard_brier": 0.43857029726012714,
+      "hard_ece": 0.07441524715973981,
+      "source_files": 764
+    },
+    "4B": {
+      "requests": 10751,
+      "fields": 12351,
+      "correct": 11000,
+      "macro7_accuracy": 0.9006666181273192,
+      "hard_brier": 0.3481560478037778,
+      "hard_ece": 0.08724921738130502,
+      "source_files": 764
+    }
+  },
+  "gpu_monitor_samples": 111,
+  "original_official_dataset_replay_passed": true
+}
