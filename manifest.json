@@ -45,5 +45,6 @@
   "results/4B/raw-sha256.json": "afb8e64d64e40719108e64a62813d8757f218e592764e52ad10a70611473a45e",
   "audit-result.json": "9c367f2ecd7db814d96cda47b256d8e10dadc5a8c774451002b5e9e34ca5c54a",
   "checkpoint-postcheck.json": "bbe42a8d951d40a29356f84eb356b4b1806c4fe2ae48315426dc690adbe2fe6b",
-  "official-replay.log": "5e2cfc0d25b8465b5f2870c53a03556f260c2ed4b0d164744584d53bad7e81f4"
+  "official-replay.log": "5e2cfc0d25b8465b5f2870c53a03556f260c2ed4b0d164744584d53bad7e81f4",
+  ".gitignore": "6feaded4e28ea86e001a6751b4e3d960e8b7c31b9616ff9936b79297086e809b"
 }
