@@ -1,0 +1,6654 @@
+{
+  "source_commit": "7801fd7cdad7495633bf0c3d6be978eec32f0b1a",
+  "hardware": "one H200, GPU 2",
+  "performance_api": "/v1/decisions",
+  "quality_api": "/v1/systemone",
+  "nominal_poisson_rate_bracket_rps": [
+    57.5,
+    58.75
+  ],
+  "bracket_note": "Configured Poisson means; actual finite-window arrival rates are reported separately.",
+  "points": [
+    {
+      "name": "02-explore-r50-s60",
+      "rate": 50,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 3010,
+      "valid": 3010,
+      "invalid": 0,
+      "actual_send_rps": 50.166666666666664,
+      "completed_in_window_rps": 50.1,
+      "successful_rps_with_drain": 50.13594582575318,
+      "phase_seconds_with_drain": 60.036765048,
+      "latency_ms": {
+        "n": 3010,
+        "mean": 131.97276161694353,
+        "p50": 116.42936499999999,
+        "p95": 259.88135815,
+        "p99": 342.961149159999,
+        "minimum": 25.889835,
+        "maximum": 412.978234
+      },
+      "errors": {},
+      "fields": 15780,
+      "cached_input_tokens": 26624,
+      "input_tokens": 3057548,
+      "cache_token_fraction": 0.00870763108216126,
+      "goodput_1s_with_drain_rps": 50.13594582575318,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.09999999999999985,
+      "peak_inflight": 31,
+      "poisson_planned_arrivals": 3010,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 3010,
+        "mean": 0.6993007126245847,
+        "p50": 0.6961085,
+        "p95": 0.7991565499999999,
+        "p99": 0.8475174299999999,
+        "minimum": 0.443016,
+        "maximum": 0.993922
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 3010,
+        "mean": 0.10087010099667774,
+        "p50": 0.0905755,
+        "p95": 0.17808395,
+        "p99": 0.24950031,
+        "minimum": -0.857863,
+        "maximum": 1.135198
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 4,
+          "sent": 260,
+          "ended": 256,
+          "valid": 256,
+          "latency_ms": {
+            "n": 256,
+            "mean": 140.42423669140624,
+            "p50": 119.67178,
+            "p95": 316.25226425000005,
+            "p99": 373.7958575999999,
+            "minimum": 26.360469,
+            "maximum": 385.833116
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 8,
+          "sent": 242,
+          "ended": 238,
+          "valid": 238,
+          "latency_ms": {
+            "n": 238,
+            "mean": 122.57038118907565,
+            "p50": 105.19239400000001,
+            "p95": 249.62153149999986,
+            "p99": 270.36263584,
+            "minimum": 26.819102,
+            "maximum": 282.947511
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 1,
+          "sent": 246,
+          "ended": 253,
+          "valid": 253,
+          "latency_ms": {
+            "n": 253,
+            "mean": 130.05720063241108,
+            "p50": 116.238965,
+            "p95": 233.3227796,
+            "p99": 256.40628559999993,
+            "minimum": 28.539961,
+            "maximum": 266.474597
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 6,
+          "sent": 243,
+          "ended": 238,
+          "valid": 238,
+          "latency_ms": {
+            "n": 238,
+            "mean": 123.63328118067227,
+            "p50": 118.133792,
+            "p95": 225.4865389499999,
+            "p99": 260.76894978,
+            "minimum": 27.674056,
+            "maximum": 282.161389
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 6,
+          "sent": 248,
+          "ended": 248,
+          "valid": 248,
+          "latency_ms": {
+            "n": 248,
+            "mean": 136.04356612903223,
+            "p50": 117.0090085,
+            "p95": 260.90437529999997,
+            "p99": 305.23681028,
+            "minimum": 26.145698,
+            "maximum": 315.873591
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 6,
+          "sent": 258,
+          "ended": 258,
+          "valid": 258,
+          "latency_ms": {
+            "n": 258,
+            "mean": 135.4009973100775,
+            "p50": 121.81705550000001,
+            "p95": 243.10743015,
+            "p99": 296.19632645,
+            "minimum": 25.917534,
+            "maximum": 300.133079
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 7,
+          "sent": 270,
+          "ended": 269,
+          "valid": 269,
+          "latency_ms": {
+            "n": 269,
+            "mean": 164.41946394052044,
+            "p50": 142.706698,
+            "p95": 349.62224699999996,
+            "p99": 389.34126936,
+            "minimum": 25.889835,
+            "maximum": 412.978234
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 6,
+          "sent": 243,
+          "ended": 244,
+          "valid": 244,
+          "latency_ms": {
+            "n": 244,
+            "mean": 132.9191657827869,
+            "p50": 114.62246049999999,
+            "p95": 259.67861604999996,
+            "p99": 292.6805958099999,
+            "minimum": 26.664451,
+            "maximum": 329.402864
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 11,
+          "sent": 242,
+          "ended": 237,
+          "valid": 237,
+          "latency_ms": {
+            "n": 237,
+            "mean": 111.57457528270041,
+            "p50": 108.160821,
+            "p95": 189.1609892,
+            "p99": 220.02311591999992,
+            "minimum": 27.347033,
+            "maximum": 247.312575
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 19,
+          "sent": 257,
+          "ended": 249,
+          "valid": 249,
+          "latency_ms": {
+            "n": 249,
+            "mean": 141.56375113253011,
+            "p50": 129.655312,
+            "p95": 286.0994,
+            "p99": 334.6717858000002,
+            "minimum": 27.234105,
+            "maximum": 376.076877
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 9,
+          "sent": 257,
+          "ended": 267,
+          "valid": 267,
+          "latency_ms": {
+            "n": 267,
+            "mean": 139.83659653932585,
+            "p50": 121.407028,
+            "p95": 278.8170718999999,
+            "p99": 339.13022833999963,
+            "minimum": 27.869457,
+            "maximum": 388.582759
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 4,
+          "sent": 244,
+          "ended": 249,
+          "valid": 249,
+          "latency_ms": {
+            "n": 249,
+            "mean": 101.03091319678715,
+            "p50": 91.833541,
+            "p95": 183.8625024,
+            "p99": 222.02577440000005,
+            "minimum": 26.23835,
+            "maximum": 230.784456
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 4,
+          "valid": 4,
+          "latency_ms": {
+            "n": 4,
+            "mean": 67.36836925,
+            "p50": 63.826150999999996,
+            "p95": 79.57046129999999,
+            "p99": 81.68103785999999,
+            "minimum": 59.612493,
+            "maximum": 82.208682
+          }
+        }
+      ],
+      "unique_inputs": 1979,
+      "raw_sha256": "8dcade9f2649007941695cc66a94c428b29e466a1c3648f6722a3fa088363d39"
+    },
+    {
+      "name": "03-explore-r70-s60",
+      "rate": 70,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 4184,
+      "valid": 4184,
+      "invalid": 0,
+      "actual_send_rps": 69.73333333333333,
+      "completed_in_window_rps": 64.26666666666667,
+      "successful_rps_with_drain": 64.60866138534102,
+      "phase_seconds_with_drain": 64.759119138,
+      "latency_ms": {
+        "n": 4184,
+        "mean": 2866.339382393642,
+        "p50": 2958.2037010000004,
+        "p95": 4860.6410735,
+        "p99": 5026.5916786,
+        "minimum": 52.373186,
+        "maximum": 7478.067673
+      },
+      "errors": {},
+      "fields": 22031,
+      "cached_input_tokens": 13312,
+      "input_tokens": 4251691,
+      "cache_token_fraction": 0.0031309895286369587,
+      "goodput_1s_with_drain_rps": 6.964270144547993,
+      "slo_1s_attainment": 0.10779158699808795,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 4.223809523809521,
+      "peak_inflight": 343,
+      "poisson_planned_arrivals": 4184,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 4184,
+        "mean": 1.0596187691204588,
+        "p50": 0.720742,
+        "p95": 0.8265377,
+        "p99": 0.9133646400000002,
+        "minimum": 0.400866,
+        "maximum": 434.712341
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 4184,
+        "mean": 0.11045212762906309,
+        "p50": 0.09342149999999999,
+        "p95": 0.20361214999999996,
+        "p99": 0.2669676600000002,
+        "minimum": -0.12293,
+        "maximum": 0.924133
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog",
+        "completion_rate_below_arrival_rate"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 53,
+          "sent": 348,
+          "ended": 295,
+          "valid": 295,
+          "latency_ms": {
+            "n": 295,
+            "mean": 701.3382869966101,
+            "p50": 740.159576,
+            "p95": 1002.1306132,
+            "p99": 1030.9217659600001,
+            "minimum": 52.373186,
+            "maximum": 1086.165957
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 87,
+          "sent": 351,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 1014.6344405867509,
+            "p50": 992.174797,
+            "p95": 1239.818316,
+            "p99": 1277.4799801999998,
+            "minimum": 774.458605,
+            "maximum": 1292.336206
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 105,
+          "sent": 336,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 1477.7275852012579,
+            "p50": 1485.405565,
+            "p95": 1749.2472077999998,
+            "p99": 1789.0098221199999,
+            "minimum": 1152.440755,
+            "maximum": 2187.325163
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 135,
+          "sent": 359,
+          "ended": 329,
+          "valid": 329,
+          "latency_ms": {
+            "n": 329,
+            "mean": 1730.2211317902736,
+            "p50": 1732.185219,
+            "p95": 1916.1225084,
+            "p99": 1954.55398124,
+            "minimum": 1410.616204,
+            "maximum": 1968.846217
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 172,
+          "sent": 373,
+          "ended": 336,
+          "valid": 336,
+          "latency_ms": {
+            "n": 336,
+            "mean": 2012.4114838214286,
+            "p50": 1988.3442645,
+            "p95": 2355.3702395,
+            "p99": 2410.26727575,
+            "minimum": 1713.793029,
+            "maximum": 2456.785318
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 198,
+          "sent": 350,
+          "ended": 324,
+          "valid": 324,
+          "latency_ms": {
+            "n": 324,
+            "mean": 2750.2514677870367,
+            "p50": 2766.617658,
+            "p95": 2945.3719324,
+            "p99": 3148.41267929,
+            "minimum": 1827.538657,
+            "maximum": 3840.627712
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 209,
+          "sent": 329,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 2946.650000691824,
+            "p50": 2945.920678,
+            "p95": 3075.9690571,
+            "p99": 3231.0001975699993,
+            "minimum": 2730.954997,
+            "maximum": 3785.810116
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 261,
+          "sent": 370,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 3246.776705981132,
+            "p50": 3201.2675645,
+            "p95": 3514.2639221,
+            "p99": 3560.7300707,
+            "minimum": 3002.348365,
+            "maximum": 3591.095658
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 250,
+          "sent": 330,
+          "ended": 341,
+          "valid": 341,
+          "latency_ms": {
+            "n": 341,
+            "mean": 3765.1430584428153,
+            "p50": 3763.922646,
+            "p95": 3925.229403,
+            "p99": 3978.5311536,
+            "minimum": 3467.957678,
+            "maximum": 4027.317208
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 270,
+          "sent": 347,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 3775.6823785474,
+            "p50": 3794.185969,
+            "p95": 3961.5506394,
+            "p99": 4171.475815820001,
+            "minimum": 1982.037443,
+            "maximum": 5521.368041
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 300,
+          "sent": 344,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 4074.578326378981,
+            "p50": 4053.851794,
+            "p95": 4477.2099321000005,
+            "p99": 4525.59886777,
+            "minimum": 3603.980396,
+            "maximum": 4536.96052
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 328,
+          "sent": 347,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 4637.908432391849,
+            "p50": 4673.401831,
+            "p95": 4819.2752654,
+            "p99": 4849.061619,
+            "minimum": 2067.171208,
+            "maximum": 4880.367258
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 328,
+          "valid": 328,
+          "latency_ms": {
+            "n": 328,
+            "mean": 4911.085997478658,
+            "p50": 4883.5085515,
+            "p95": 5076.6014588,
+            "p99": 5146.09018114,
+            "minimum": 4724.917577,
+            "maximum": 7478.067673
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "c7c7c3fc09a34d664e15a4eb3b6b0940ab08b60544b2f785ba3ab0393478d985"
+    },
+    {
+      "name": "04-explore-r60-s60",
+      "rate": 60.0,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 3596,
+      "valid": 3596,
+      "invalid": 0,
+      "actual_send_rps": 59.93333333333333,
+      "completed_in_window_rps": 59.483333333333334,
+      "successful_rps_with_drain": 59.67698401349944,
+      "phase_seconds_with_drain": 60.257736872,
+      "latency_ms": {
+        "n": 3596,
+        "mean": 263.3938639435484,
+        "p50": 249.178666,
+        "p95": 497.5952375,
+        "p99": 592.03540495,
+        "minimum": 26.438359,
+        "maximum": 793.283149
+      },
+      "errors": {},
+      "fields": 18998,
+      "cached_input_tokens": 14336,
+      "input_tokens": 3662796,
+      "cache_token_fraction": 0.003913949889647144,
+      "goodput_1s_with_drain_rps": 59.67698401349944,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.011904761904761718,
+      "peak_inflight": 47,
+      "poisson_planned_arrivals": 3596,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 3596,
+        "mean": 0.7086423765294773,
+        "p50": 0.711662,
+        "p95": 0.8045829999999999,
+        "p99": 0.8643957500000001,
+        "minimum": 0.447119,
+        "maximum": 1.212746
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 3596,
+        "mean": 0.10852968214682981,
+        "p50": 0.0930025,
+        "p95": 0.20234950000000002,
+        "p99": 0.26919310000000013,
+        "minimum": -0.72684,
+        "maximum": 0.559455
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 10,
+          "sent": 306,
+          "ended": 296,
+          "valid": 296,
+          "latency_ms": {
+            "n": 296,
+            "mean": 334.3894287635135,
+            "p50": 346.263645,
+            "p95": 536.5697995,
+            "p99": 610.1787023,
+            "minimum": 41.399896,
+            "maximum": 632.144291
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 18,
+          "sent": 295,
+          "ended": 287,
+          "valid": 287,
+          "latency_ms": {
+            "n": 287,
+            "mean": 217.27855591986065,
+            "p50": 211.212122,
+            "p95": 375.4737969,
+            "p99": 419.12045043999984,
+            "minimum": 27.890722,
+            "maximum": 447.917652
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 13,
+          "sent": 296,
+          "ended": 301,
+          "valid": 301,
+          "latency_ms": {
+            "n": 301,
+            "mean": 244.05059754817273,
+            "p50": 244.596938,
+            "p95": 360.597885,
+            "p99": 405.519135,
+            "minimum": 85.723315,
+            "maximum": 429.020619
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 8,
+          "sent": 292,
+          "ended": 297,
+          "valid": 297,
+          "latency_ms": {
+            "n": 297,
+            "mean": 226.39585393265995,
+            "p50": 233.052456,
+            "p95": 353.11010220000003,
+            "p99": 398.48336280000007,
+            "minimum": 36.311275,
+            "maximum": 405.324831
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 23,
+          "sent": 308,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 202.14590024232083,
+            "p50": 185.964422,
+            "p95": 365.7950408,
+            "p99": 399.10160432,
+            "minimum": 47.379992,
+            "maximum": 404.300905
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 21,
+          "sent": 322,
+          "ended": 324,
+          "valid": 324,
+          "latency_ms": {
+            "n": 324,
+            "mean": 377.28995995987657,
+            "p50": 351.116606,
+            "p95": 586.4525413499998,
+            "p99": 619.4010872399999,
+            "minimum": 136.246893,
+            "maximum": 640.416376
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 23,
+          "sent": 298,
+          "ended": 296,
+          "valid": 296,
+          "latency_ms": {
+            "n": 296,
+            "mean": 192.4696004222973,
+            "p50": 189.42309849999998,
+            "p95": 331.53367475000005,
+            "p99": 345.34694520000016,
+            "minimum": 30.200687,
+            "maximum": 388.551884
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 8,
+          "sent": 278,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 202.4179562116041,
+            "p50": 192.247344,
+            "p95": 336.20815539999995,
+            "p99": 364.07241283999997,
+            "minimum": 28.965653,
+            "maximum": 391.827695
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 16,
+          "sent": 311,
+          "ended": 303,
+          "valid": 303,
+          "latency_ms": {
+            "n": 303,
+            "mean": 318.4406721221122,
+            "p50": 332.614758,
+            "p95": 472.06684870000004,
+            "p99": 529.0411652400005,
+            "minimum": 27.642769,
+            "maximum": 562.380612
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 21,
+          "sent": 304,
+          "ended": 299,
+          "valid": 299,
+          "latency_ms": {
+            "n": 299,
+            "mean": 203.82859150167226,
+            "p50": 189.649049,
+            "p95": 352.03107359999973,
+            "p99": 416.7504324799997,
+            "minimum": 26.438359,
+            "maximum": 465.215207
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 16,
+          "sent": 269,
+          "ended": 274,
+          "valid": 274,
+          "latency_ms": {
+            "n": 274,
+            "mean": 198.7581608211679,
+            "p50": 192.987279,
+            "p95": 430.34054164999986,
+            "p99": 503.5916946399999,
+            "minimum": 29.531963,
+            "maximum": 528.590417
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 27,
+          "sent": 317,
+          "ended": 306,
+          "valid": 306,
+          "latency_ms": {
+            "n": 306,
+            "mean": 408.1692368464052,
+            "p50": 406.2423485,
+            "p95": 585.810439,
+            "p99": 727.3866714999997,
+            "minimum": 156.980581,
+            "maximum": 793.283149
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 27,
+          "valid": 27,
+          "latency_ms": {
+            "n": 27,
+            "mean": 392.05059455555556,
+            "p50": 362.639633,
+            "p95": 547.1104126,
+            "p99": 584.8235112,
+            "minimum": 267.064961,
+            "maximum": 596.477564
+          }
+        }
+      ],
+      "unique_inputs": 1992,
+      "raw_sha256": "708218efef7c0857bfb97657ab4ac5a87d1ad386dfa6c23a663fdded6e738da6"
+    },
+    {
+      "name": "05-explore-r65-s60",
+      "rate": 65.0,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 3894,
+      "valid": 3894,
+      "invalid": 0,
+      "actual_send_rps": 64.9,
+      "completed_in_window_rps": 63.96666666666667,
+      "successful_rps_with_drain": 64.22029926058944,
+      "phase_seconds_with_drain": 60.635033546,
+      "latency_ms": {
+        "n": 3894,
+        "mean": 754.0938205588084,
+        "p50": 780.2651935,
+        "p95": 1051.470279,
+        "p99": 1172.5779436,
+        "minimum": 56.49979,
+        "maximum": 1347.016907
+      },
+      "errors": {},
+      "fields": 20556,
+      "cached_input_tokens": 9216,
+      "input_tokens": 3964106,
+      "cache_token_fraction": 0.00232486215050758,
+      "goodput_1s_with_drain_rps": 58.46455081633014,
+      "slo_1s_attainment": 0.9103749357986646,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": -0.5928571428571433,
+      "peak_inflight": 86,
+      "poisson_planned_arrivals": 3894,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 3894,
+        "mean": 0.8275388882896765,
+        "p50": 0.6947095,
+        "p95": 0.80507585,
+        "p99": 0.8737574200000002,
+        "minimum": 0.368712,
+        "maximum": 367.911993
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 3894,
+        "mean": 0.097560250385208,
+        "p50": 0.091867,
+        "p95": 0.1718667,
+        "p99": 0.2136960800000002,
+        "minimum": -0.604867,
+        "maximum": 1.039797
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 25,
+          "sent": 328,
+          "ended": 303,
+          "valid": 303,
+          "latency_ms": {
+            "n": 303,
+            "mean": 492.78388500660066,
+            "p50": 511.322437,
+            "p95": 721.5761805999999,
+            "p99": 773.54894806,
+            "minimum": 56.49979,
+            "maximum": 828.892906
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 59,
+          "sent": 324,
+          "ended": 290,
+          "valid": 290,
+          "latency_ms": {
+            "n": 290,
+            "mean": 595.3597431931034,
+            "p50": 652.1483089999999,
+            "p95": 885.06707285,
+            "p99": 933.5634828800002,
+            "minimum": 166.76462,
+            "maximum": 958.258661
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 64,
+          "sent": 319,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 898.3325065286624,
+            "p50": 884.4837465,
+            "p95": 1065.4753607999999,
+            "p99": 1168.32177253,
+            "minimum": 700.715554,
+            "maximum": 1309.876473
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 42,
+          "sent": 311,
+          "ended": 333,
+          "valid": 333,
+          "latency_ms": {
+            "n": 333,
+            "mean": 817.5756997237237,
+            "p50": 802.157945,
+            "p95": 990.7217124,
+            "p99": 1050.91589824,
+            "minimum": 574.668469,
+            "maximum": 1060.254487
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 74,
+          "sent": 367,
+          "ended": 335,
+          "valid": 335,
+          "latency_ms": {
+            "n": 335,
+            "mean": 717.0176785761195,
+            "p50": 720.377961,
+            "p95": 862.6233595000001,
+            "p99": 932.4938002400004,
+            "minimum": 526.195237,
+            "maximum": 941.580328
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 59,
+          "sent": 319,
+          "ended": 334,
+          "valid": 334,
+          "latency_ms": {
+            "n": 334,
+            "mean": 1037.807705751497,
+            "p50": 1033.2719665,
+            "p95": 1203.94156775,
+            "p99": 1300.0856053100001,
+            "minimum": 762.059792,
+            "maximum": 1347.016907
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 53,
+          "sent": 306,
+          "ended": 312,
+          "valid": 312,
+          "latency_ms": {
+            "n": 312,
+            "mean": 831.8100676378205,
+            "p50": 842.8146300000001,
+            "p95": 955.4117331,
+            "p99": 1011.43890196,
+            "minimum": 605.019675,
+            "maximum": 1022.188277
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 63,
+          "sent": 332,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 782.0796005807455,
+            "p50": 776.5517070000001,
+            "p95": 921.08788035,
+            "p99": 971.0725963900001,
+            "minimum": 560.460575,
+            "maximum": 1022.682647
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 48,
+          "sent": 327,
+          "ended": 342,
+          "valid": 342,
+          "latency_ms": {
+            "n": 342,
+            "mean": 949.9645177660818,
+            "p50": 956.4581465,
+            "p95": 1062.22639605,
+            "p99": 1113.1226816599994,
+            "minimum": 696.802266,
+            "maximum": 1134.804443
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 27,
+          "sent": 303,
+          "ended": 324,
+          "valid": 324,
+          "latency_ms": {
+            "n": 324,
+            "mean": 562.1010529290123,
+            "p50": 552.0018725,
+            "p95": 836.08218495,
+            "p99": 872.64805261,
+            "minimum": 213.14047,
+            "maximum": 899.494288
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 53,
+          "sent": 337,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 526.2115194437299,
+            "p50": 544.398858,
+            "p95": 772.695157,
+            "p99": 844.5482877999997,
+            "minimum": 97.42663,
+            "maximum": 888.136271
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 56,
+          "sent": 321,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 786.4879658018868,
+            "p50": 795.4778765000001,
+            "p95": 906.3649396999999,
+            "p99": 1016.7968036099995,
+            "minimum": 549.169632,
+            "maximum": 1051.934383
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 56,
+          "valid": 56,
+          "latency_ms": {
+            "n": 56,
+            "mean": 735.6740907857142,
+            "p50": 741.9526175,
+            "p95": 814.26171975,
+            "p99": 824.19106865,
+            "minimum": 608.891878,
+            "maximum": 828.350354
+          }
+        }
+      ],
+      "unique_inputs": 1999,
+      "raw_sha256": "a8b212020d159fdaa8c4097cf3bcf628867c531a12e6e52f726f437c4582b8c8"
+    },
+    {
+      "name": "06-explore-r67.5-s60",
+      "rate": 67.5,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 4030,
+      "valid": 4030,
+      "invalid": 0,
+      "actual_send_rps": 67.16666666666667,
+      "completed_in_window_rps": 63.833333333333336,
+      "successful_rps_with_drain": 64.01142368287165,
+      "phase_seconds_with_drain": 62.957512396,
+      "latency_ms": {
+        "n": 4030,
+        "mean": 1752.7146319935487,
+        "p50": 1630.678799,
+        "p95": 3121.4184140499997,
+        "p99": 3216.63742199,
+        "minimum": 76.74155,
+        "maximum": 4132.375973
+      },
+      "errors": {},
+      "fields": 21304,
+      "cached_input_tokens": 10240,
+      "input_tokens": 4106062,
+      "cache_token_fraction": 0.00249387369211668,
+      "goodput_1s_with_drain_rps": 14.565378540246478,
+      "slo_1s_attainment": 0.22754342431761787,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 2.8333333333333317,
+      "peak_inflight": 222,
+      "poisson_planned_arrivals": 4030,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 4030,
+        "mean": 0.7509400399503722,
+        "p50": 0.7168840000000001,
+        "p95": 0.8200277,
+        "p99": 0.88884239,
+        "minimum": 0.364186,
+        "maximum": 152.599922
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 4030,
+        "mean": 0.10727876228287841,
+        "p50": 0.0898455,
+        "p95": 0.20043644999999988,
+        "p99": 0.25424240000000004,
+        "minimum": -1.060601,
+        "maximum": 1.532725
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog",
+        "completion_rate_below_arrival_rate"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 42,
+          "sent": 335,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 584.9069593788396,
+            "p50": 616.130488,
+            "p95": 833.1616313999996,
+            "p99": 876.16301332,
+            "minimum": 76.74155,
+            "maximum": 933.357324
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 55,
+          "sent": 339,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 691.6838656104294,
+            "p50": 688.77931,
+            "p95": 858.1479387500001,
+            "p99": 888.4062135,
+            "minimum": 452.019975,
+            "maximum": 895.150899
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 67,
+          "sent": 323,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 972.1616383504823,
+            "p50": 977.154855,
+            "p95": 1180.6629345000001,
+            "p99": 1241.5941885999994,
+            "minimum": 710.819748,
+            "maximum": 1281.199358
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 76,
+          "sent": 340,
+          "ended": 331,
+          "valid": 331,
+          "latency_ms": {
+            "n": 331,
+            "mean": 1052.0530446283988,
+            "p50": 1060.3224,
+            "p95": 1177.7297265000002,
+            "p99": 1231.5015468000001,
+            "minimum": 786.156016,
+            "maximum": 1258.904606
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 114,
+          "sent": 379,
+          "ended": 341,
+          "valid": 341,
+          "latency_ms": {
+            "n": 341,
+            "mean": 1175.8372054076247,
+            "p50": 1162.878574,
+            "p95": 1458.610419,
+            "p99": 1510.795677,
+            "minimum": 904.030694,
+            "maximum": 1545.474693
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 111,
+          "sent": 324,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 1632.0157368685018,
+            "p50": 1623.860742,
+            "p95": 1810.0871547999998,
+            "p99": 1955.70299656,
+            "minimum": 1410.818441,
+            "maximum": 2008.152308
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 113,
+          "sent": 321,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 1607.7729072789969,
+            "p50": 1606.948622,
+            "p95": 1706.399778,
+            "p99": 1739.3912762799998,
+            "minimum": 1441.841998,
+            "maximum": 1764.565875
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 136,
+          "sent": 345,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 1756.5287513913042,
+            "p50": 1733.5772915,
+            "p95": 1963.7981266499999,
+            "p99": 2014.6664243400003,
+            "minimum": 1535.575418,
+            "maximum": 2046.853639
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 168,
+          "sent": 327,
+          "ended": 295,
+          "valid": 295,
+          "latency_ms": {
+            "n": 295,
+            "mean": 2536.5995364338983,
+            "p50": 2693.174623,
+            "p95": 2805.0001424,
+            "p99": 2867.10022002,
+            "minimum": 1956.753251,
+            "maximum": 2882.291842
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 160,
+          "sent": 329,
+          "ended": 337,
+          "valid": 337,
+          "latency_ms": {
+            "n": 337,
+            "mean": 2512.147730602374,
+            "p50": 2546.713036,
+            "p95": 2705.9443642,
+            "p99": 2745.2993766,
+            "minimum": 2190.670666,
+            "maximum": 2767.642605
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 194,
+          "sent": 340,
+          "ended": 306,
+          "valid": 306,
+          "latency_ms": {
+            "n": 306,
+            "mean": 2607.062936369281,
+            "p50": 2606.172145,
+            "p95": 2896.0340889999998,
+            "p99": 2947.89651385,
+            "minimum": 2216.400565,
+            "maximum": 3003.503856
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 200,
+          "sent": 328,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 3049.4368194782605,
+            "p50": 3062.435568,
+            "p95": 3206.8518511499997,
+            "p99": 3228.67580787,
+            "minimum": 2128.928971,
+            "maximum": 4132.375973
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 200,
+          "valid": 200,
+          "latency_ms": {
+            "n": 200,
+            "mean": 3141.5972455799997,
+            "p50": 3144.6026415,
+            "p95": 3252.59421595,
+            "p99": 3307.17102398,
+            "minimum": 2964.931415,
+            "maximum": 3344.119561
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "75859938040ab46584eec3daf6323b046a94f782f0e35009e5b0ba99427393f2"
+    },
+    {
+      "name": "07-explore-r66.25-s60",
+      "rate": 66.25,
+      "seconds": 60,
+      "kind": "explore",
+      "seed": 20261106,
+      "requests": 3964,
+      "valid": 3964,
+      "invalid": 0,
+      "actual_send_rps": 66.06666666666666,
+      "completed_in_window_rps": 64.5,
+      "successful_rps_with_drain": 64.55627053777052,
+      "phase_seconds_with_drain": 61.403794968,
+      "latency_ms": {
+        "n": 3964,
+        "mean": 958.3010238945509,
+        "p50": 979.4063355000001,
+        "p95": 1465.2262294,
+        "p99": 1551.9044654299998,
+        "minimum": 60.527436,
+        "maximum": 1611.876586
+      },
+      "errors": {},
+      "fields": 20981,
+      "cached_input_tokens": 10240,
+      "input_tokens": 4040303,
+      "cache_token_fraction": 0.00253446338059299,
+      "goodput_1s_with_drain_rps": 33.80898527659223,
+      "slo_1s_attainment": 0.5237134207870837,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 0.08333333333333257,
+      "peak_inflight": 110,
+      "poisson_planned_arrivals": 3964,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 3964,
+        "mean": 0.697914345358224,
+        "p50": 0.6912975,
+        "p95": 0.7991268499999999,
+        "p99": 0.88034379,
+        "minimum": 0.366969,
+        "maximum": 26.409528
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 3964,
+        "mean": 0.10381799470232089,
+        "p50": 0.0922605,
+        "p95": 0.18901954999999998,
+        "p99": 0.24606977999999993,
+        "minimum": -0.824555,
+        "maximum": 1.46882
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 27,
+          "sent": 332,
+          "ended": 305,
+          "valid": 305,
+          "latency_ms": {
+            "n": 305,
+            "mean": 512.2189414655737,
+            "p50": 530.594499,
+            "p95": 751.5367794000001,
+            "p99": 865.0415991599997,
+            "minimum": 60.527436,
+            "maximum": 958.316872
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 46,
+          "sent": 333,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 509.85365105414013,
+            "p50": 517.072364,
+            "p95": 651.43107315,
+            "p99": 680.4755628400001,
+            "minimum": 312.113612,
+            "maximum": 695.447822
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 44,
+          "sent": 317,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 724.4118933605016,
+            "p50": 730.3945,
+            "p95": 892.5759032999999,
+            "p99": 925.41383302,
+            "minimum": 484.67806,
+            "maximum": 939.030033
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 37,
+          "sent": 320,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 713.7730927125382,
+            "p50": 711.822794,
+            "p95": 873.6154482,
+            "p99": 951.3982868800007,
+            "minimum": 462.680944,
+            "maximum": 1031.111029
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 100,
+          "sent": 383,
+          "ended": 320,
+          "valid": 320,
+          "latency_ms": {
+            "n": 320,
+            "mean": 718.64720583125,
+            "p50": 716.049365,
+            "p95": 909.8539634500002,
+            "p99": 981.28787303,
+            "minimum": 474.579494,
+            "maximum": 1174.76463
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 60,
+          "sent": 313,
+          "ended": 353,
+          "valid": 353,
+          "latency_ms": {
+            "n": 353,
+            "mean": 1097.8743867705382,
+            "p50": 1100.808676,
+            "p95": 1250.1502154,
+            "p99": 1299.0873392800004,
+            "minimum": 875.204961,
+            "maximum": 1393.798108
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 71,
+          "sent": 321,
+          "ended": 310,
+          "valid": 310,
+          "latency_ms": {
+            "n": 310,
+            "mean": 1009.056959616129,
+            "p50": 1010.2160504999999,
+            "p95": 1116.09630765,
+            "p99": 1146.12914528,
+            "minimum": 815.719999,
+            "maximum": 1155.708678
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 84,
+          "sent": 335,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 1072.2511632049689,
+            "p50": 1055.8512315,
+            "p95": 1254.6052553499999,
+            "p99": 1296.36337342,
+            "minimum": 841.160903,
+            "maximum": 1326.080033
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 80,
+          "sent": 335,
+          "ended": 339,
+          "valid": 339,
+          "latency_ms": {
+            "n": 339,
+            "mean": 1326.0136058731562,
+            "p50": 1333.74648,
+            "p95": 1424.589673,
+            "p99": 1464.91046404,
+            "minimum": 1124.896171,
+            "maximum": 1499.735267
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 58,
+          "sent": 308,
+          "ended": 330,
+          "valid": 330,
+          "latency_ms": {
+            "n": 330,
+            "mean": 1044.107430309091,
+            "p50": 1041.2505215,
+            "p95": 1278.5197009,
+            "p99": 1318.68823831,
+            "minimum": 726.596282,
+            "maximum": 1344.628144
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 84,
+          "sent": 329,
+          "ended": 303,
+          "valid": 303,
+          "latency_ms": {
+            "n": 303,
+            "mean": 1114.68349479868,
+            "p50": 1102.035306,
+            "p95": 1419.7182219999997,
+            "p99": 1460.24981058,
+            "minimum": 690.503817,
+            "maximum": 1472.1366
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 94,
+          "sent": 338,
+          "ended": 328,
+          "valid": 328,
+          "latency_ms": {
+            "n": 328,
+            "mean": 1438.3436784878047,
+            "p50": 1454.5858515,
+            "p95": 1565.0105373999997,
+            "p99": 1599.713767,
+            "minimum": 1200.488786,
+            "maximum": 1611.876586
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 94,
+          "valid": 94,
+          "latency_ms": {
+            "n": 94,
+            "mean": 1475.5750377765953,
+            "p50": 1471.5808935,
+            "p95": 1573.26758755,
+            "p99": 1587.62740715,
+            "minimum": 1341.303457,
+            "maximum": 1598.074418
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "e4b1d8460d0a898af34954418460b325ae496be99424a403d66fdc772ff9634e"
+    },
+    {
+      "name": "08-confirm-low-r66.25-s120",
+      "rate": 66.25,
+      "seconds": 120,
+      "kind": "confirm-low",
+      "seed": 20262115,
+      "requests": 8041,
+      "valid": 8041,
+      "invalid": 0,
+      "actual_send_rps": 67.00833333333334,
+      "completed_in_window_rps": 63.61666666666667,
+      "successful_rps_with_drain": 63.87490291727898,
+      "phase_seconds_with_drain": 125.886688398,
+      "latency_ms": {
+        "n": 8041,
+        "mean": 4053.501436899639,
+        "p50": 4455.44979,
+        "p95": 6226.960177,
+        "p99": 6395.218761000001,
+        "minimum": 51.610206,
+        "maximum": 7864.466115
+      },
+      "errors": {},
+      "fields": 42568,
+      "cached_input_tokens": 29696,
+      "input_tokens": 8197135,
+      "cache_token_fraction": 0.0036227291608592516,
+      "goodput_1s_with_drain_rps": 6.275484803463549,
+      "slo_1s_attainment": 0.09824648675537868,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 1.8976470588235297,
+      "peak_inflight": 420,
+      "poisson_planned_arrivals": 8041,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 8041,
+        "mean": 0.6823796489242632,
+        "p50": 0.682071,
+        "p95": 0.809264,
+        "p99": 0.8763984000000002,
+        "minimum": 0.374616,
+        "maximum": 11.763187
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 8041,
+        "mean": 0.10409733913692326,
+        "p50": 0.0916,
+        "p95": 0.192686,
+        "p99": 0.2553602000000001,
+        "minimum": -0.43824,
+        "maximum": 0.768
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog",
+        "completion_rate_below_arrival_rate"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 38,
+          "sent": 346,
+          "ended": 308,
+          "valid": 308,
+          "latency_ms": {
+            "n": 308,
+            "mean": 383.8730160746753,
+            "p50": 344.83757549999996,
+            "p95": 688.7272766,
+            "p99": 717.38234976,
+            "minimum": 51.610206,
+            "maximum": 736.872429
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 42,
+          "sent": 338,
+          "ended": 334,
+          "valid": 334,
+          "latency_ms": {
+            "n": 334,
+            "mean": 724.0310179041916,
+            "p50": 711.881777,
+            "p95": 869.12341525,
+            "p99": 919.6830483900001,
+            "minimum": 575.141,
+            "maximum": 962.468201
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 134,
+          "sent": 370,
+          "ended": 278,
+          "valid": 278,
+          "latency_ms": {
+            "n": 278,
+            "mean": 1269.6193936978416,
+            "p50": 924.0868545000001,
+            "p95": 2046.8469581499999,
+            "p99": 2107.99234985,
+            "minimum": 566.083088,
+            "maximum": 2121.467092
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 138,
+          "sent": 331,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 2144.5140038012228,
+            "p50": 2130.545196,
+            "p95": 2296.692187,
+            "p99": 2349.55915796,
+            "minimum": 1921.391021,
+            "maximum": 2381.119268
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 155,
+          "sent": 326,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 2401.4876065436893,
+            "p50": 2441.682963,
+            "p95": 2592.7610363999997,
+            "p99": 2608.64230124,
+            "minimum": 1948.520899,
+            "maximum": 2626.453919
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 184,
+          "sent": 347,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 2532.6396207012576,
+            "p50": 2524.1793975,
+            "p95": 2673.48441185,
+            "p99": 2722.02315309,
+            "minimum": 2324.717537,
+            "maximum": 2927.064618
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 215,
+          "sent": 356,
+          "ended": 325,
+          "valid": 325,
+          "latency_ms": {
+            "n": 325,
+            "mean": 2853.851291646154,
+            "p50": 2864.285269,
+            "p95": 3029.7939504,
+            "p99": 3080.07057284,
+            "minimum": 2628.39851,
+            "maximum": 3120.029611
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 235,
+          "sent": 336,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 3258.5994368734177,
+            "p50": 3251.755948,
+            "p95": 3410.38432,
+            "p99": 3443.6645645500003,
+            "minimum": 3023.246627,
+            "maximum": 3471.252398
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 256,
+          "sent": 358,
+          "ended": 337,
+          "valid": 337,
+          "latency_ms": {
+            "n": 337,
+            "mean": 3397.536309804154,
+            "p50": 3405.820817,
+            "p95": 3576.9328724,
+            "p99": 3626.5817717199993,
+            "minimum": 1704.55413,
+            "maximum": 4913.186845
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 285,
+          "sent": 343,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 3858.5264322197454,
+            "p50": 3915.906322,
+            "p95": 4151.1913374999995,
+            "p99": 4192.271160570001,
+            "minimum": 3430.532775,
+            "maximum": 5097.166937
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 278,
+          "sent": 304,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 4456.652650546624,
+            "p50": 4483.604354,
+            "p95": 4663.4419815,
+            "p99": 4715.934100099999,
+            "minimum": 4090.881951,
+            "maximum": 4732.732887
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 302,
+          "sent": 350,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 4293.160909202454,
+            "p50": 4284.689052,
+            "p95": 4492.11285475,
+            "p99": 4529.51454025,
+            "minimum": 4050.90805,
+            "maximum": 4543.227593
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 295,
+          "sent": 328,
+          "ended": 335,
+          "valid": 335,
+          "latency_ms": {
+            "n": 335,
+            "mean": 4301.303304414925,
+            "p50": 4324.048841,
+            "p95": 4457.085628700001,
+            "p99": 4527.79566756,
+            "minimum": 1720.59699,
+            "maximum": 6751.684139
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 314,
+          "sent": 333,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 4516.56807600637,
+            "p50": 4519.711254,
+            "p95": 4683.54876605,
+            "p99": 4726.32827039,
+            "minimum": 4268.767628,
+            "maximum": 4741.327682
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 307,
+          "sent": 306,
+          "ended": 313,
+          "valid": 313,
+          "latency_ms": {
+            "n": 313,
+            "mean": 4807.6712855431315,
+            "p50": 4787.273962,
+            "p95": 5077.3538232,
+            "p99": 5110.91525828,
+            "minimum": 4468.238961,
+            "maximum": 5160.958327
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 327,
+          "sent": 347,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 4818.156383581039,
+            "p50": 4823.035047,
+            "p95": 5017.105367900001,
+            "p99": 5038.862021260001,
+            "minimum": 4590.47199,
+            "maximum": 5072.731627
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 338,
+          "sent": 343,
+          "ended": 332,
+          "valid": 332,
+          "latency_ms": {
+            "n": 332,
+            "mean": 4986.813291201807,
+            "p50": 5006.9730045,
+            "p95": 5137.98806625,
+            "p99": 5221.20629431,
+            "minimum": 1840.109654,
+            "maximum": 7864.466115
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 330,
+          "sent": 319,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 5029.456200553516,
+            "p50": 5021.968978,
+            "p95": 5191.5362811,
+            "p99": 5245.1925281799995,
+            "minimum": 4852.231949,
+            "maximum": 5272.344873
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 351,
+          "sent": 336,
+          "ended": 315,
+          "valid": 315,
+          "latency_ms": {
+            "n": 315,
+            "mean": 5249.176953073016,
+            "p50": 5253.673649,
+            "p95": 5366.0418854,
+            "p99": 5404.20627264,
+            "minimum": 5074.131351,
+            "maximum": 5443.285198
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 362,
+          "sent": 338,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 5256.549489336392,
+            "p50": 5225.821317,
+            "p95": 5483.7572377999995,
+            "p99": 5508.98885596,
+            "minimum": 5040.195479,
+            "maximum": 5527.165948
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 392,
+          "sent": 310,
+          "ended": 280,
+          "valid": 280,
+          "latency_ms": {
+            "n": 280,
+            "mean": 5652.098940996429,
+            "p50": 5419.374025,
+            "p95": 6202.40534855,
+            "p99": 6276.56226128,
+            "minimum": 5029.104904,
+            "maximum": 6296.354405
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 380,
+          "sent": 304,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 6311.253389753165,
+            "p50": 6323.444671,
+            "p95": 6496.84976975,
+            "p99": 6545.40651375,
+            "minimum": 6007.283751,
+            "maximum": 6627.0138
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 402,
+          "sent": 348,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 6098.767875846625,
+            "p50": 6195.877135500001,
+            "p95": 6327.87354875,
+            "p99": 6356.1096105,
+            "minimum": 5730.423739,
+            "maximum": 6368.800492
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 407,
+          "sent": 324,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 5920.438771909091,
+            "p50": 5890.831658,
+            "p95": 6208.7832339999995,
+            "p99": 6243.371579539999,
+            "minimum": 5649.47422,
+            "maximum": 6289.311834
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 75,
+          "sent": 0,
+          "ended": 332,
+          "valid": 332,
+          "latency_ms": {
+            "n": 332,
+            "mean": 6064.375911825301,
+            "p50": 6063.20318,
+            "p95": 6221.8435992,
+            "p99": 6254.72268231,
+            "minimum": 5825.878042,
+            "maximum": 6260.293904
+          }
+        },
+        {
+          "second": 125,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 75,
+          "valid": 75,
+          "latency_ms": {
+            "n": 75,
+            "mean": 6051.89582308,
+            "p50": 6048.329822,
+            "p95": 6157.628762300001,
+            "p99": 6192.55542554,
+            "minimum": 5890.311498,
+            "maximum": 6217.209731
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "dd10497b138af6541cc581a12799b129792f5a3d3dc0f207a46639c629669d50"
+    },
+    {
+      "name": "09-confirm-high-r67.5-s120",
+      "rate": 67.5,
+      "seconds": 120,
+      "kind": "confirm-high",
+      "seed": 20263124,
+      "requests": 8144,
+      "valid": 8144,
+      "invalid": 0,
+      "actual_send_rps": 67.86666666666666,
+      "completed_in_window_rps": 64.075,
+      "successful_rps_with_drain": 64.23476633960804,
+      "phase_seconds_with_drain": 126.78492449,
+      "latency_ms": {
+        "n": 8144,
+        "mean": 4256.529306409381,
+        "p50": 3802.5770975,
+        "p95": 6740.865756,
+        "p99": 6933.33884692,
+        "minimum": 44.352449,
+        "maximum": 11377.568284
+      },
+      "errors": {},
+      "fields": 43064,
+      "cached_input_tokens": 32768,
+      "input_tokens": 8299856,
+      "cache_token_fraction": 0.003948020303002848,
+      "goodput_1s_with_drain_rps": 2.050717000036603,
+      "slo_1s_attainment": 0.03192534381139489,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 3.1352941176470583,
+      "peak_inflight": 467,
+      "poisson_planned_arrivals": 8144,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 8144,
+        "mean": 0.689942033521611,
+        "p50": 0.688485,
+        "p95": 0.7958053499999999,
+        "p99": 0.8742558599999998,
+        "minimum": 0.287524,
+        "maximum": 2.367991
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 8144,
+        "mean": 0.09898193627210215,
+        "p50": 0.093181,
+        "p95": 0.17138404999999993,
+        "p99": 0.22783574999999995,
+        "minimum": -0.116877,
+        "maximum": 0.883078
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog",
+        "completion_rate_below_arrival_rate"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 90,
+          "sent": 397,
+          "ended": 307,
+          "valid": 307,
+          "latency_ms": {
+            "n": 307,
+            "mean": 656.6400868143323,
+            "p50": 684.688626,
+            "p95": 1244.0106738,
+            "p99": 1312.44674356,
+            "minimum": 44.352449,
+            "maximum": 1332.066231
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 124,
+          "sent": 353,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 1483.7870621034483,
+            "p50": 1514.414715,
+            "p95": 1743.713505,
+            "p99": 1774.22684198,
+            "minimum": 1110.5663,
+            "maximum": 1797.603278
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 182,
+          "sent": 380,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 2005.0882258540373,
+            "p50": 2048.5153410000003,
+            "p95": 2361.39700585,
+            "p99": 2419.2717457100002,
+            "minimum": 1528.850497,
+            "maximum": 2428.060391
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 240,
+          "sent": 375,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 2811.2419720315456,
+            "p50": 2903.2491,
+            "p95": 3163.0990336,
+            "p99": 3194.64088244,
+            "minimum": 1861.640792,
+            "maximum": 3223.144297
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 236,
+          "sent": 330,
+          "ended": 334,
+          "valid": 334,
+          "latency_ms": {
+            "n": 334,
+            "mean": 3396.439971580838,
+            "p50": 3413.474141,
+            "p95": 3645.6893491,
+            "p99": 3700.42869925,
+            "minimum": 3063.191725,
+            "maximum": 4494.982299
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 237,
+          "sent": 327,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 3592.3727999509206,
+            "p50": 3593.838145,
+            "p95": 3704.85335825,
+            "p99": 3759.27192025,
+            "minimum": 1836.455594,
+            "maximum": 5061.320551
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 224,
+          "sent": 301,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 3646.197283178344,
+            "p50": 3692.95932,
+            "p95": 3859.8844974,
+            "p99": 3928.0357712299997,
+            "minimum": 1898.515491,
+            "maximum": 3972.56198
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 229,
+          "sent": 321,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 3561.758470458861,
+            "p50": 3558.9662735,
+            "p95": 3758.6588359999996,
+            "p99": 3825.3006365500005,
+            "minimum": 3178.684365,
+            "maximum": 5320.908723
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 227,
+          "sent": 323,
+          "ended": 325,
+          "valid": 325,
+          "latency_ms": {
+            "n": 325,
+            "mean": 3378.433559929231,
+            "p50": 3375.181271,
+            "p95": 3539.7792612,
+            "p99": 3593.18891152,
+            "minimum": 3173.338303,
+            "maximum": 3605.105871
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 228,
+          "sent": 305,
+          "ended": 304,
+          "valid": 304,
+          "latency_ms": {
+            "n": 304,
+            "mean": 3599.6478012598686,
+            "p50": 3598.5693605,
+            "p95": 3775.5907521999998,
+            "p99": 3817.73018482,
+            "minimum": 2235.118121,
+            "maximum": 3854.81465
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 237,
+          "sent": 346,
+          "ended": 337,
+          "valid": 337,
+          "latency_ms": {
+            "n": 337,
+            "mean": 3590.5602987062307,
+            "p50": 3647.571257,
+            "p95": 3807.2708292,
+            "p99": 3857.57883444,
+            "minimum": 3245.559942,
+            "maximum": 5218.751442
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 271,
+          "sent": 350,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 3646.761649493671,
+            "p50": 3666.863734,
+            "p95": 3869.7553555000004,
+            "p99": 3970.9675327000004,
+            "minimum": 3286.928447,
+            "maximum": 4025.445919
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 252,
+          "sent": 338,
+          "ended": 357,
+          "valid": 357,
+          "latency_ms": {
+            "n": 357,
+            "mean": 3723.044531218487,
+            "p50": 3713.283301,
+            "p95": 4027.5319415999998,
+            "p99": 4113.88695512,
+            "minimum": 1865.549694,
+            "maximum": 5485.267266
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 317,
+          "sent": 357,
+          "ended": 292,
+          "valid": 292,
+          "latency_ms": {
+            "n": 292,
+            "mean": 4015.5345020753425,
+            "p50": 3919.8221125,
+            "p95": 4540.030067649999,
+            "p99": 4681.223257840001,
+            "minimum": 3422.789639,
+            "maximum": 4699.254665
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 338,
+          "sent": 340,
+          "ended": 319,
+          "valid": 319,
+          "latency_ms": {
+            "n": 319,
+            "mean": 4561.7213259843265,
+            "p50": 4571.282815,
+            "p95": 4914.0245906,
+            "p99": 4978.17760442,
+            "minimum": 4192.596973,
+            "maximum": 4996.896871
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 339,
+          "sent": 319,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 5059.2600056446545,
+            "p50": 5062.0977975,
+            "p95": 5203.314045149999,
+            "p99": 5250.76189126,
+            "minimum": 4827.661179,
+            "maximum": 5327.621006
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 344,
+          "sent": 326,
+          "ended": 321,
+          "valid": 321,
+          "latency_ms": {
+            "n": 321,
+            "mean": 5309.947500990655,
+            "p50": 5311.969418,
+            "p95": 5415.669058,
+            "p99": 5448.0341422,
+            "minimum": 5116.192868,
+            "maximum": 5484.330221
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 337,
+          "sent": 306,
+          "ended": 313,
+          "valid": 313,
+          "latency_ms": {
+            "n": 313,
+            "mean": 5360.76104414377,
+            "p50": 5392.279361,
+            "p95": 5631.7999442,
+            "p99": 5666.7657062,
+            "minimum": 4971.217265,
+            "maximum": 5682.913502
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 360,
+          "sent": 340,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 5282.651597126182,
+            "p50": 5275.068063,
+            "p95": 5473.9016968000005,
+            "p99": 5550.7021574400005,
+            "minimum": 1951.479872,
+            "maximum": 8391.829098
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 361,
+          "sent": 307,
+          "ended": 306,
+          "valid": 306,
+          "latency_ms": {
+            "n": 306,
+            "mean": 5386.62130751634,
+            "p50": 5346.344099,
+            "p95": 5714.527319,
+            "p99": 5767.5563922,
+            "minimum": 5054.720916,
+            "maximum": 5793.723486
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 408,
+          "sent": 373,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 5612.793201131901,
+            "p50": 5659.097295,
+            "p95": 5862.412783,
+            "p99": 5905.59448425,
+            "minimum": 1812.352192,
+            "maximum": 5925.726012
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 434,
+          "sent": 349,
+          "ended": 323,
+          "valid": 323,
+          "latency_ms": {
+            "n": 323,
+            "mean": 5754.341559275542,
+            "p50": 5723.950575,
+            "p95": 6032.4979004,
+            "p99": 9283.82913306,
+            "minimum": 5342.972263,
+            "maximum": 9331.273579
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 448,
+          "sent": 341,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 6307.469029140672,
+            "p50": 6287.453999,
+            "p95": 6507.3476655,
+            "p99": 6564.3541164,
+            "minimum": 6092.238056,
+            "maximum": 6597.582012
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 455,
+          "sent": 340,
+          "ended": 333,
+          "valid": 333,
+          "latency_ms": {
+            "n": 333,
+            "mean": 6573.91636533934,
+            "p50": 6595.885253,
+            "p95": 6772.8665266,
+            "p99": 6834.70259404,
+            "minimum": 2075.62642,
+            "maximum": 6861.177456
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 132,
+          "sent": 0,
+          "ended": 323,
+          "valid": 323,
+          "latency_ms": {
+            "n": 323,
+            "mean": 6830.039031213622,
+            "p50": 6869.041443,
+            "p95": 6964.504806,
+            "p99": 6991.91427938,
+            "minimum": 6469.389015,
+            "maximum": 11377.568284
+          }
+        },
+        {
+          "second": 125,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 132,
+          "valid": 132,
+          "latency_ms": {
+            "n": 132,
+            "mean": 6860.861410560607,
+            "p50": 6845.646425,
+            "p95": 6989.2728898,
+            "p99": 7044.6897919699995,
+            "minimum": 6729.119226,
+            "maximum": 7061.20172
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "0eb6ad04210d55f286c7b459919ff1b0935a00def7d009c6cf7352e4c9b7aab3"
+    },
+    {
+      "name": "10-refine-stable-floor-r65-s120",
+      "rate": 65.0,
+      "seconds": 120,
+      "kind": "refine-stable-floor",
+      "seed": 20274669,
+      "requests": 7841,
+      "valid": 7841,
+      "invalid": 0,
+      "actual_send_rps": 65.34166666666667,
+      "completed_in_window_rps": 63.9,
+      "successful_rps_with_drain": 63.951377229040624,
+      "phase_seconds_with_drain": 122.608774662,
+      "latency_ms": {
+        "n": 7841,
+        "mean": 1062.9608693097819,
+        "p50": 1002.652044,
+        "p95": 2367.024953,
+        "p99": 2761.6692444,
+        "minimum": 26.822457,
+        "maximum": 2971.939041
+      },
+      "errors": {},
+      "fields": 41561,
+      "cached_input_tokens": 27648,
+      "input_tokens": 8004205,
+      "cache_token_fraction": 0.0034541843943277314,
+      "goodput_1s_with_drain_rps": 31.759554002025787,
+      "slo_1s_attainment": 0.4966203290396633,
+      "historical_latency_slo_observed": false,
+      "backlog_slope_per_second": 1.2108823529411763,
+      "peak_inflight": 185,
+      "poisson_planned_arrivals": 7841,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 7841,
+        "mean": 0.7015079696467287,
+        "p50": 0.688323,
+        "p95": 0.795739,
+        "p99": 0.8636706000000001,
+        "minimum": 0.301418,
+        "maximum": 42.064627
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 7841,
+        "mean": 0.09968865412574926,
+        "p50": 0.091993,
+        "p95": 0.173202,
+        "p99": 0.23338240000000005,
+        "minimum": -0.463459,
+        "maximum": 1.501226
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 36,
+          "sent": 338,
+          "ended": 302,
+          "valid": 302,
+          "latency_ms": {
+            "n": 302,
+            "mean": 336.48773417218547,
+            "p50": 308.982003,
+            "p95": 626.9625119499999,
+            "p99": 673.27895361,
+            "minimum": 37.200474,
+            "maximum": 705.481788
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 47,
+          "sent": 338,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 572.9481260275229,
+            "p50": 573.366615,
+            "p95": 727.8316378,
+            "p99": 808.1606003600001,
+            "minimum": 351.090861,
+            "maximum": 861.025987
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 24,
+          "sent": 301,
+          "ended": 324,
+          "valid": 324,
+          "latency_ms": {
+            "n": 324,
+            "mean": 535.6822024506172,
+            "p50": 510.507419,
+            "p95": 796.8779283499999,
+            "p99": 837.5382755499999,
+            "minimum": 56.195887,
+            "maximum": 855.684432
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 25,
+          "sent": 299,
+          "ended": 298,
+          "valid": 298,
+          "latency_ms": {
+            "n": 298,
+            "mean": 316.7036874328859,
+            "p50": 321.91135099999997,
+            "p95": 570.8528305,
+            "p99": 627.2554760299998,
+            "minimum": 26.822457,
+            "maximum": 643.010609
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 53,
+          "sent": 343,
+          "ended": 315,
+          "valid": 315,
+          "latency_ms": {
+            "n": 315,
+            "mean": 529.0909950063493,
+            "p50": 530.027047,
+            "p95": 754.6128702000001,
+            "p99": 826.0719083800002,
+            "minimum": 236.564404,
+            "maximum": 840.671499
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 81,
+          "sent": 344,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 1116.7286609018988,
+            "p50": 1148.3512145,
+            "p95": 1441.22998925,
+            "p99": 1491.8904516500002,
+            "minimum": 717.586869,
+            "maximum": 1527.861554
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 75,
+          "sent": 319,
+          "ended": 325,
+          "valid": 325,
+          "latency_ms": {
+            "n": 325,
+            "mean": 1157.8134691999999,
+            "p50": 1136.387617,
+            "p95": 1393.0464233999999,
+            "p99": 1443.11588168,
+            "minimum": 872.735113,
+            "maximum": 1501.343046
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 59,
+          "sent": 314,
+          "ended": 330,
+          "valid": 330,
+          "latency_ms": {
+            "n": 330,
+            "mean": 1230.7683930181818,
+            "p50": 1238.5155635,
+            "p95": 1372.61240315,
+            "p99": 1412.88513561,
+            "minimum": 1012.664717,
+            "maximum": 1459.616798
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 58,
+          "sent": 326,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 975.0324771192661,
+            "p50": 969.757809,
+            "p95": 1132.37598,
+            "p99": 1171.1885669,
+            "minimum": 757.661886,
+            "maximum": 1201.969746
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 67,
+          "sent": 325,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 1035.2291496613923,
+            "p50": 1046.449277,
+            "p95": 1173.223865,
+            "p99": 1243.2788959500003,
+            "minimum": 768.176082,
+            "maximum": 1320.733783
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 81,
+          "sent": 330,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 994.816654886076,
+            "p50": 974.0239899999999,
+            "p95": 1196.7338244999999,
+            "p99": 1326.1490105000003,
+            "minimum": 785.940183,
+            "maximum": 1352.47751
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 55,
+          "sent": 300,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 1101.8338267300614,
+            "p50": 1165.0533315,
+            "p95": 1323.7224135,
+            "p99": 1380.5837345,
+            "minimum": 691.493607,
+            "maximum": 1431.031133
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 72,
+          "sent": 334,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 961.1973268706623,
+            "p50": 970.255377,
+            "p95": 1114.7383914,
+            "p99": 1146.67257532,
+            "minimum": 741.863507,
+            "maximum": 1158.50838
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 19,
+          "sent": 287,
+          "ended": 340,
+          "valid": 340,
+          "latency_ms": {
+            "n": 340,
+            "mean": 703.3659373882354,
+            "p50": 714.1379995,
+            "p95": 1058.5197661,
+            "p99": 1118.50415167,
+            "minimum": 116.44735,
+            "maximum": 1131.589406
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 64,
+          "sent": 330,
+          "ended": 285,
+          "valid": 285,
+          "latency_ms": {
+            "n": 285,
+            "mean": 716.2158770140351,
+            "p50": 818.409268,
+            "p95": 997.9623428,
+            "p99": 1042.5962740800003,
+            "minimum": 228.989953,
+            "maximum": 1061.342199
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 49,
+          "sent": 303,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 1016.935161754717,
+            "p50": 982.2526115000001,
+            "p95": 1363.7304381999995,
+            "p99": 1436.92451659,
+            "minimum": 679.619113,
+            "maximum": 1480.064898
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 65,
+          "sent": 341,
+          "ended": 325,
+          "valid": 325,
+          "latency_ms": {
+            "n": 325,
+            "mean": 734.9546759107693,
+            "p50": 737.442599,
+            "p95": 838.8501122,
+            "p99": 862.60002412,
+            "minimum": 561.350603,
+            "maximum": 924.586551
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 73,
+          "sent": 329,
+          "ended": 321,
+          "valid": 321,
+          "latency_ms": {
+            "n": 321,
+            "mean": 961.3182819844238,
+            "p50": 959.894987,
+            "p95": 1099.892245,
+            "p99": 1158.7766328,
+            "minimum": 711.58861,
+            "maximum": 1207.120038
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 70,
+          "sent": 339,
+          "ended": 342,
+          "valid": 342,
+          "latency_ms": {
+            "n": 342,
+            "mean": 1101.6557599385965,
+            "p50": 1116.0602735,
+            "p95": 1216.9928792,
+            "p99": 1237.00035564,
+            "minimum": 858.680064,
+            "maximum": 1248.53134
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 91,
+          "sent": 352,
+          "ended": 331,
+          "valid": 331,
+          "latency_ms": {
+            "n": 331,
+            "mean": 1124.4927735468277,
+            "p50": 1107.483326,
+            "p95": 1364.2316265,
+            "p99": 1448.2311244,
+            "minimum": 852.174152,
+            "maximum": 1486.590727
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 92,
+          "sent": 328,
+          "ended": 327,
+          "valid": 327,
+          "latency_ms": {
+            "n": 327,
+            "mean": 1333.1613247492355,
+            "p50": 1332.466675,
+            "p95": 1460.5392784,
+            "p99": 1488.4997582400001,
+            "minimum": 1115.86611,
+            "maximum": 1510.984656
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 125,
+          "sent": 342,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 1429.5575834142396,
+            "p50": 1398.748153,
+            "p95": 1676.693361,
+            "p99": 1711.47980288,
+            "minimum": 1162.32736,
+            "maximum": 1750.572948
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 155,
+          "sent": 352,
+          "ended": 322,
+          "valid": 322,
+          "latency_ms": {
+            "n": 322,
+            "mean": 2081.2816297267077,
+            "p50": 2040.222209,
+            "p95": 2368.72199295,
+            "p99": 2408.5977287600003,
+            "minimum": 1715.546545,
+            "maximum": 2464.315842
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 173,
+          "sent": 327,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 2477.677642006472,
+            "p50": 2531.221619,
+            "p95": 2754.430324,
+            "p99": 2787.5249298400004,
+            "minimum": 2087.716436,
+            "maximum": 2809.084265
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 173,
+          "valid": 173,
+          "latency_ms": {
+            "n": 173,
+            "mean": 2745.8006079942197,
+            "p50": 2740.516857,
+            "p95": 2898.588324,
+            "p99": 2939.85040476,
+            "minimum": 2555.915553,
+            "maximum": 2971.939041
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "7906a87e0cef2f302db3421bbfe31a6da5226c8bc2d6d185a1854b7f8104460a"
+    },
+    {
+      "name": "11-refine-stable-floor-r60-s120",
+      "rate": 60.0,
+      "seconds": 120,
+      "kind": "refine-stable-floor",
+      "seed": 20274169,
+      "requests": 7324,
+      "valid": 7324,
+      "invalid": 0,
+      "actual_send_rps": 61.03333333333333,
+      "completed_in_window_rps": 60.88333333333333,
+      "successful_rps_with_drain": 60.912362061958724,
+      "phase_seconds_with_drain": 120.238318661,
+      "latency_ms": {
+        "n": 7324,
+        "mean": 310.9532715027308,
+        "p50": 300.139099,
+        "p95": 540.0240210999999,
+        "p99": 734.519690039999,
+        "minimum": 25.820651,
+        "maximum": 891.363845
+      },
+      "errors": {},
+      "fields": 38944,
+      "cached_input_tokens": 31744,
+      "input_tokens": 7479174,
+      "cache_token_fraction": 0.004244318958216509,
+      "goodput_1s_with_drain_rps": 60.912362061958724,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.2173529411764706,
+      "peak_inflight": 67,
+      "poisson_planned_arrivals": 7324,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 7324,
+        "mean": 0.6955808113052976,
+        "p50": 0.6898045,
+        "p95": 0.79322005,
+        "p99": 0.8690339799999999,
+        "minimum": 0.333487,
+        "maximum": 2.433568
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 7324,
+        "mean": 0.09813673648279629,
+        "p50": 0.0893215,
+        "p95": 0.17757269999999992,
+        "p99": 0.24103345999999995,
+        "minimum": -0.903115,
+        "maximum": 1.380601
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 31,
+          "sent": 314,
+          "ended": 283,
+          "valid": 283,
+          "latency_ms": {
+            "n": 283,
+            "mean": 298.63414651236747,
+            "p50": 314.920178,
+            "p95": 492.4384906999999,
+            "p99": 537.50007078,
+            "minimum": 29.315934,
+            "maximum": 565.364624
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 17,
+          "sent": 303,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 297.9595090157729,
+            "p50": 291.314807,
+            "p95": 490.9993426,
+            "p99": 530.7883428399998,
+            "minimum": 45.792801,
+            "maximum": 560.08924
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 27,
+          "sent": 321,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 367.89363320257235,
+            "p50": 379.086266,
+            "p95": 595.0038185000001,
+            "p99": 628.8717193,
+            "minimum": 28.960525,
+            "maximum": 641.598558
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 9,
+          "sent": 287,
+          "ended": 305,
+          "valid": 305,
+          "latency_ms": {
+            "n": 305,
+            "mean": 359.6808222426229,
+            "p50": 359.911755,
+            "p95": 530.7421353999999,
+            "p99": 555.0197478399999,
+            "minimum": 112.825258,
+            "maximum": 597.479776
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 30,
+          "sent": 335,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 289.45954639490446,
+            "p50": 282.5234475,
+            "p95": 497.3686521499999,
+            "p99": 533.28085724,
+            "minimum": 71.393604,
+            "maximum": 570.853017
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 19,
+          "sent": 302,
+          "ended": 313,
+          "valid": 313,
+          "latency_ms": {
+            "n": 313,
+            "mean": 278.1299467252396,
+            "p50": 279.184851,
+            "p95": 500.40281120000003,
+            "p99": 532.32250104,
+            "minimum": 27.786454,
+            "maximum": 577.701554
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 10,
+          "sent": 286,
+          "ended": 295,
+          "valid": 295,
+          "latency_ms": {
+            "n": 295,
+            "mean": 194.6423916779661,
+            "p50": 180.050617,
+            "p95": 377.6441439000001,
+            "p99": 430.06859182,
+            "minimum": 33.406789,
+            "maximum": 453.980362
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 21,
+          "sent": 298,
+          "ended": 287,
+          "valid": 287,
+          "latency_ms": {
+            "n": 287,
+            "mean": 181.00768239372823,
+            "p50": 185.023314,
+            "p95": 297.1997036,
+            "p99": 325.5884835999999,
+            "minimum": 25.920239,
+            "maximum": 341.551673
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 4,
+          "sent": 292,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 281.05255127831714,
+            "p50": 291.193586,
+            "p95": 454.807553,
+            "p99": 486.24268716,
+            "minimum": 29.684693,
+            "maximum": 518.795558
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 8,
+          "sent": 280,
+          "ended": 276,
+          "valid": 276,
+          "latency_ms": {
+            "n": 276,
+            "mean": 209.97874907608693,
+            "p50": 230.8395135,
+            "p95": 341.1839705,
+            "p99": 365.51524725,
+            "minimum": 25.820651,
+            "maximum": 383.391594
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 19,
+          "sent": 294,
+          "ended": 283,
+          "valid": 283,
+          "latency_ms": {
+            "n": 283,
+            "mean": 456.3019093003534,
+            "p50": 400.950471,
+            "p95": 837.338072,
+            "p99": 875.6456821800001,
+            "minimum": 155.497475,
+            "maximum": 891.363845
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 14,
+          "sent": 306,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 247.6919282379421,
+            "p50": 251.643717,
+            "p95": 406.02552249999997,
+            "p99": 517.0065396999992,
+            "minimum": 30.099811,
+            "maximum": 598.32153
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 18,
+          "sent": 310,
+          "ended": 306,
+          "valid": 306,
+          "latency_ms": {
+            "n": 306,
+            "mean": 261.1447258594771,
+            "p50": 269.87336600000003,
+            "p95": 388.68875675,
+            "p99": 442.6872345499999,
+            "minimum": 46.387664,
+            "maximum": 467.61099
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 26,
+          "sent": 319,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 487.0884343536977,
+            "p50": 457.856361,
+            "p95": 787.3372075,
+            "p99": 863.7592553999999,
+            "minimum": 280.936056,
+            "maximum": 879.11468
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 12,
+          "sent": 300,
+          "ended": 314,
+          "valid": 314,
+          "latency_ms": {
+            "n": 314,
+            "mean": 251.16915191719747,
+            "p50": 250.131197,
+            "p95": 442.3646941999998,
+            "p99": 494.92369967,
+            "minimum": 29.176575,
+            "maximum": 538.5263
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 26,
+          "sent": 298,
+          "ended": 284,
+          "valid": 284,
+          "latency_ms": {
+            "n": 284,
+            "mean": 272.41836880985915,
+            "p50": 283.861035,
+            "p95": 439.25367924999995,
+            "p99": 532.5936596600002,
+            "minimum": 26.860234,
+            "maximum": 563.395917
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 27,
+          "sent": 327,
+          "ended": 326,
+          "valid": 326,
+          "latency_ms": {
+            "n": 326,
+            "mean": 376.9651716196319,
+            "p50": 368.971818,
+            "p95": 515.546245,
+            "p99": 568.25205675,
+            "minimum": 151.450908,
+            "maximum": 574.410998
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 28,
+          "sent": 321,
+          "ended": 320,
+          "valid": 320,
+          "latency_ms": {
+            "n": 320,
+            "mean": 396.75762288125,
+            "p50": 424.5368405,
+            "p95": 584.50199745,
+            "p99": 631.42703281,
+            "minimum": 125.253352,
+            "maximum": 651.4025
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 13,
+          "sent": 280,
+          "ended": 295,
+          "valid": 295,
+          "latency_ms": {
+            "n": 295,
+            "mean": 253.70563592881356,
+            "p50": 268.528505,
+            "p95": 420.61660980000005,
+            "p99": 454.5323754,
+            "minimum": 26.190583,
+            "maximum": 472.420662
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 19,
+          "sent": 307,
+          "ended": 301,
+          "valid": 301,
+          "latency_ms": {
+            "n": 301,
+            "mean": 247.9395727475083,
+            "p50": 242.323711,
+            "p95": 476.012116,
+            "p99": 569.739294,
+            "minimum": 44.983903,
+            "maximum": 618.167129
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 21,
+          "sent": 303,
+          "ended": 301,
+          "valid": 301,
+          "latency_ms": {
+            "n": 301,
+            "mean": 408.1102355282393,
+            "p50": 404.999143,
+            "p95": 581.685199,
+            "p99": 606.455669,
+            "minimum": 191.039323,
+            "maximum": 631.372832
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 22,
+          "sent": 330,
+          "ended": 329,
+          "valid": 329,
+          "latency_ms": {
+            "n": 329,
+            "mean": 416.24004271428566,
+            "p50": 424.412508,
+            "p95": 529.7463611999999,
+            "p99": 574.91800428,
+            "minimum": 239.615191,
+            "maximum": 585.44208
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 42,
+          "sent": 320,
+          "ended": 300,
+          "valid": 300,
+          "latency_ms": {
+            "n": 300,
+            "mean": 294.6951979533334,
+            "p50": 270.619556,
+            "p95": 510.77261120000003,
+            "p99": 540.0102151399998,
+            "minimum": 47.799544,
+            "maximum": 599.758996
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 18,
+          "sent": 291,
+          "ended": 315,
+          "valid": 315,
+          "latency_ms": {
+            "n": 315,
+            "mean": 304.06914895555553,
+            "p50": 263.211418,
+            "p95": 556.044373,
+            "p99": 609.5649951600001,
+            "minimum": 48.20112,
+            "maximum": 622.206549
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 18,
+          "valid": 18,
+          "latency_ms": {
+            "n": 18,
+            "mean": 284.97791138888897,
+            "p50": 285.9327975,
+            "p95": 321.9982384,
+            "p99": 330.21293488,
+            "minimum": 232.882357,
+            "maximum": 332.266609
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "9f04191f0731800e38c70410b40529b35e676bcfb52b195bc5c798e43afd42eb"
+    },
+    {
+      "name": "12-refine-stable-floor-r50-s120",
+      "rate": 50,
+      "seconds": 120,
+      "kind": "refine-stable-floor",
+      "seed": 20273169,
+      "requests": 6081,
+      "valid": 6081,
+      "invalid": 0,
+      "actual_send_rps": 50.675,
+      "completed_in_window_rps": 50.50833333333333,
+      "successful_rps_with_drain": 50.596323925968896,
+      "phase_seconds_with_drain": 120.186597131,
+      "latency_ms": {
+        "n": 6081,
+        "mean": 145.7398316791646,
+        "p50": 127.960859,
+        "p95": 303.062139,
+        "p99": 418.8381125999997,
+        "minimum": 25.669821,
+        "maximum": 595.235838
+      },
+      "errors": {},
+      "fields": 32261,
+      "cached_input_tokens": 26624,
+      "input_tokens": 6210569,
+      "cache_token_fraction": 0.00428688579097986,
+      "goodput_1s_with_drain_rps": 50.596323925968896,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.027058823529411732,
+      "peak_inflight": 39,
+      "poisson_planned_arrivals": 6081,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 6081,
+        "mean": 0.7005411282683768,
+        "p50": 0.69245,
+        "p95": 0.797832,
+        "p99": 0.8654261999999999,
+        "minimum": 0.408984,
+        "maximum": 2.475441
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 6081,
+        "mean": 0.1039709241901003,
+        "p50": 0.094217,
+        "p95": 0.180775,
+        "p99": 0.24055459999999976,
+        "minimum": -0.893968,
+        "maximum": 1.413193
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 4,
+          "sent": 253,
+          "ended": 249,
+          "valid": 249,
+          "latency_ms": {
+            "n": 249,
+            "mean": 118.05943341767069,
+            "p50": 115.082183,
+            "p95": 208.0143186,
+            "p99": 229.26015424000005,
+            "minimum": 25.745439,
+            "maximum": 234.396179
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 15,
+          "sent": 261,
+          "ended": 250,
+          "valid": 250,
+          "latency_ms": {
+            "n": 250,
+            "mean": 134.18904181599999,
+            "p50": 119.145688,
+            "p95": 236.45596669999998,
+            "p99": 270.35638828,
+            "minimum": 28.359237,
+            "maximum": 287.542649
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 9,
+          "sent": 275,
+          "ended": 281,
+          "valid": 281,
+          "latency_ms": {
+            "n": 281,
+            "mean": 197.80050393594306,
+            "p50": 170.303724,
+            "p95": 404.187499,
+            "p99": 438.56380359999997,
+            "minimum": 27.429503,
+            "maximum": 464.839598
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 10,
+          "sent": 287,
+          "ended": 286,
+          "valid": 286,
+          "latency_ms": {
+            "n": 286,
+            "mean": 199.80243143006993,
+            "p50": 179.160143,
+            "p95": 426.30681925,
+            "p99": 485.7247763999998,
+            "minimum": 27.835941,
+            "maximum": 534.409734
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 10,
+          "sent": 256,
+          "ended": 256,
+          "valid": 256,
+          "latency_ms": {
+            "n": 256,
+            "mean": 134.05512405078125,
+            "p50": 127.835901,
+            "p95": 240.5240455,
+            "p99": 259.63834764999996,
+            "minimum": 27.377807,
+            "maximum": 288.130335
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 10,
+          "sent": 248,
+          "ended": 248,
+          "valid": 248,
+          "latency_ms": {
+            "n": 248,
+            "mean": 137.1754624193548,
+            "p50": 128.8067275,
+            "p95": 234.09555934999997,
+            "p99": 262.85729574000004,
+            "minimum": 32.896734,
+            "maximum": 276.953497
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 5,
+          "sent": 241,
+          "ended": 246,
+          "valid": 246,
+          "latency_ms": {
+            "n": 246,
+            "mean": 118.51290430081302,
+            "p50": 108.57553300000001,
+            "p95": 215.82590275,
+            "p99": 242.4025252,
+            "minimum": 25.739867,
+            "maximum": 247.222335
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 19,
+          "sent": 274,
+          "ended": 260,
+          "valid": 260,
+          "latency_ms": {
+            "n": 260,
+            "mean": 189.72133346538462,
+            "p50": 180.07341050000002,
+            "p95": 316.78093909999996,
+            "p99": 379.3264105300003,
+            "minimum": 38.506401,
+            "maximum": 411.342821
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 7,
+          "sent": 271,
+          "ended": 283,
+          "valid": 283,
+          "latency_ms": {
+            "n": 283,
+            "mean": 214.36729158303888,
+            "p50": 204.453699,
+            "p95": 410.0456512999999,
+            "p99": 493.93395572000003,
+            "minimum": 27.848811,
+            "maximum": 531.350431
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 10,
+          "sent": 259,
+          "ended": 256,
+          "valid": 256,
+          "latency_ms": {
+            "n": 256,
+            "mean": 118.43559412890625,
+            "p50": 114.113653,
+            "p95": 219.50193124999998,
+            "p99": 244.42689535,
+            "minimum": 27.413819,
+            "maximum": 250.628536
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 1,
+          "sent": 263,
+          "ended": 272,
+          "valid": 272,
+          "latency_ms": {
+            "n": 272,
+            "mean": 218.1402010147059,
+            "p50": 201.45093400000002,
+            "p95": 479.6965128,
+            "p99": 544.3157626,
+            "minimum": 28.056892,
+            "maximum": 595.235838
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 7,
+          "sent": 274,
+          "ended": 268,
+          "valid": 268,
+          "latency_ms": {
+            "n": 268,
+            "mean": 151.95439355970151,
+            "p50": 136.412999,
+            "p95": 287.8363294999999,
+            "p99": 347.79528108999995,
+            "minimum": 26.358916,
+            "maximum": 355.559507
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 5,
+          "sent": 260,
+          "ended": 262,
+          "valid": 262,
+          "latency_ms": {
+            "n": 262,
+            "mean": 139.21683191603054,
+            "p50": 122.58031700000001,
+            "p95": 269.8444623,
+            "p99": 304.43589719999994,
+            "minimum": 27.980999,
+            "maximum": 311.679798
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 8,
+          "sent": 246,
+          "ended": 243,
+          "valid": 243,
+          "latency_ms": {
+            "n": 243,
+            "mean": 137.5228173251029,
+            "p50": 122.884145,
+            "p95": 252.6521708,
+            "p99": 305.6745812,
+            "minimum": 27.086599,
+            "maximum": 320.009354
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 6,
+          "sent": 229,
+          "ended": 231,
+          "valid": 231,
+          "latency_ms": {
+            "n": 231,
+            "mean": 107.47240443290042,
+            "p50": 107.110796,
+            "p95": 169.8474965,
+            "p99": 238.02151039999984,
+            "minimum": 26.179502,
+            "maximum": 257.784656
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 6,
+          "sent": 233,
+          "ended": 233,
+          "valid": 233,
+          "latency_ms": {
+            "n": 233,
+            "mean": 103.60902600429186,
+            "p50": 94.561578,
+            "p95": 185.98185579999983,
+            "p99": 231.30384844000002,
+            "minimum": 25.669821,
+            "maximum": 241.925161
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 10,
+          "sent": 249,
+          "ended": 245,
+          "valid": 245,
+          "latency_ms": {
+            "n": 245,
+            "mean": 136.85434184081635,
+            "p50": 131.545698,
+            "p95": 242.6182548,
+            "p99": 276.20421684,
+            "minimum": 28.199748,
+            "maximum": 291.464248
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 1,
+          "sent": 229,
+          "ended": 238,
+          "valid": 238,
+          "latency_ms": {
+            "n": 238,
+            "mean": 109.99858599999999,
+            "p50": 99.144845,
+            "p95": 218.17119885,
+            "p99": 242.98060152,
+            "minimum": 26.838465,
+            "maximum": 251.043762
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 0,
+          "sent": 230,
+          "ended": 231,
+          "valid": 231,
+          "latency_ms": {
+            "n": 231,
+            "mean": 121.75911055411255,
+            "p50": 117.141445,
+            "p95": 197.2492155,
+            "p99": 228.11715,
+            "minimum": 26.076209,
+            "maximum": 281.872607
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 10,
+          "sent": 251,
+          "ended": 241,
+          "valid": 241,
+          "latency_ms": {
+            "n": 241,
+            "mean": 172.3437094813278,
+            "p50": 153.36409,
+            "p95": 343.26779,
+            "p99": 408.22467879999994,
+            "minimum": 26.887782,
+            "maximum": 438.867154
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 5,
+          "sent": 237,
+          "ended": 242,
+          "valid": 242,
+          "latency_ms": {
+            "n": 242,
+            "mean": 117.92086629752067,
+            "p50": 122.8761445,
+            "p95": 184.39892834999998,
+            "p99": 234.63950542,
+            "minimum": 26.460313,
+            "maximum": 255.988777
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 3,
+          "sent": 257,
+          "ended": 259,
+          "valid": 259,
+          "latency_ms": {
+            "n": 259,
+            "mean": 140.6792890888031,
+            "p50": 139.061576,
+            "p95": 231.970438,
+            "p99": 263.14621262,
+            "minimum": 27.750949,
+            "maximum": 280.20774
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 3,
+          "sent": 232,
+          "ended": 232,
+          "valid": 232,
+          "latency_ms": {
+            "n": 232,
+            "mean": 104.77526339655171,
+            "p50": 91.7789205,
+            "p95": 231.91612564999994,
+            "p99": 269.16039098,
+            "minimum": 27.497949,
+            "maximum": 284.791669
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 20,
+          "sent": 266,
+          "ended": 249,
+          "valid": 249,
+          "latency_ms": {
+            "n": 249,
+            "mean": 122.04966979919678,
+            "p50": 112.671356,
+            "p95": 217.5316174,
+            "p99": 244.43389092000004,
+            "minimum": 26.321217,
+            "maximum": 248.679131
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 20,
+          "valid": 20,
+          "latency_ms": {
+            "n": 20,
+            "mean": 240.53207535,
+            "p50": 245.48017750000002,
+            "p95": 280.5398289,
+            "p99": 292.99510258,
+            "minimum": 188.844347,
+            "maximum": 296.108921
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "00aea566dee93cbbb4e338e756dc09aef332fb14d0a0f5038930352b05a4b768"
+    },
+    {
+      "name": "13-refine-long-r55-s120",
+      "rate": 55.0,
+      "seconds": 120,
+      "kind": "refine-long",
+      "seed": 20272669,
+      "requests": 6621,
+      "valid": 6621,
+      "invalid": 0,
+      "actual_send_rps": 55.175,
+      "completed_in_window_rps": 55.083333333333336,
+      "successful_rps_with_drain": 55.13387022011109,
+      "phase_seconds_with_drain": 120.08951981,
+      "latency_ms": {
+        "n": 6621,
+        "mean": 195.73508928318986,
+        "p50": 168.897012,
+        "p95": 432.318682,
+        "p99": 528.3661692000002,
+        "minimum": 26.212557,
+        "maximum": 703.606169
+      },
+      "errors": {},
+      "fields": 35156,
+      "cached_input_tokens": 39936,
+      "input_tokens": 6757498,
+      "cache_token_fraction": 0.0059098796625614985,
+      "goodput_1s_with_drain_rps": 55.13387022011109,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.07411764705882355,
+      "peak_inflight": 39,
+      "poisson_planned_arrivals": 6621,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 6621,
+        "mean": 0.6971927385591301,
+        "p50": 0.689708,
+        "p95": 0.790515,
+        "p99": 0.8662894000000001,
+        "minimum": 0.39615,
+        "maximum": 2.686127
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 6621,
+        "mean": 0.09916464144389064,
+        "p50": 0.090805,
+        "p95": 0.178043,
+        "p99": 0.23713500000000004,
+        "minimum": -0.941988,
+        "maximum": 0.844071
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 7,
+          "sent": 266,
+          "ended": 259,
+          "valid": 259,
+          "latency_ms": {
+            "n": 259,
+            "mean": 136.5714911196911,
+            "p50": 129.581703,
+            "p95": 229.88683429999998,
+            "p99": 259.96807003999993,
+            "minimum": 48.808511,
+            "maximum": 311.623003
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 3,
+          "sent": 282,
+          "ended": 286,
+          "valid": 286,
+          "latency_ms": {
+            "n": 286,
+            "mean": 188.524952027972,
+            "p50": 161.590888,
+            "p95": 413.74984274999997,
+            "p99": 447.4020726999999,
+            "minimum": 26.372131,
+            "maximum": 455.884596
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 6,
+          "sent": 291,
+          "ended": 288,
+          "valid": 288,
+          "latency_ms": {
+            "n": 288,
+            "mean": 194.09486411458334,
+            "p50": 189.649636,
+            "p95": 309.31164609999996,
+            "p99": 375.43415416999994,
+            "minimum": 43.21198,
+            "maximum": 408.886682
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 7,
+          "sent": 255,
+          "ended": 254,
+          "valid": 254,
+          "latency_ms": {
+            "n": 254,
+            "mean": 125.80337605905513,
+            "p50": 114.37533450000001,
+            "p95": 227.20388165,
+            "p99": 248.37146008,
+            "minimum": 26.422541,
+            "maximum": 267.862239
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 14,
+          "sent": 280,
+          "ended": 273,
+          "valid": 273,
+          "latency_ms": {
+            "n": 273,
+            "mean": 179.33958329304028,
+            "p50": 176.947151,
+            "p95": 295.19842059999996,
+            "p99": 323.6463960799993,
+            "minimum": 28.710487,
+            "maximum": 344.007413
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 9,
+          "sent": 304,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 363.34682370226534,
+            "p50": 387.529802,
+            "p95": 540.247529,
+            "p99": 571.3760075600002,
+            "minimum": 62.887387,
+            "maximum": 600.345019
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 20,
+          "sent": 273,
+          "ended": 262,
+          "valid": 262,
+          "latency_ms": {
+            "n": 262,
+            "mean": 162.39955116412213,
+            "p50": 162.64236,
+            "p95": 278.87105189999994,
+            "p99": 333.9023264999999,
+            "minimum": 29.262389,
+            "maximum": 345.678238
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 3,
+          "sent": 253,
+          "ended": 270,
+          "valid": 270,
+          "latency_ms": {
+            "n": 270,
+            "mean": 143.6803730037037,
+            "p50": 124.0062425,
+            "p95": 320.1340792499999,
+            "p99": 353.96577096000004,
+            "minimum": 27.257184,
+            "maximum": 377.316849
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 2,
+          "sent": 260,
+          "ended": 261,
+          "valid": 261,
+          "latency_ms": {
+            "n": 261,
+            "mean": 171.93382141762453,
+            "p50": 156.37601,
+            "p95": 327.832577,
+            "p99": 480.5981487999997,
+            "minimum": 31.520318,
+            "maximum": 499.468961
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 1,
+          "sent": 272,
+          "ended": 273,
+          "valid": 273,
+          "latency_ms": {
+            "n": 273,
+            "mean": 216.3173117179487,
+            "p50": 194.584188,
+            "p95": 403.0279606,
+            "p99": 449.2850379999997,
+            "minimum": 27.038177,
+            "maximum": 479.131519
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 4,
+          "sent": 296,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 172.01992839590443,
+            "p50": 145.691828,
+            "p95": 336.9696264,
+            "p99": 363.1887709999999,
+            "minimum": 27.413575,
+            "maximum": 397.761951
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 10,
+          "sent": 282,
+          "ended": 276,
+          "valid": 276,
+          "latency_ms": {
+            "n": 276,
+            "mean": 188.38890973550724,
+            "p50": 177.0424545,
+            "p95": 344.03776700000003,
+            "p99": 468.99951124999995,
+            "minimum": 26.828846,
+            "maximum": 483.188155
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 14,
+          "sent": 265,
+          "ended": 261,
+          "valid": 261,
+          "latency_ms": {
+            "n": 261,
+            "mean": 159.9088301302682,
+            "p50": 160.884855,
+            "p95": 272.673184,
+            "p99": 306.11482520000004,
+            "minimum": 27.488853,
+            "maximum": 309.545247
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 13,
+          "sent": 310,
+          "ended": 311,
+          "valid": 311,
+          "latency_ms": {
+            "n": 311,
+            "mean": 401.4237751221865,
+            "p50": 433.871559,
+            "p95": 584.5606415,
+            "p99": 647.3627425999998,
+            "minimum": 73.915216,
+            "maximum": 703.606169
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 1,
+          "sent": 252,
+          "ended": 264,
+          "valid": 264,
+          "latency_ms": {
+            "n": 264,
+            "mean": 223.0125035871212,
+            "p50": 245.76453,
+            "p95": 384.29603895,
+            "p99": 424.31424687000003,
+            "minimum": 27.278076,
+            "maximum": 439.105367
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 7,
+          "sent": 270,
+          "ended": 264,
+          "valid": 264,
+          "latency_ms": {
+            "n": 264,
+            "mean": 128.27635354545455,
+            "p50": 113.3831635,
+            "p95": 253.11480019999996,
+            "p99": 289.00874862,
+            "minimum": 28.339979,
+            "maximum": 320.432038
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 20,
+          "sent": 277,
+          "ended": 264,
+          "valid": 264,
+          "latency_ms": {
+            "n": 264,
+            "mean": 211.34981684848486,
+            "p50": 224.2106045,
+            "p95": 343.37486285,
+            "p99": 384.67513023000004,
+            "minimum": 41.990095,
+            "maximum": 408.652257
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 16,
+          "sent": 312,
+          "ended": 316,
+          "valid": 316,
+          "latency_ms": {
+            "n": 316,
+            "mean": 291.0897492753165,
+            "p50": 296.791779,
+            "p95": 463.17100725,
+            "p99": 495.22509970000016,
+            "minimum": 62.331567,
+            "maximum": 547.869151
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 10,
+          "sent": 267,
+          "ended": 273,
+          "valid": 273,
+          "latency_ms": {
+            "n": 273,
+            "mean": 154.29306679853482,
+            "p50": 141.072954,
+            "p95": 269.33223439999995,
+            "p99": 324.93599787999995,
+            "minimum": 35.903489,
+            "maximum": 358.492175
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 10,
+          "sent": 270,
+          "ended": 270,
+          "valid": 270,
+          "latency_ms": {
+            "n": 270,
+            "mean": 139.96742018518518,
+            "p50": 129.8867435,
+            "p95": 247.74825959999987,
+            "p99": 287.11975489,
+            "minimum": 27.553016,
+            "maximum": 304.82515
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 8,
+          "sent": 258,
+          "ended": 260,
+          "valid": 260,
+          "latency_ms": {
+            "n": 260,
+            "mean": 139.77981111923077,
+            "p50": 138.2339085,
+            "p95": 243.6913606999999,
+            "p99": 283.58186551,
+            "minimum": 26.212557,
+            "maximum": 290.75036
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 9,
+          "sent": 268,
+          "ended": 267,
+          "valid": 267,
+          "latency_ms": {
+            "n": 267,
+            "mean": 203.94978273782772,
+            "p50": 167.586641,
+            "p95": 400.38890549999996,
+            "p99": 450.9015196199995,
+            "minimum": 35.341345,
+            "maximum": 480.72438
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 6,
+          "sent": 286,
+          "ended": 289,
+          "valid": 289,
+          "latency_ms": {
+            "n": 289,
+            "mean": 158.9343419031142,
+            "p50": 159.805906,
+            "p95": 236.75572939999998,
+            "p99": 251.76401384,
+            "minimum": 28.463723,
+            "maximum": 254.558874
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 11,
+          "sent": 272,
+          "ended": 267,
+          "valid": 267,
+          "latency_ms": {
+            "n": 267,
+            "mean": 166.9391261011236,
+            "p50": 156.420349,
+            "p95": 288.5019091,
+            "p99": 325.0642639399999,
+            "minimum": 26.213239,
+            "maximum": 334.069944
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 11,
+          "valid": 11,
+          "latency_ms": {
+            "n": 11,
+            "mean": 145.49193900000003,
+            "p50": 148.602643,
+            "p95": 177.470759,
+            "p99": 181.35912299999998,
+            "minimum": 88.203089,
+            "maximum": 182.331214
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "4efbfe1dfb72ff8ac3a50567aedac19589047f1237e62aa4603bd030a6ddb696"
+    },
+    {
+      "name": "14-refine-long-r57.5-s120",
+      "rate": 57.5,
+      "seconds": 120,
+      "kind": "refine-long",
+      "seed": 20272919,
+      "requests": 6871,
+      "valid": 6871,
+      "invalid": 0,
+      "actual_send_rps": 57.25833333333333,
+      "completed_in_window_rps": 57.18333333333333,
+      "successful_rps_with_drain": 57.21193418914721,
+      "phase_seconds_with_drain": 120.097320557,
+      "latency_ms": {
+        "n": 6871,
+        "mean": 228.83612595008003,
+        "p50": 204.832153,
+        "p95": 476.365388,
+        "p99": 701.2998714000003,
+        "minimum": 25.954744,
+        "maximum": 942.268613
+      },
+      "errors": {},
+      "fields": 36433,
+      "cached_input_tokens": 26624,
+      "input_tokens": 7010141,
+      "cache_token_fraction": 0.0037979264611082714,
+      "goodput_1s_with_drain_rps": 57.21193418914721,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": -0.06617647058823527,
+      "peak_inflight": 52,
+      "poisson_planned_arrivals": 6871,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 6871,
+        "mean": 0.6741737776160676,
+        "p50": 0.672783,
+        "p95": 0.7878935,
+        "p99": 0.8522804,
+        "minimum": 0.295378,
+        "maximum": 2.243413
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 6871,
+        "mean": 0.09800093785475186,
+        "p50": 0.089556,
+        "p95": 0.1764035,
+        "p99": 0.2403877000000002,
+        "minimum": -0.991716,
+        "maximum": 1.514448
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": true,
+      "stable_reasons": [],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 20,
+          "sent": 305,
+          "ended": 285,
+          "valid": 285,
+          "latency_ms": {
+            "n": 285,
+            "mean": 244.78388438596494,
+            "p50": 262.274799,
+            "p95": 408.3960328,
+            "p99": 435.6023851200002,
+            "minimum": 28.429801,
+            "maximum": 484.33102
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 9,
+          "sent": 287,
+          "ended": 298,
+          "valid": 298,
+          "latency_ms": {
+            "n": 298,
+            "mean": 206.97779734228186,
+            "p50": 212.190602,
+            "p95": 332.89041579999997,
+            "p99": 378.0436400199999,
+            "minimum": 41.092023,
+            "maximum": 407.599174
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 4,
+          "sent": 270,
+          "ended": 275,
+          "valid": 275,
+          "latency_ms": {
+            "n": 275,
+            "mean": 149.71679918545453,
+            "p50": 140.926462,
+            "p95": 277.07181820000005,
+            "p99": 298.7962063599999,
+            "minimum": 36.33338,
+            "maximum": 327.967892
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 8,
+          "sent": 290,
+          "ended": 286,
+          "valid": 286,
+          "latency_ms": {
+            "n": 286,
+            "mean": 244.96977358391607,
+            "p50": 261.0450555,
+            "p95": 410.9357425,
+            "p99": 431.82443874999984,
+            "minimum": 28.069624,
+            "maximum": 453.294981
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 3,
+          "sent": 297,
+          "ended": 302,
+          "valid": 302,
+          "latency_ms": {
+            "n": 302,
+            "mean": 294.3403841556291,
+            "p50": 299.437662,
+            "p95": 490.9553944,
+            "p99": 613.9816516700001,
+            "minimum": 38.032688,
+            "maximum": 658.452692
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 9,
+          "sent": 289,
+          "ended": 283,
+          "valid": 283,
+          "latency_ms": {
+            "n": 283,
+            "mean": 248.73769738869257,
+            "p50": 231.372679,
+            "p95": 486.2762573999999,
+            "p99": 525.74100114,
+            "minimum": 32.86418,
+            "maximum": 544.778698
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 12,
+          "sent": 308,
+          "ended": 305,
+          "valid": 305,
+          "latency_ms": {
+            "n": 305,
+            "mean": 289.0607755639344,
+            "p50": 309.381747,
+            "p95": 439.97247080000005,
+            "p99": 497.28231547999997,
+            "minimum": 31.136029,
+            "maximum": 530.509482
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 10,
+          "sent": 300,
+          "ended": 302,
+          "valid": 302,
+          "latency_ms": {
+            "n": 302,
+            "mean": 177.90826745364237,
+            "p50": 174.1506495,
+            "p95": 289.62749065,
+            "p99": 345.6892910900002,
+            "minimum": 30.451485,
+            "maximum": 356.326338
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 24,
+          "sent": 296,
+          "ended": 282,
+          "valid": 282,
+          "latency_ms": {
+            "n": 282,
+            "mean": 228.89138024468087,
+            "p50": 231.1451455,
+            "p95": 346.03919444999997,
+            "p99": 424.76861675,
+            "minimum": 34.316876,
+            "maximum": 435.48412
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 10,
+          "sent": 295,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 278.3182347346278,
+            "p50": 277.232426,
+            "p95": 489.1747066,
+            "p99": 608.59378264,
+            "minimum": 28.585611,
+            "maximum": 676.3348
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 15,
+          "sent": 265,
+          "ended": 260,
+          "valid": 260,
+          "latency_ms": {
+            "n": 260,
+            "mean": 138.4545325576923,
+            "p50": 136.11023699999998,
+            "p95": 238.5651196999999,
+            "p99": 278.2786909900005,
+            "minimum": 27.174238,
+            "maximum": 345.352867
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 26,
+          "sent": 305,
+          "ended": 294,
+          "valid": 294,
+          "latency_ms": {
+            "n": 294,
+            "mean": 255.06305007482996,
+            "p50": 245.340583,
+            "p95": 412.31500839999995,
+            "p99": 463.42307236,
+            "minimum": 62.950224,
+            "maximum": 468.11391
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 10,
+          "sent": 301,
+          "ended": 317,
+          "valid": 317,
+          "latency_ms": {
+            "n": 317,
+            "mean": 539.42490270347,
+            "p50": 539.645364,
+            "p95": 799.2426158,
+            "p99": 909.050625999999,
+            "minimum": 177.248606,
+            "maximum": 942.268613
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 4,
+          "sent": 258,
+          "ended": 264,
+          "valid": 264,
+          "latency_ms": {
+            "n": 264,
+            "mean": 131.32650213636362,
+            "p50": 132.42409650000002,
+            "p95": 203.09246945,
+            "p99": 235.96128329000004,
+            "minimum": 27.374985,
+            "maximum": 258.861457
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 35,
+          "sent": 306,
+          "ended": 275,
+          "valid": 275,
+          "latency_ms": {
+            "n": 275,
+            "mean": 203.47781069454547,
+            "p50": 187.547372,
+            "p95": 382.8682666,
+            "p99": 409.4264976399999,
+            "minimum": 47.280468,
+            "maximum": 437.222747
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 6,
+          "sent": 267,
+          "ended": 296,
+          "valid": 296,
+          "latency_ms": {
+            "n": 296,
+            "mean": 226.27478761148646,
+            "p50": 195.303557,
+            "p95": 626.43130825,
+            "p99": 715.8530135,
+            "minimum": 32.006818,
+            "maximum": 745.899914
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 7,
+          "sent": 264,
+          "ended": 263,
+          "valid": 263,
+          "latency_ms": {
+            "n": 263,
+            "mean": 124.86619450190115,
+            "p50": 120.358911,
+            "p95": 214.419246,
+            "p99": 250.20352181999996,
+            "minimum": 27.905461,
+            "maximum": 271.200707
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 25,
+          "sent": 270,
+          "ended": 252,
+          "valid": 252,
+          "latency_ms": {
+            "n": 252,
+            "mean": 153.55380730555558,
+            "p50": 137.25374399999998,
+            "p95": 308.75236275,
+            "p99": 357.61492092000015,
+            "minimum": 28.861437,
+            "maximum": 374.936408
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 4,
+          "sent": 297,
+          "ended": 318,
+          "valid": 318,
+          "latency_ms": {
+            "n": 318,
+            "mean": 311.863575490566,
+            "p50": 360.7848525,
+            "p95": 518.96140885,
+            "p99": 621.7434230399997,
+            "minimum": 31.365539,
+            "maximum": 685.921539
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 9,
+          "sent": 269,
+          "ended": 264,
+          "valid": 264,
+          "latency_ms": {
+            "n": 264,
+            "mean": 122.68241842424243,
+            "p50": 113.5037995,
+            "p95": 216.57179195,
+            "p99": 263.90582004000015,
+            "minimum": 27.402426,
+            "maximum": 292.205686
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 18,
+          "sent": 285,
+          "ended": 276,
+          "valid": 276,
+          "latency_ms": {
+            "n": 276,
+            "mean": 217.28189407608699,
+            "p50": 224.47781400000002,
+            "p95": 343.92634125,
+            "p99": 393.04832025,
+            "minimum": 48.554554,
+            "maximum": 426.230062
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 13,
+          "sent": 254,
+          "ended": 259,
+          "valid": 259,
+          "latency_ms": {
+            "n": 259,
+            "mean": 130.57163443629344,
+            "p50": 123.753685,
+            "p95": 260.86235759999994,
+            "p99": 337.9768891399999,
+            "minimum": 25.954744,
+            "maximum": 359.540905
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 20,
+          "sent": 315,
+          "ended": 308,
+          "valid": 308,
+          "latency_ms": {
+            "n": 308,
+            "mean": 249.13376903896108,
+            "p50": 247.253825,
+            "p95": 368.35808914999996,
+            "p99": 408.4659706500001,
+            "minimum": 73.968999,
+            "maximum": 441.003253
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 9,
+          "sent": 278,
+          "ended": 289,
+          "valid": 289,
+          "latency_ms": {
+            "n": 289,
+            "mean": 218.30499139792386,
+            "p50": 227.390945,
+            "p95": 314.20502099999993,
+            "p99": 344.30873928000005,
+            "minimum": 47.470481,
+            "maximum": 414.48498
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 9,
+          "valid": 9,
+          "latency_ms": {
+            "n": 9,
+            "mean": 181.9966398888889,
+            "p50": 179.19596,
+            "p95": 245.3308736,
+            "p99": 251.87181632,
+            "minimum": 121.013372,
+            "maximum": 253.507052
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "0ce5c2c7dcafdf91f63f9f9d47a51d784263ed881e2e8de61b6ab0201248ff4b"
+    },
+    {
+      "name": "15-refine-long-r58.75-s120",
+      "rate": 58.75,
+      "seconds": 120,
+      "kind": "refine-long",
+      "seed": 20273044,
+      "requests": 6978,
+      "valid": 6978,
+      "invalid": 0,
+      "actual_send_rps": 58.15,
+      "completed_in_window_rps": 58.016666666666666,
+      "successful_rps_with_drain": 58.07162282608935,
+      "phase_seconds_with_drain": 120.16195967,
+      "latency_ms": {
+        "n": 6978,
+        "mean": 239.69842802722843,
+        "p50": 214.7572135,
+        "p95": 497.27864844999993,
+        "p99": 603.8212690599995,
+        "minimum": 26.490455,
+        "maximum": 711.591403
+      },
+      "errors": {},
+      "fields": 36956,
+      "cached_input_tokens": 35840,
+      "input_tokens": 7116884,
+      "cache_token_fraction": 0.005035911783864961,
+      "goodput_1s_with_drain_rps": 58.07162282608935,
+      "slo_1s_attainment": 1.0,
+      "historical_latency_slo_observed": true,
+      "backlog_slope_per_second": 0.15676470588235292,
+      "peak_inflight": 48,
+      "poisson_planned_arrivals": 6979,
+      "skipped_arrivals": 0,
+      "dispatch_lag_ms": {
+        "n": 6978,
+        "mean": 0.690748704069934,
+        "p50": 0.688024,
+        "p95": 0.7947927499999999,
+        "p99": 0.8548102199999992,
+        "minimum": 0.324179,
+        "maximum": 2.320395
+      },
+      "poisson_schedule_lag_ms": {
+        "n": 6978,
+        "mean": 0.10320705990255087,
+        "p50": 0.095515,
+        "p95": 0.1778213,
+        "p99": 0.24588646999999988,
+        "minimum": -0.604942,
+        "maximum": 1.437954
+      },
+      "delivery_valid": true,
+      "delivery_reasons": [],
+      "stable": false,
+      "stable_reasons": [
+        "growing_backlog"
+      ],
+      "timeline": [
+        {
+          "second": 0,
+          "inflight": 17,
+          "sent": 286,
+          "ended": 269,
+          "valid": 269,
+          "latency_ms": {
+            "n": 269,
+            "mean": 134.8009528810409,
+            "p50": 123.681549,
+            "p95": 254.92186139999998,
+            "p99": 283.5576589199999,
+            "minimum": 27.269601,
+            "maximum": 314.844013
+          }
+        },
+        {
+          "second": 5,
+          "inflight": 1,
+          "sent": 258,
+          "ended": 274,
+          "valid": 274,
+          "latency_ms": {
+            "n": 274,
+            "mean": 177.28929477737228,
+            "p50": 166.858277,
+            "p95": 306.43236725,
+            "p99": 424.1180637799998,
+            "minimum": 29.151381,
+            "maximum": 445.74345
+          }
+        },
+        {
+          "second": 10,
+          "inflight": 7,
+          "sent": 285,
+          "ended": 279,
+          "valid": 279,
+          "latency_ms": {
+            "n": 279,
+            "mean": 183.4781365985663,
+            "p50": 177.040227,
+            "p95": 354.3012826999999,
+            "p99": 398.96440554,
+            "minimum": 29.327359,
+            "maximum": 423.694446
+          }
+        },
+        {
+          "second": 15,
+          "inflight": 5,
+          "sent": 291,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 172.5854282116041,
+            "p50": 173.304215,
+            "p95": 275.154251,
+            "p99": 308.0429412,
+            "minimum": 28.221591,
+            "maximum": 332.173863
+          }
+        },
+        {
+          "second": 20,
+          "inflight": 3,
+          "sent": 289,
+          "ended": 291,
+          "valid": 291,
+          "latency_ms": {
+            "n": 291,
+            "mean": 288.6677072130584,
+            "p50": 265.329465,
+            "p95": 515.4527175000001,
+            "p99": 545.1541231,
+            "minimum": 51.704324,
+            "maximum": 549.891985
+          }
+        },
+        {
+          "second": 25,
+          "inflight": 3,
+          "sent": 259,
+          "ended": 259,
+          "valid": 259,
+          "latency_ms": {
+            "n": 259,
+            "mean": 125.71880140154441,
+            "p50": 116.46435,
+            "p95": 224.62341009999997,
+            "p99": 261.55447743999997,
+            "minimum": 26.490455,
+            "maximum": 272.147212
+          }
+        },
+        {
+          "second": 30,
+          "inflight": 14,
+          "sent": 308,
+          "ended": 297,
+          "valid": 297,
+          "latency_ms": {
+            "n": 297,
+            "mean": 323.82222522558925,
+            "p50": 357.60358,
+            "p95": 513.4771866,
+            "p99": 558.4431476800002,
+            "minimum": 56.883309,
+            "maximum": 590.605638
+          }
+        },
+        {
+          "second": 35,
+          "inflight": 18,
+          "sent": 311,
+          "ended": 307,
+          "valid": 307,
+          "latency_ms": {
+            "n": 307,
+            "mean": 205.5418747785016,
+            "p50": 196.236122,
+            "p95": 330.94742329999997,
+            "p99": 373.62465308000003,
+            "minimum": 35.744114,
+            "maximum": 408.070517
+          }
+        },
+        {
+          "second": 40,
+          "inflight": 10,
+          "sent": 312,
+          "ended": 320,
+          "valid": 320,
+          "latency_ms": {
+            "n": 320,
+            "mean": 340.24821015624997,
+            "p50": 338.706242,
+            "p95": 509.68745480000007,
+            "p99": 536.87150844,
+            "minimum": 122.386544,
+            "maximum": 609.72746
+          }
+        },
+        {
+          "second": 45,
+          "inflight": 4,
+          "sent": 290,
+          "ended": 296,
+          "valid": 296,
+          "latency_ms": {
+            "n": 296,
+            "mean": 255.00098379729732,
+            "p50": 243.523547,
+            "p95": 435.51197875,
+            "p99": 490.9862265500001,
+            "minimum": 49.049255,
+            "maximum": 539.921582
+          }
+        },
+        {
+          "second": 50,
+          "inflight": 2,
+          "sent": 290,
+          "ended": 292,
+          "valid": 292,
+          "latency_ms": {
+            "n": 292,
+            "mean": 194.9159178869863,
+            "p50": 199.232677,
+            "p95": 302.942978,
+            "p99": 331.49272400999996,
+            "minimum": 28.297991,
+            "maximum": 361.957558
+          }
+        },
+        {
+          "second": 55,
+          "inflight": 14,
+          "sent": 300,
+          "ended": 288,
+          "valid": 288,
+          "latency_ms": {
+            "n": 288,
+            "mean": 235.18721729166666,
+            "p50": 239.55262950000002,
+            "p95": 375.46808754999995,
+            "p99": 416.81299414999995,
+            "minimum": 54.994033,
+            "maximum": 433.647583
+          }
+        },
+        {
+          "second": 60,
+          "inflight": 4,
+          "sent": 258,
+          "ended": 268,
+          "valid": 268,
+          "latency_ms": {
+            "n": 268,
+            "mean": 173.45546797388062,
+            "p50": 166.02522299999998,
+            "p95": 308.95395304999994,
+            "p99": 359.47046355,
+            "minimum": 28.06903,
+            "maximum": 394.383693
+          }
+        },
+        {
+          "second": 65,
+          "inflight": 14,
+          "sent": 288,
+          "ended": 278,
+          "valid": 278,
+          "latency_ms": {
+            "n": 278,
+            "mean": 190.53085394604318,
+            "p50": 197.1174335,
+            "p95": 307.8824711999999,
+            "p99": 347.93366447000034,
+            "minimum": 46.744869,
+            "maximum": 378.193362
+          }
+        },
+        {
+          "second": 70,
+          "inflight": 12,
+          "sent": 295,
+          "ended": 297,
+          "valid": 297,
+          "latency_ms": {
+            "n": 297,
+            "mean": 181.70067543771043,
+            "p50": 191.781547,
+            "p95": 284.1093632,
+            "p99": 293.80227100000013,
+            "minimum": 28.121112,
+            "maximum": 315.568912
+          }
+        },
+        {
+          "second": 75,
+          "inflight": 25,
+          "sent": 283,
+          "ended": 270,
+          "valid": 270,
+          "latency_ms": {
+            "n": 270,
+            "mean": 220.25171087037037,
+            "p50": 201.2888635,
+            "p95": 471.92151205,
+            "p99": 502.96794517000006,
+            "minimum": 27.137661,
+            "maximum": 542.828556
+          }
+        },
+        {
+          "second": 80,
+          "inflight": 4,
+          "sent": 288,
+          "ended": 309,
+          "valid": 309,
+          "latency_ms": {
+            "n": 309,
+            "mean": 376.8916308446602,
+            "p50": 401.335835,
+            "p95": 605.1009912,
+            "p99": 659.3291140800001,
+            "minimum": 27.621244,
+            "maximum": 684.560346
+          }
+        },
+        {
+          "second": 85,
+          "inflight": 9,
+          "sent": 283,
+          "ended": 278,
+          "valid": 278,
+          "latency_ms": {
+            "n": 278,
+            "mean": 207.0330588848921,
+            "p50": 150.39005250000002,
+            "p95": 432.59482739999993,
+            "p99": 477.2513090000003,
+            "minimum": 27.845824,
+            "maximum": 513.062455
+          }
+        },
+        {
+          "second": 90,
+          "inflight": 9,
+          "sent": 291,
+          "ended": 291,
+          "valid": 291,
+          "latency_ms": {
+            "n": 291,
+            "mean": 162.69743534020617,
+            "p50": 154.24299,
+            "p95": 257.7436975,
+            "p99": 307.42174550000004,
+            "minimum": 34.822215,
+            "maximum": 325.180405
+          }
+        },
+        {
+          "second": 95,
+          "inflight": 38,
+          "sent": 322,
+          "ended": 293,
+          "valid": 293,
+          "latency_ms": {
+            "n": 293,
+            "mean": 342.9537380546075,
+            "p50": 340.371048,
+            "p95": 499.29585979999996,
+            "p99": 543.8148536399997,
+            "minimum": 107.73108,
+            "maximum": 570.979107
+          }
+        },
+        {
+          "second": 100,
+          "inflight": 24,
+          "sent": 311,
+          "ended": 325,
+          "valid": 325,
+          "latency_ms": {
+            "n": 325,
+            "mean": 443.3335071661538,
+            "p50": 487.095817,
+            "p95": 650.6057034,
+            "p99": 681.4925687999998,
+            "minimum": 48.159672,
+            "maximum": 711.591403
+          }
+        },
+        {
+          "second": 105,
+          "inflight": 8,
+          "sent": 288,
+          "ended": 304,
+          "valid": 304,
+          "latency_ms": {
+            "n": 304,
+            "mean": 270.76125604605267,
+            "p50": 297.9419965,
+            "p95": 419.7859067999999,
+            "p99": 460.22989345999986,
+            "minimum": 28.108389,
+            "maximum": 483.474022
+          }
+        },
+        {
+          "second": 110,
+          "inflight": 12,
+          "sent": 282,
+          "ended": 278,
+          "valid": 278,
+          "latency_ms": {
+            "n": 278,
+            "mean": 267.65787576618703,
+            "p50": 231.53026749999998,
+            "p95": 505.1974360499999,
+            "p99": 542.7325162400003,
+            "minimum": 28.657828,
+            "maximum": 561.57099
+          }
+        },
+        {
+          "second": 115,
+          "inflight": 16,
+          "sent": 310,
+          "ended": 306,
+          "valid": 306,
+          "latency_ms": {
+            "n": 306,
+            "mean": 203.58592477777776,
+            "p50": 201.2952105,
+            "p95": 318.12817775,
+            "p99": 378.90598049999994,
+            "minimum": 77.716668,
+            "maximum": 435.055349
+          }
+        },
+        {
+          "second": 120,
+          "inflight": 0,
+          "sent": 0,
+          "ended": 16,
+          "valid": 16,
+          "latency_ms": {
+            "n": 16,
+            "mean": 208.566283375,
+            "p50": 214.2077825,
+            "p95": 241.830868,
+            "p99": 248.49699999999999,
+            "minimum": 162.410279,
+            "maximum": 250.163533
+          }
+        }
+      ],
+      "unique_inputs": 2000,
+      "raw_sha256": "0db91c11c852892087209e0e9564df3c3641b01d42d71ae58f370ef56fdbe3f4"
+    }
+  ],
+  "quality": {
+    "complete": true,
+    "source_commit": "7801fd7cdad7495633bf0c3d6be978eec32f0b1a",
+    "http_endpoint": "/v1/systemone",
+    "concurrency": 8,
+    "requests": 10751,
+    "fields": 12351,
+    "correct": 10991,
+    "macro7_accuracy": 0.8986293136630199,
+    "weighted_accuracy": 0.8898874585053842,
+    "hard_brier": 0.3457996899773662,
+    "hard_ece": 0.06477076891697267,
+    "suites": {
+      "jevbench-easy": {
+        "rows": 48,
+        "correct": 48,
+        "total": 48,
+        "accuracy": 1.0,
+        "brier": 0.0011033020625477248,
+        "ece": {
+          "ece": 0.020981328157179124,
+          "n": 48,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 48,
+              "mean_confidence": 0.9790186718428209,
+              "accuracy": 1.0
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "intent": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "fact": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "extraction": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "tool_selection": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          }
+        },
+        "category_macro_accuracy": 1.0,
+        "temperature": 1.99241824,
+        "data_sha256": "3b8afa6e55e4decf1c8e116910443215690951dd51e15b7a6e4b813bc83c1eae",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "jevbench-original": {
+        "rows": 72,
+        "correct": 71,
+        "total": 72,
+        "accuracy": 0.9861111111111112,
+        "brier": 0.034519574400240144,
+        "ece": {
+          "ece": 0.09573168625267356,
+          "n": 72,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 1,
+              "mean_confidence": 0.4947972484410317,
+              "accuracy": 0.0
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 1,
+              "mean_confidence": 0.5930110454411601,
+              "accuracy": 1.0
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 3,
+              "mean_confidence": 0.685402465824434,
+              "accuracy": 1.0
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 5,
+              "mean_confidence": 0.7535096749482987,
+              "accuracy": 1.0
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 12,
+              "mean_confidence": 0.875853013707245,
+              "accuracy": 1.0
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 50,
+              "mean_confidence": 0.9535022571221128,
+              "accuracy": 1.0
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "policy": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "intent": {
+            "correct": 11,
+            "total": 12,
+            "accuracy": 0.9166666666666666
+          },
+          "ordinal": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "extraction": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "adequacy": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          },
+          "routing": {
+            "correct": 12,
+            "total": 12,
+            "accuracy": 1.0
+          }
+        },
+        "category_macro_accuracy": 0.9861111111111112,
+        "temperature": 1.99241824,
+        "data_sha256": "157c355d5d07fba47d516acdb048607a5ee4ef14347bbf87cf67dac73d1a193e",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "jevbench-hard": {
+        "rows": 111,
+        "correct": 81,
+        "total": 111,
+        "accuracy": 0.7297297297297297,
+        "brier": 0.3457996899773662,
+        "ece": {
+          "ece": 0.06477076891697267,
+          "n": 111,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 10,
+              "mean_confidence": 0.35844836087174814,
+              "accuracy": 0.2
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 4,
+              "mean_confidence": 0.45118047607745204,
+              "accuracy": 0.0
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 9,
+              "mean_confidence": 0.563261413380546,
+              "accuracy": 0.6666666666666666
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 17,
+              "mean_confidence": 0.6455622629819335,
+              "accuracy": 0.6470588235294118
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 19,
+              "mean_confidence": 0.7555237154625413,
+              "accuracy": 0.6842105263157895
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 23,
+              "mean_confidence": 0.8603270482343066,
+              "accuracy": 0.8695652173913043
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 29,
+              "mean_confidence": 0.9559712916043024,
+              "accuracy": 1.0
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "long_policy": {
+            "correct": 12,
+            "total": 19,
+            "accuracy": 0.631578947368421
+          },
+          "probability": {
+            "correct": 7,
+            "total": 10,
+            "accuracy": 0.7
+          },
+          "temporal_numeric": {
+            "correct": 5,
+            "total": 15,
+            "accuracy": 0.3333333333333333
+          },
+          "ambiguous": {
+            "correct": 5,
+            "total": 7,
+            "accuracy": 0.7142857142857143
+          },
+          "multi_hop": {
+            "correct": 14,
+            "total": 18,
+            "accuracy": 0.7777777777777778
+          },
+          "tradeoff": {
+            "correct": 4,
+            "total": 6,
+            "accuracy": 0.6666666666666666
+          },
+          "adversarial": {
+            "correct": 6,
+            "total": 6,
+            "accuracy": 1.0
+          },
+          "trap": {
+            "correct": 7,
+            "total": 8,
+            "accuracy": 0.875
+          },
+          "judge_hard": {
+            "correct": 16,
+            "total": 17,
+            "accuracy": 0.9411764705882353
+          },
+          "routing_hard": {
+            "correct": 5,
+            "total": 5,
+            "accuracy": 1.0
+          }
+        },
+        "category_macro_accuracy": 0.7639818910020149,
+        "temperature": 1.99241824,
+        "data_sha256": "5ed49f0a43a468993747a22b007fe65fc1187ed433d3c3a95ff9b69a293a8e34",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "agnews-test": {
+        "rows": 7600,
+        "correct": 6899,
+        "total": 7600,
+        "accuracy": 0.9077631578947368,
+        "brier": 0.15455668795538438,
+        "ece": {
+          "ece": 0.07567408610572873,
+          "n": 7600,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 11,
+              "mean_confidence": 0.3645080981031388,
+              "accuracy": 0.45454545454545453
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 121,
+              "mean_confidence": 0.46850660044252407,
+              "accuracy": 0.5206611570247934
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 446,
+              "mean_confidence": 0.5509810071382861,
+              "accuracy": 0.5717488789237668
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 589,
+              "mean_confidence": 0.6524163373376257,
+              "accuracy": 0.7368421052631579
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 1173,
+              "mean_confidence": 0.7554011046804546,
+              "accuracy": 0.8976982097186701
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 2267,
+              "mean_confidence": 0.859069509859676,
+              "accuracy": 0.9563299514777238
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 2993,
+              "mean_confidence": 0.9353729473258221,
+              "accuracy": 0.9759438690277313
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "qa_reasoning": {
+            "correct": 6899,
+            "total": 7600,
+            "accuracy": 0.9077631578947368
+          }
+        },
+        "category_macro_accuracy": 0.9077631578947368,
+        "temperature": 1.99241824,
+        "data_sha256": "4ff1cad1531f29cbfce572e3ddb73666626fd19663691ea3cb4093f46e1edd08",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "toolace-test": {
+        "rows": 310,
+        "correct": 299,
+        "total": 310,
+        "accuracy": 0.964516129032258,
+        "brier": 0.05499108337448913,
+        "ece": {
+          "ece": 0.03550578605209964,
+          "n": 310,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 1,
+              "mean_confidence": 0.4889225936357338,
+              "accuracy": 1.0
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 8,
+              "mean_confidence": 0.5480730624284491,
+              "accuracy": 0.625
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 4,
+              "mean_confidence": 0.6321990982773811,
+              "accuracy": 0.5
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 11,
+              "mean_confidence": 0.7505136933459821,
+              "accuracy": 0.7272727272727273
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 35,
+              "mean_confidence": 0.864708821631783,
+              "accuracy": 0.9428571428571428
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 251,
+              "mean_confidence": 0.9706746513688793,
+              "accuracy": 0.9960159362549801
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "routing_tools": {
+            "correct": 299,
+            "total": 310,
+            "accuracy": 0.964516129032258
+          }
+        },
+        "category_macro_accuracy": 0.964516129032258,
+        "temperature": 1.99241824,
+        "data_sha256": "259a600d06c616c6b8bcc2138ec1e96be9eda0eb1817e871e57509c1be94ab2b",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "typed_decisions-test": {
+        "rows": 400,
+        "correct": 1610,
+        "total": 2000,
+        "accuracy": 0.805,
+        "brier": 0.27597817329268254,
+        "ece": {
+          "ece": 0.06928015789970937,
+          "n": 2000,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 26,
+              "mean_confidence": 0.37456833668041856,
+              "accuracy": 0.3076923076923077
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 132,
+              "mean_confidence": 0.4574693198461354,
+              "accuracy": 0.4696969696969697
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 368,
+              "mean_confidence": 0.5499959794796713,
+              "accuracy": 0.6168478260869565
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 353,
+              "mean_confidence": 0.6467540100788541,
+              "accuracy": 0.7422096317280453
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 306,
+              "mean_confidence": 0.7521139980975257,
+              "accuracy": 0.826797385620915
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 318,
+              "mean_confidence": 0.8500173397961087,
+              "accuracy": 0.9591194968553459
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 497,
+              "mean_confidence": 0.9529928113787168,
+              "accuracy": 0.9919517102615694
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "verification_policy": {
+            "correct": 1186,
+            "total": 1500,
+            "accuracy": 0.7906666666666666
+          },
+          "routing_tools": {
+            "correct": 424,
+            "total": 500,
+            "accuracy": 0.848
+          }
+        },
+        "category_macro_accuracy": 0.8193333333333332,
+        "temperature": 1.99241824,
+        "data_sha256": "fa43c0389d9dbdf18cf1afe75c73f320d7620f3bb2a8be19e7cca7df5e78588f",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      },
+      "wildjailbreak-test": {
+        "rows": 2210,
+        "correct": 1983,
+        "total": 2210,
+        "accuracy": 0.8972850678733032,
+        "brier": 0.13509253238638994,
+        "ece": {
+          "ece": 0.03719428938398869,
+          "n": 2210,
+          "bins": [
+            {
+              "lo": 0.0,
+              "hi": 0.1,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.1,
+              "hi": 0.2,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.2,
+              "hi": 0.3,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.3,
+              "hi": 0.4,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.4,
+              "hi": 0.5,
+              "n": 0,
+              "mean_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lo": 0.5,
+              "hi": 0.6,
+              "n": 102,
+              "mean_confidence": 0.5519027657229012,
+              "accuracy": 0.5098039215686274
+            },
+            {
+              "lo": 0.6,
+              "hi": 0.7,
+              "n": 105,
+              "mean_confidence": 0.6535185094196885,
+              "accuracy": 0.4857142857142857
+            },
+            {
+              "lo": 0.7,
+              "hi": 0.8,
+              "n": 172,
+              "mean_confidence": 0.7528397251356614,
+              "accuracy": 0.6337209302325582
+            },
+            {
+              "lo": 0.8,
+              "hi": 0.9,
+              "n": 318,
+              "mean_confidence": 0.8635620733730356,
+              "accuracy": 0.8427672955974843
+            },
+            {
+              "lo": 0.9,
+              "hi": 1.0,
+              "n": 1513,
+              "mean_confidence": 0.9714575797158937,
+              "accuracy": 0.9933906146728354
+            }
+          ]
+        },
+        "tvd": null,
+        "tvd_n": 0,
+        "families": {
+          "verification_policy": {
+            "correct": 1983,
+            "total": 2210,
+            "accuracy": 0.8972850678733032
+          }
+        },
+        "category_macro_accuracy": 0.8972850678733032,
+        "temperature": 1.99241824,
+        "data_sha256": "2b14e5449850463b530e92493244c4f4a888d91ff4b458130e17f661d2ce8938",
+        "checkpoint": "/home/zhuwenrui/decision-h200/models/Intern-Decision-4B",
+        "objective_revision": "masked-next-token-v4",
+        "inference_backend": "lmdeploy-pytorch-http"
+      }
+    },
+    "datasets": [
+      {
+        "suite": "jevbench-easy",
+        "rows": 48,
+        "sha256": "3b8afa6e55e4decf1c8e116910443215690951dd51e15b7a6e4b813bc83c1eae"
+      },
+      {
+        "suite": "jevbench-original",
+        "rows": 72,
+        "sha256": "157c355d5d07fba47d516acdb048607a5ee4ef14347bbf87cf67dac73d1a193e"
+      },
+      {
+        "suite": "jevbench-hard",
+        "rows": 111,
+        "sha256": "5ed49f0a43a468993747a22b007fe65fc1187ed433d3c3a95ff9b69a293a8e34"
+      },
+      {
+        "suite": "agnews-test",
+        "rows": 7600,
+        "sha256": "4ff1cad1531f29cbfce572e3ddb73666626fd19663691ea3cb4093f46e1edd08"
+      },
+      {
+        "suite": "toolace-test",
+        "rows": 310,
+        "sha256": "259a600d06c616c6b8bcc2138ec1e96be9eda0eb1817e871e57509c1be94ab2b"
+      },
+      {
+        "suite": "typed_decisions-test",
+        "rows": 400,
+        "sha256": "fa43c0389d9dbdf18cf1afe75c73f320d7620f3bb2a8be19e7cca7df5e78588f"
+      },
+      {
+        "suite": "wildjailbreak-test",
+        "rows": 2210,
+        "sha256": "2b14e5449850463b530e92493244c4f4a888d91ff4b458130e17f661d2ce8938"
+      }
+    ],
+    "elapsed_seconds": 121.68740365467966,
+    "temperature": 1.99241824,
+    "scorer_file": "/home/zhuwenrui/decision-precision-20261104/reference/src/eval/jev.py",
+    "scorer_sha256": "4ed77727c81e077158e6b5788b18e0271f02306a20d52420fec85a2f6099403d",
+    "source_dataset_sha256": "f93a9847b361dddafc3aee57c18b5e68b7a32c15b95b7f5cac835a2ef3a7e1ca"
+  },
+  "answer_agreement": {
+    "previous_source": "4446d416789988d0429443ff88e3faf038a9965b",
+    "current_source": "7801fd7cdad7495633bf0c3d6be978eec32f0b1a",
+    "requests": 10751,
+    "fields": 12351,
+    "changed_top1": 34,
+    "changed_probability_fields": 8198,
+    "max_abs_candidate_probability_difference": 0.06114505472651721,
+    "scope": "Saved-response comparison by suite/source-line/ID; no numerical equivalence or causal performance attribution claimed."
+  },
+  "full_aiperf_raw_retained_remotely": [
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/01-client-preflight-r5-s5/profile_export_raw.jsonl",
+      "bytes": 386701,
+      "sha256": "0d1a3f44e818dd3c1db7e26876e1b1c785c19081abae80c2c3f1348877b3542b"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/02-explore-r50-s60/profile_export_raw.jsonl",
+      "bytes": 18358937,
+      "sha256": "8dcade9f2649007941695cc66a94c428b29e466a1c3648f6722a3fa088363d39"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/03-explore-r70-s60/profile_export_raw.jsonl",
+      "bytes": 25400061,
+      "sha256": "c7c7c3fc09a34d664e15a4eb3b6b0940ab08b60544b2f785ba3ab0393478d985"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/04-explore-r60-s60/profile_export_raw.jsonl",
+      "bytes": 21935834,
+      "sha256": "708218efef7c0857bfb97657ab4ac5a87d1ad386dfa6c23a663fdded6e738da6"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/05-explore-r65-s60/profile_export_raw.jsonl",
+      "bytes": 23715610,
+      "sha256": "a8b212020d159fdaa8c4097cf3bcf628867c531a12e6e52f726f437c4582b8c8"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/06-explore-r67.5-s60/profile_export_raw.jsonl",
+      "bytes": 24550329,
+      "sha256": "75859938040ab46584eec3daf6323b046a94f782f0e35009e5b0ba99427393f2"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/07-explore-r66.25-s60/profile_export_raw.jsonl",
+      "bytes": 24154418,
+      "sha256": "e4b1d8460d0a898af34954418460b325ae496be99424a403d66fdc772ff9634e"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/08-confirm-low-r66.25-s120/profile_export_raw.jsonl",
+      "bytes": 48780599,
+      "sha256": "dd10497b138af6541cc581a12799b129792f5a3d3dc0f207a46639c629669d50"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/09-confirm-high-r67.5-s120/profile_export_raw.jsonl",
+      "bytes": 49410606,
+      "sha256": "0eb6ad04210d55f286c7b459919ff1b0935a00def7d009c6cf7352e4c9b7aab3"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/10-refine-stable-floor-r65-s120/profile_export_raw.jsonl",
+      "bytes": 47649402,
+      "sha256": "7906a87e0cef2f302db3421bbfe31a6da5226c8bc2d6d185a1854b7f8104460a"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/11-refine-stable-floor-r60-s120/profile_export_raw.jsonl",
+      "bytes": 44491105,
+      "sha256": "9f04191f0731800e38c70410b40529b35e676bcfb52b195bc5c798e43afd42eb"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/12-refine-stable-floor-r50-s120/profile_export_raw.jsonl",
+      "bytes": 37018727,
+      "sha256": "00aea566dee93cbbb4e338e756dc09aef332fb14d0a0f5038930352b05a4b768"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/13-refine-long-r55-s120/profile_export_raw.jsonl",
+      "bytes": 40236873,
+      "sha256": "4efbfe1dfb72ff8ac3a50567aedac19589047f1237e62aa4603bd030a6ddb696"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/14-refine-long-r57.5-s120/profile_export_raw.jsonl",
+      "bytes": 41817284,
+      "sha256": "0ce5c2c7dcafdf91f63f9f9d47a51d784263ed881e2e8de61b6ab0201248ff4b"
+    },
+    {
+      "path": "/home/zhuwenrui/decision-pr5075-openloop-20261109-7801fd7c-DA0Mvg/results/15-refine-long-r58.75-s120/profile_export_raw.jsonl",
+      "bytes": 42414843,
+      "sha256": "0db91c11c852892087209e0e9564df3c3641b01d42d71ae58f370ef56fdbe3f4"
+    }
+  ],
+  "package_scope": "Summaries, all verified request timings, full quality outputs, frozen inputs and source; full AIPerf payload/transport exports remain at the indexed remote paths.",
+  "method_adjustments": [
+    "The reused harness compares scheduler plans and observations in the same monotonic clock domain.",
+    "A symmetric 25ms scheduler tolerance is retained; observed timing lags are reported per point.",
+    "Isolated short-window backlog slopes are rechecked at 120 seconds before choosing a bracket.",
+    "If boundary confirmations disagree with exploration, refine.py bisects using 120-second observations."
+  ],
+  "compressed_originals": [
+    {
+      "original": "gpu-monitor.jsonl",
+      "exported": "gpu-monitor.jsonl.gz",
+      "decoded_sha256": "d7169dd33b36995044d7b15e34b74579c159a2b79b399f85f7ab97e6a13ab54b"
+    },
+    {
+      "original": "data/accuracy-records.jsonl",
+      "exported": "data/accuracy-records.jsonl.gz",
+      "decoded_sha256": "f93a9847b361dddafc3aee57c18b5e68b7a32c15b95b7f5cac835a2ef3a7e1ca"
+    },
+    {
+      "original": "data/openai-mixed-inputs.json",
+      "exported": "data/openai-mixed-inputs.json.gz",
+      "decoded_sha256": "7295fbc871b44e365d28214520da2afce6905f32ca50b21fa0fe2c1fe8327f80"
+    },
+    {
+      "original": "data/records.jsonl",
+      "exported": "data/records.jsonl.gz",
+      "decoded_sha256": "98e1db9288a5e42f5076a98c801ff0a9f4a4a336a2c36d50a7f8e5a44fc1a0c2"
+    },
+    {
+      "original": "results/official-seven/responses.jsonl",
+      "exported": "results/official-seven/responses.jsonl.gz",
+      "decoded_sha256": "b96f0c81f5f616ba2e514b878ed16cc37b1c1641a8bde19ccce83f944391c4db"
+    },
+    {
+      "original": "results/official-seven/scored/jevbench-easy.jsonl",
+      "exported": "results/official-seven/scored/jevbench-easy.jsonl.gz",
+      "decoded_sha256": "a35d141697aacec66081f216c9eacecc28a9dde2f2f87ddd5c951947c15d1548"
+    },
+    {
+      "original": "results/official-seven/scored/jevbench-original.jsonl",
+      "exported": "results/official-seven/scored/jevbench-original.jsonl.gz",
+      "decoded_sha256": "f1ef6aea7d3db3db85afe8dbd13d99bf73d1f7cc790dc17b6dc2d52e2c768eea"
+    },
+    {
+      "original": "results/official-seven/scored/jevbench-hard.jsonl",
+      "exported": "results/official-seven/scored/jevbench-hard.jsonl.gz",
+      "decoded_sha256": "e085bb8667dc8e8d0ba3cee7dc09a5502461514165cc41e34915689119a2ecb2"
+    },
+    {
+      "original": "results/official-seven/scored/agnews-test.jsonl",
+      "exported": "results/official-seven/scored/agnews-test.jsonl.gz",
+      "decoded_sha256": "b278dd09f3325143808ec84d46fd442b279e27baffd45f0e57f1a06d4f3b2d06"
+    },
+    {
+      "original": "results/official-seven/scored/toolace-test.jsonl",
+      "exported": "results/official-seven/scored/toolace-test.jsonl.gz",
+      "decoded_sha256": "b83bfac184a51f4eff50ccef54663aeaa7f290698a08b4d75edb541a3ae0892a"
+    },
+    {
+      "original": "results/official-seven/scored/typed_decisions-test.jsonl",
+      "exported": "results/official-seven/scored/typed_decisions-test.jsonl.gz",
+      "decoded_sha256": "b7bc56da0960b41c26aec94c08d59b67b93c194c15ef11ff24b161df7297a231"
+    },
+    {
+      "original": "results/official-seven/scored/wildjailbreak-test.jsonl",
+      "exported": "results/official-seven/scored/wildjailbreak-test.jsonl.gz",
+      "decoded_sha256": "82343605478edc95ac8c456fdf5271a75c6267a4875ddcd7dc8572f17a8a7ebf"
+    },
+    {
+      "original": "results/01-client-preflight-r5-s5/verified-requests.jsonl",
+      "exported": "results/01-client-preflight-r5-s5/verified-requests.jsonl.gz",
+      "decoded_sha256": "6d8128ceea49b5692b4c57d9c38bbb9dbc212534a3ddd432e2d739fd67525cb2"
+    },
+    {
+      "original": "results/01-client-preflight-r5-s5/scheduler/network-1840879.json",
+      "exported": "results/01-client-preflight-r5-s5/scheduler/network-1840879.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/01-client-preflight-r5-s5/scheduler/phase-1840895-warmup.json",
+      "exported": "results/01-client-preflight-r5-s5/scheduler/phase-1840895-warmup.json.gz",
+      "decoded_sha256": "067c5500b545a0fc75bf3f9377fdd0fe8c4cba3bdbe8c323b73f311dae087d59"
+    },
+    {
+      "original": "results/01-client-preflight-r5-s5/scheduler/phase-1840895-profiling.json",
+      "exported": "results/01-client-preflight-r5-s5/scheduler/phase-1840895-profiling.json.gz",
+      "decoded_sha256": "52d2a94d5f7d3e08c06cbba6ac659acd66dcc8a3bc7ca4aaaf54f0f16ed3a324"
+    },
+    {
+      "original": "results/02-explore-r50-s60/verified-requests.jsonl",
+      "exported": "results/02-explore-r50-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "1089b86ffb826495e2a2c94522470c3685fb3674797540778fe3a998f6cd488b"
+    },
+    {
+      "original": "results/02-explore-r50-s60/scheduler/network-1840977.json",
+      "exported": "results/02-explore-r50-s60/scheduler/network-1840977.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/02-explore-r50-s60/scheduler/phase-1840992-warmup.json",
+      "exported": "results/02-explore-r50-s60/scheduler/phase-1840992-warmup.json.gz",
+      "decoded_sha256": "a8ab111f76c939a2cf7bb88cc6be7637138fb8522afec0f41ad255be40a72d2d"
+    },
+    {
+      "original": "results/02-explore-r50-s60/scheduler/phase-1840992-profiling.json",
+      "exported": "results/02-explore-r50-s60/scheduler/phase-1840992-profiling.json.gz",
+      "decoded_sha256": "1a44704a80543616d17b4f87005d3586b28845d817ef539a789110acf71ff507"
+    },
+    {
+      "original": "results/03-explore-r70-s60/verified-requests.jsonl",
+      "exported": "results/03-explore-r70-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "8922e4d7415c67cd7280a015e2e70ce37941471ab3012b2493ece51629f6e641"
+    },
+    {
+      "original": "results/03-explore-r70-s60/scheduler/network-1841186.json",
+      "exported": "results/03-explore-r70-s60/scheduler/network-1841186.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/03-explore-r70-s60/scheduler/phase-1841202-warmup.json",
+      "exported": "results/03-explore-r70-s60/scheduler/phase-1841202-warmup.json.gz",
+      "decoded_sha256": "9a15e06c63eab5c014eed9c26c7891cffee486da67ea934827b64160e86e619f"
+    },
+    {
+      "original": "results/03-explore-r70-s60/scheduler/phase-1841202-profiling.json",
+      "exported": "results/03-explore-r70-s60/scheduler/phase-1841202-profiling.json.gz",
+      "decoded_sha256": "c4a94e15a58b55197d8ccb0ffc8bef34f34894b1d54791a3c87ab484dbb88519"
+    },
+    {
+      "original": "results/04-explore-r60-s60/verified-requests.jsonl",
+      "exported": "results/04-explore-r60-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "33774fbb8325fa0477540ecde170c94c7588987ee0f0ff87cf6b52efbabe9fd1"
+    },
+    {
+      "original": "results/04-explore-r60-s60/scheduler/network-1841421.json",
+      "exported": "results/04-explore-r60-s60/scheduler/network-1841421.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/04-explore-r60-s60/scheduler/phase-1841437-warmup.json",
+      "exported": "results/04-explore-r60-s60/scheduler/phase-1841437-warmup.json.gz",
+      "decoded_sha256": "7cdff1cc9aa64289a2ea0952dc652744df6de3df1a401423f77528a726215f7f"
+    },
+    {
+      "original": "results/04-explore-r60-s60/scheduler/phase-1841437-profiling.json",
+      "exported": "results/04-explore-r60-s60/scheduler/phase-1841437-profiling.json.gz",
+      "decoded_sha256": "b5e25f233119a4658b27b7c698458807ce1205a246319bc56334438da25db099"
+    },
+    {
+      "original": "results/05-explore-r65-s60/verified-requests.jsonl",
+      "exported": "results/05-explore-r65-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "bb7644b8ce56e283dc4be02141681e4ae3b5b60f2aa2dd572ba3efcd5a0102cf"
+    },
+    {
+      "original": "results/05-explore-r65-s60/scheduler/network-1841642.json",
+      "exported": "results/05-explore-r65-s60/scheduler/network-1841642.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/05-explore-r65-s60/scheduler/phase-1841657-warmup.json",
+      "exported": "results/05-explore-r65-s60/scheduler/phase-1841657-warmup.json.gz",
+      "decoded_sha256": "aa78c5a5051a1caf8640907fe243a4fe9278379cb0b674b3d8a785ad8a4295a7"
+    },
+    {
+      "original": "results/05-explore-r65-s60/scheduler/phase-1841657-profiling.json",
+      "exported": "results/05-explore-r65-s60/scheduler/phase-1841657-profiling.json.gz",
+      "decoded_sha256": "e1bdf2e29838eba8d17a9299b5a8820f23c6fd066dbe10ff4bf31c2e894c4f50"
+    },
+    {
+      "original": "results/06-explore-r67.5-s60/verified-requests.jsonl",
+      "exported": "results/06-explore-r67.5-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "e6123a974263d1c67cef9598684739a2c8fc59b386aac3696634917e8f98d306"
+    },
+    {
+      "original": "results/06-explore-r67.5-s60/scheduler/network-1841864.json",
+      "exported": "results/06-explore-r67.5-s60/scheduler/network-1841864.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/06-explore-r67.5-s60/scheduler/phase-1841875-warmup.json",
+      "exported": "results/06-explore-r67.5-s60/scheduler/phase-1841875-warmup.json.gz",
+      "decoded_sha256": "b7f3185f4393620c8a47b895fdbcb722992133d33ded67f5b20697ce5c65102b"
+    },
+    {
+      "original": "results/06-explore-r67.5-s60/scheduler/phase-1841875-profiling.json",
+      "exported": "results/06-explore-r67.5-s60/scheduler/phase-1841875-profiling.json.gz",
+      "decoded_sha256": "be38c3b050497ffaf80f96b823f209eb05effb9aeae94606a25c57b64ca9c084"
+    },
+    {
+      "original": "results/07-explore-r66.25-s60/verified-requests.jsonl",
+      "exported": "results/07-explore-r66.25-s60/verified-requests.jsonl.gz",
+      "decoded_sha256": "27bc0d4e1528d93f4d2ed8a4b8073ad17f4961f676d0e284746f9bd710893ff0"
+    },
+    {
+      "original": "results/07-explore-r66.25-s60/scheduler/network-1842085.json",
+      "exported": "results/07-explore-r66.25-s60/scheduler/network-1842085.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/07-explore-r66.25-s60/scheduler/phase-1842097-warmup.json",
+      "exported": "results/07-explore-r66.25-s60/scheduler/phase-1842097-warmup.json.gz",
+      "decoded_sha256": "adef777faefe3df0e7dd190f1852de86062e8a50de3e23288fff536514164ad1"
+    },
+    {
+      "original": "results/07-explore-r66.25-s60/scheduler/phase-1842097-profiling.json",
+      "exported": "results/07-explore-r66.25-s60/scheduler/phase-1842097-profiling.json.gz",
+      "decoded_sha256": "d9e73ef26852344576f4ea13d01bb3dc92835fb4b17276306b5a4356b0e0db57"
+    },
+    {
+      "original": "results/08-confirm-low-r66.25-s120/verified-requests.jsonl",
+      "exported": "results/08-confirm-low-r66.25-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "cd32074a46ec83b883ff32246725f464018415125bd3402663a2e7dc336b172e"
+    },
+    {
+      "original": "results/08-confirm-low-r66.25-s120/scheduler/network-1842301.json",
+      "exported": "results/08-confirm-low-r66.25-s120/scheduler/network-1842301.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/08-confirm-low-r66.25-s120/scheduler/phase-1842312-warmup.json",
+      "exported": "results/08-confirm-low-r66.25-s120/scheduler/phase-1842312-warmup.json.gz",
+      "decoded_sha256": "70318411c0270891a8ab47f7b68b08a59a3545e7d007365b0c96ba1468c93039"
+    },
+    {
+      "original": "results/08-confirm-low-r66.25-s120/scheduler/phase-1842312-profiling.json",
+      "exported": "results/08-confirm-low-r66.25-s120/scheduler/phase-1842312-profiling.json.gz",
+      "decoded_sha256": "ef1a75d932020c63ac0ec6773520c87df9da3aff125e49d9cd325fd44172db7f"
+    },
+    {
+      "original": "results/09-confirm-high-r67.5-s120/verified-requests.jsonl",
+      "exported": "results/09-confirm-high-r67.5-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "726dbfd0b9e0244f42239a37cc3157001d0a6bd7080ebae027c1e7428e560e25"
+    },
+    {
+      "original": "results/09-confirm-high-r67.5-s120/scheduler/network-1842621.json",
+      "exported": "results/09-confirm-high-r67.5-s120/scheduler/network-1842621.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/09-confirm-high-r67.5-s120/scheduler/phase-1842632-warmup.json",
+      "exported": "results/09-confirm-high-r67.5-s120/scheduler/phase-1842632-warmup.json.gz",
+      "decoded_sha256": "18033400146eb7ca28afa2d15ea11ea7fb9d0fdb5a8d2787b4cc0125e66462d6"
+    },
+    {
+      "original": "results/09-confirm-high-r67.5-s120/scheduler/phase-1842632-profiling.json",
+      "exported": "results/09-confirm-high-r67.5-s120/scheduler/phase-1842632-profiling.json.gz",
+      "decoded_sha256": "845916fe7d4c1bd75f3afc94b59d49a7d64fa2dd1d5a75f6f0d86ede0e4b50c6"
+    },
+    {
+      "original": "results/10-refine-stable-floor-r65-s120/verified-requests.jsonl",
+      "exported": "results/10-refine-stable-floor-r65-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "39e3d7bd12bf29c7621331eb55d15a29d3bf9a916ab43937ecfbf161d0386dce"
+    },
+    {
+      "original": "results/10-refine-stable-floor-r65-s120/scheduler/network-1843306.json",
+      "exported": "results/10-refine-stable-floor-r65-s120/scheduler/network-1843306.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/10-refine-stable-floor-r65-s120/scheduler/phase-1843322-warmup.json",
+      "exported": "results/10-refine-stable-floor-r65-s120/scheduler/phase-1843322-warmup.json.gz",
+      "decoded_sha256": "b9263adebb8a6f574e2918174331fc874e0627a04c8d3c979499f61140e0bf26"
+    },
+    {
+      "original": "results/10-refine-stable-floor-r65-s120/scheduler/phase-1843322-profiling.json",
+      "exported": "results/10-refine-stable-floor-r65-s120/scheduler/phase-1843322-profiling.json.gz",
+      "decoded_sha256": "8eaddfaf309878f17906a69779e8acc62e0c7dc5522a64908617655954b9091e"
+    },
+    {
+      "original": "results/11-refine-stable-floor-r60-s120/verified-requests.jsonl",
+      "exported": "results/11-refine-stable-floor-r60-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "51a9b09f28cb2e8086c346dd2ed112408378ca92c3919a37627839e6f8da0ca2"
+    },
+    {
+      "original": "results/11-refine-stable-floor-r60-s120/scheduler/network-1843944.json",
+      "exported": "results/11-refine-stable-floor-r60-s120/scheduler/network-1843944.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/11-refine-stable-floor-r60-s120/scheduler/phase-1843960-warmup.json",
+      "exported": "results/11-refine-stable-floor-r60-s120/scheduler/phase-1843960-warmup.json.gz",
+      "decoded_sha256": "6d71890887a5fb81beee3a7dc6db09f21ad9d9eb3d5cba379a1f1ed7ff92561b"
+    },
+    {
+      "original": "results/11-refine-stable-floor-r60-s120/scheduler/phase-1843960-profiling.json",
+      "exported": "results/11-refine-stable-floor-r60-s120/scheduler/phase-1843960-profiling.json.gz",
+      "decoded_sha256": "e8ec27447268a6d797aa7509fb9b03a9bfafa9d24705f0fd0b41cb37a87d191c"
+    },
+    {
+      "original": "results/12-refine-stable-floor-r50-s120/verified-requests.jsonl",
+      "exported": "results/12-refine-stable-floor-r50-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "ab5d54ab21c07b3c9d5f2c8745992484c7eb864e52124d9d8f536596e2d84308"
+    },
+    {
+      "original": "results/12-refine-stable-floor-r50-s120/scheduler/network-1844598.json",
+      "exported": "results/12-refine-stable-floor-r50-s120/scheduler/network-1844598.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/12-refine-stable-floor-r50-s120/scheduler/phase-1844614-warmup.json",
+      "exported": "results/12-refine-stable-floor-r50-s120/scheduler/phase-1844614-warmup.json.gz",
+      "decoded_sha256": "8b4633e287dbddd1d5871a0a50bd025bc17236b1e623d7c5cd3985fac93d0af1"
+    },
+    {
+      "original": "results/12-refine-stable-floor-r50-s120/scheduler/phase-1844614-profiling.json",
+      "exported": "results/12-refine-stable-floor-r50-s120/scheduler/phase-1844614-profiling.json.gz",
+      "decoded_sha256": "fe2cb42fa2d5b4ff259ea59b81df58c2ff80c73d83ccf3899d55edf7299c70f6"
+    },
+    {
+      "original": "results/13-refine-long-r55-s120/verified-requests.jsonl",
+      "exported": "results/13-refine-long-r55-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "e7d4b934228cf6daade87054876d8fa71374e17f242470a4dded50be22a70d7e"
+    },
+    {
+      "original": "results/13-refine-long-r55-s120/scheduler/network-1845205.json",
+      "exported": "results/13-refine-long-r55-s120/scheduler/network-1845205.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/13-refine-long-r55-s120/scheduler/phase-1845221-warmup.json",
+      "exported": "results/13-refine-long-r55-s120/scheduler/phase-1845221-warmup.json.gz",
+      "decoded_sha256": "029a7f96f68eb5f3b3fd1941f9a1513834084b77d7f8071e13b8bb8cff17caa5"
+    },
+    {
+      "original": "results/13-refine-long-r55-s120/scheduler/phase-1845221-profiling.json",
+      "exported": "results/13-refine-long-r55-s120/scheduler/phase-1845221-profiling.json.gz",
+      "decoded_sha256": "931130e1c52c1714443de6cdf4dbd3f0ae89990abc247acfb3d0967b161478e6"
+    },
+    {
+      "original": "results/14-refine-long-r57.5-s120/verified-requests.jsonl",
+      "exported": "results/14-refine-long-r57.5-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "57a656e23a7d45e5a6c744cd40069489dadbb92fcb0270e5866b02f2f6e3346f"
+    },
+    {
+      "original": "results/14-refine-long-r57.5-s120/scheduler/network-1845865.json",
+      "exported": "results/14-refine-long-r57.5-s120/scheduler/network-1845865.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/14-refine-long-r57.5-s120/scheduler/phase-1845881-warmup.json",
+      "exported": "results/14-refine-long-r57.5-s120/scheduler/phase-1845881-warmup.json.gz",
+      "decoded_sha256": "179b9bd16ea7d4645d8ef4dac9d8b01d8c05aed4c0fbce4812035307b88d59f4"
+    },
+    {
+      "original": "results/14-refine-long-r57.5-s120/scheduler/phase-1845881-profiling.json",
+      "exported": "results/14-refine-long-r57.5-s120/scheduler/phase-1845881-profiling.json.gz",
+      "decoded_sha256": "47afa5e182a5b7fd66dcd541b029544b1f09b448f858516629a0d5fafaf7b84e"
+    },
+    {
+      "original": "results/15-refine-long-r58.75-s120/verified-requests.jsonl",
+      "exported": "results/15-refine-long-r58.75-s120/verified-requests.jsonl.gz",
+      "decoded_sha256": "54131eefc07dd8b5084ce2e7006af254ecfc878f00ab2dd9fd3a709a781427c3"
+    },
+    {
+      "original": "results/15-refine-long-r58.75-s120/scheduler/network-1846493.json",
+      "exported": "results/15-refine-long-r58.75-s120/scheduler/network-1846493.json.gz",
+      "decoded_sha256": "d593f382671e0696b3e262c34c7e288ed2bd3a0a6aea1e5c63b8b7bd98667667"
+    },
+    {
+      "original": "results/15-refine-long-r58.75-s120/scheduler/phase-1846523-warmup.json",
+      "exported": "results/15-refine-long-r58.75-s120/scheduler/phase-1846523-warmup.json.gz",
+      "decoded_sha256": "1966d157b1cb170a09dc92c8593d4e94b7b8cf286ad900232ea6f618a79ee8a3"
+    },
+    {
+      "original": "results/15-refine-long-r58.75-s120/scheduler/phase-1846523-profiling.json",
+      "exported": "results/15-refine-long-r58.75-s120/scheduler/phase-1846523-profiling.json.gz",
+      "decoded_sha256": "625c8dac13625e09b25bb0cae0e05ed6f236ee963fa26221d2713159d6168024"
+    }
+  ]
+}
