@@ -1,0 +1,144 @@
+name: build-eval
+
+# Build-only pipeline for evaluating compile-time optimizations.
+# Runs on a self-hosted runner, builds the wheel from a clean tree, records
+# wall time / peak memory / ninja per-edge timings. It never builds or pushes
+# a Docker image.
+#
+# Deliberately NOT triggered by pull_request: this repository is public and the
+# job executes on a self-hosted machine, so untrusted PR code must not reach it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      turbomind:
+        description: 'Component: lmdeploy wheel with turbomind CUDA kernels'
+        type: boolean
+        default: true
+      python_only:
+        description: 'Component: pure-Python lmdeploy wheel (DISABLE_TURBOMIND=1; exclusive with turbomind)'
+        type: boolean
+        default: false
+      deep_ep:
+        description: 'Component: DeepEP wheel (downloads torch)'
+        type: boolean
+        default: false
+      deep_gemm:
+        description: 'Component: DeepGEMM wheel (downloads torch)'
+        type: boolean
+        default: false
+      flash_mla:
+        description: 'Component: FlashMLA wheel (downloads torch)'
+        type: boolean
+        default: false
+      fast_hadamard:
+        description: 'Component: fast_hadamard_transform wheel (downloads torch)'
+        type: boolean
+        default: false
+      jobs:
+        description: ninja parallelism (CMAKE_BUILD_PARALLEL_LEVEL)
+        default: '16'
+      cpu_list:
+        description: taskset CPU list hard-capping the build (empty = no pinning)
+        default: '48-63'
+      nvcc_threads:
+        description: turbomind -DNVCC_THREADS (empty = CMakeLists default)
+        default: ''
+      cuda_archs:
+        description: turbomind CUDAARCHS, e.g. "80-real;90a-real" (empty = CMakeLists default)
+        default: ''
+      cmake_defs:
+        description: extra turbomind cmake defines without -D, ';'-separated, e.g. "BUILD_FAST_MATH:BOOL=OFF"
+        default: ''
+      label:
+        description: free-form label used in the artifact name
+        default: baseline
+      upload_wheel:
+        description: also upload the built wheel as an artifact
+        type: boolean
+        default: false
+  push:
+    branches:
+      - 'ci/build-eval-*'
+    paths:
+      - '.github/workflows/build_eval.yml'
+      - '.github/scripts/perf_eval/**'
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+      - 'requirements/build.txt'
+
+concurrency:
+  group: build-eval
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build-eval
+    runs-on: [self-hosted, linux, x64, lmdeploy-build]
+    timeout-minutes: 180
+    env:
+      JOBS: ${{ inputs.jobs || '16' }}
+      CPU_LIST: ${{ github.event_name == 'workflow_dispatch' && inputs.cpu_list || '48-63' }}
+      NVCC_THREADS: ${{ inputs.nvcc_threads }}
+      CUDA_ARCHS: ${{ inputs.cuda_archs }}
+      CMAKE_DEFS: ${{ inputs.cmake_defs }}
+      KEEP_WHEEL: ${{ inputs.upload_wheel && '1' || '0' }}
+      RUN_TAG: run-${{ github.run_id }}-${{ github.run_attempt }}
+      OUT_DIR: ${{ runner.temp }}/build-eval-out
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Select components
+        env:
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+          C_TURBOMIND: ${{ inputs.turbomind }}
+          C_PYTHON_ONLY: ${{ inputs.python_only }}
+          C_DEEP_EP: ${{ inputs.deep_ep }}
+          C_DEEP_GEMM: ${{ inputs.deep_gemm }}
+          C_FLASH_MLA: ${{ inputs.flash_mla }}
+          C_FAST_HADAMARD: ${{ inputs.fast_hadamard }}
+        run: |
+          # push events have no inputs: run a fast python-only smoke check by default;
+          # use workflow_dispatch to pick turbomind and/or third-party wheels.
+          sel=()
+          if [ "$IS_DISPATCH" != "true" ]; then
+            sel=(python-only)
+          else
+            [ "$C_TURBOMIND" = "true" ] && sel+=(turbomind)
+            [ "$C_PYTHON_ONLY" = "true" ] && sel+=(python-only)
+            [ "$C_DEEP_EP" = "true" ] && sel+=(deep_ep)
+            [ "$C_DEEP_GEMM" = "true" ] && sel+=(deep_gemm)
+            [ "$C_FLASH_MLA" = "true" ] && sel+=(flash_mla)
+            [ "$C_FAST_HADAMARD" = "true" ] && sel+=(fast_hadamard)
+          fi
+          if [ ${#sel[@]} -eq 0 ]; then
+            echo "::error::no component selected"
+            exit 1
+          fi
+          echo "COMPONENTS=$(IFS=,; echo "${sel[*]}")" >> "$GITHUB_ENV"
+      - name: Build and measure
+        run: bash .github/scripts/perf_eval/build_eval.sh
+      - name: Publish summary
+        if: always()
+        run: |
+          if [ -f "$OUT_DIR/summary.md" ]; then
+            cat "$OUT_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-eval-${{ inputs.label || 'push' }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/build-eval-out/**
+          if-no-files-found: warn
+          retention-days: 30
