@@ -1,9 +1,9 @@
 name: build-eval
 
-# Build-only pipeline for evaluating compile-time optimizations.
-# Runs on a self-hosted runner, builds the wheel from a clean tree, records
-# wall time / peak memory / ninja per-edge timings. It never builds or pushes
-# a Docker image.
+# Build-only pipeline for fast wheel packaging and compile-time evaluation.
+# Runs on an on-demand (--ephemeral) self-hosted runner in tmpfs, builds only
+# the selected components, and uploads timing/memory reports (plus optional
+# wheels). It never builds or pushes a Docker image.
 #
 # Deliberately NOT triggered by pull_request: this repository is public and the
 # job executes on a self-hosted machine, so untrusted PR code must not reach it.
@@ -11,52 +11,50 @@ name: build-eval
 on:
   workflow_dispatch:
     inputs:
-      turbomind:
-        description: 'Component: lmdeploy wheel with turbomind CUDA kernels'
-        type: boolean
-        default: true
-      python_only:
-        description: 'Component: pure-Python lmdeploy wheel (DISABLE_TURBOMIND=1; exclusive with turbomind)'
-        type: boolean
-        default: false
+      lmdeploy_wheel:
+        description: 'lmdeploy wheel mode (turbomind CUDA kernels / pure-Python / skip)'
+        type: choice
+        options:
+          - turbomind
+          - python-only
+          - none
+        default: turbomind
       deep_ep:
-        description: 'Component: DeepEP wheel (downloads torch)'
+        description: 'Package 3rd-party wheel: DeepEP'
         type: boolean
         default: false
       deep_gemm:
-        description: 'Component: DeepGEMM wheel (downloads torch)'
+        description: 'Package 3rd-party wheel: DeepGEMM'
         type: boolean
         default: false
       flash_mla:
-        description: 'Component: FlashMLA wheel (downloads torch)'
+        description: 'Package 3rd-party wheel: FlashMLA'
         type: boolean
         default: false
       fast_hadamard:
-        description: 'Component: fast_hadamard_transform wheel (downloads torch)'
+        description: 'Package 3rd-party wheel: fast_hadamard_transform'
         type: boolean
         default: false
+      upload_wheel:
+        description: 'Upload built .whl files in the workflow artifact'
+        type: boolean
+        default: true
       jobs:
-        description: ninja parallelism (CMAKE_BUILD_PARALLEL_LEVEL)
+        description: 'Ninja / MAX_JOBS parallelism'
+        type: string
         default: '16'
       cpu_list:
-        description: taskset CPU list hard-capping the build (empty = no pinning)
+        description: 'taskset CPU list hard-capping the build (empty = no pinning)'
+        type: string
         default: '48-63'
       nvcc_threads:
-        description: turbomind -DNVCC_THREADS (empty = CMakeLists default)
+        description: 'turbomind -DNVCC_THREADS (empty = CMakeLists default)'
+        type: string
         default: ''
       cuda_archs:
-        description: turbomind CUDAARCHS, e.g. "80-real;90a-real" (empty = CMakeLists default)
+        description: 'turbomind CUDAARCHS, e.g. "80-real;90a-real" (empty = default)'
+        type: string
         default: ''
-      cmake_defs:
-        description: extra turbomind cmake defines without -D, ';'-separated, e.g. "BUILD_FAST_MATH:BOOL=OFF"
-        default: ''
-      label:
-        description: free-form label used in the artifact name
-        default: baseline
-      upload_wheel:
-        description: also upload the built wheel as an artifact
-        type: boolean
-        default: false
   push:
     branches:
       - 'ci/build-eval-*'
@@ -82,63 +80,73 @@ jobs:
     name: build-eval
     runs-on: [self-hosted, linux, x64, lmdeploy-build]
     timeout-minutes: 180
-    env:
-      JOBS: ${{ inputs.jobs || '16' }}
-      CPU_LIST: ${{ github.event_name == 'workflow_dispatch' && inputs.cpu_list || '48-63' }}
-      NVCC_THREADS: ${{ inputs.nvcc_threads }}
-      CUDA_ARCHS: ${{ inputs.cuda_archs }}
-      CMAKE_DEFS: ${{ inputs.cmake_defs }}
-      KEEP_WHEEL: ${{ inputs.upload_wheel && '1' || '0' }}
-      RUN_TAG: run-${{ github.run_id }}-${{ github.run_attempt }}
-      OUT_DIR: ${{ runner.temp }}/build-eval-out
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Select components
+      - name: Configure evaluation
         env:
           IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
-          C_TURBOMIND: ${{ inputs.turbomind }}
-          C_PYTHON_ONLY: ${{ inputs.python_only }}
-          C_DEEP_EP: ${{ inputs.deep_ep }}
-          C_DEEP_GEMM: ${{ inputs.deep_gemm }}
-          C_FLASH_MLA: ${{ inputs.flash_mla }}
-          C_FAST_HADAMARD: ${{ inputs.fast_hadamard }}
+          IN_LMDEPLOY: ${{ inputs.lmdeploy_wheel }}
+          IN_DEEP_EP: ${{ inputs.deep_ep }}
+          IN_DEEP_GEMM: ${{ inputs.deep_gemm }}
+          IN_FLASH_MLA: ${{ inputs.flash_mla }}
+          IN_FAST_HADAMARD: ${{ inputs.fast_hadamard }}
+          IN_UPLOAD_WHEEL: ${{ inputs.upload_wheel }}
+          IN_JOBS: ${{ inputs.jobs }}
+          IN_CPU_LIST: ${{ inputs.cpu_list }}
+          IN_NVCC_THREADS: ${{ inputs.nvcc_threads }}
+          IN_CUDA_ARCHS: ${{ inputs.cuda_archs }}
         run: |
           # push events have no inputs: run a fast python-only smoke check by default;
           # use workflow_dispatch to pick turbomind and/or third-party wheels.
           sel=()
           if [ "$IS_DISPATCH" != "true" ]; then
             sel=(python-only)
+            keep_wheel=1
+            cpu_list="48-63"
+            jobs="16"
           else
-            [ "$C_TURBOMIND" = "true" ] && sel+=(turbomind)
-            [ "$C_PYTHON_ONLY" = "true" ] && sel+=(python-only)
-            [ "$C_DEEP_EP" = "true" ] && sel+=(deep_ep)
-            [ "$C_DEEP_GEMM" = "true" ] && sel+=(deep_gemm)
-            [ "$C_FLASH_MLA" = "true" ] && sel+=(flash_mla)
-            [ "$C_FAST_HADAMARD" = "true" ] && sel+=(fast_hadamard)
+            if [ -n "$IN_LMDEPLOY" ] && [ "$IN_LMDEPLOY" != "none" ]; then
+              sel+=("$IN_LMDEPLOY")
+            fi
+            [ "$IN_DEEP_EP" = "true" ] && sel+=(deep_ep)
+            [ "$IN_DEEP_GEMM" = "true" ] && sel+=(deep_gemm)
+            [ "$IN_FLASH_MLA" = "true" ] && sel+=(flash_mla)
+            [ "$IN_FAST_HADAMARD" = "true" ] && sel+=(fast_hadamard)
+            [ "$IN_UPLOAD_WHEEL" = "true" ] && keep_wheel=1 || keep_wheel=0
+            cpu_list="$IN_CPU_LIST"
+            jobs="${IN_JOBS:-16}"
           fi
           if [ ${#sel[@]} -eq 0 ]; then
             echo "::error::no component selected"
             exit 1
           fi
-          echo "COMPONENTS=$(IFS=,; echo "${sel[*]}")" >> "$GITHUB_ENV"
+          {
+            echo "COMPONENTS=$(IFS=,; echo "${sel[*]}")"
+            echo "JOBS=$jobs"
+            echo "CPU_LIST=$cpu_list"
+            echo "NVCC_THREADS=$IN_NVCC_THREADS"
+            echo "CUDA_ARCHS=$IN_CUDA_ARCHS"
+            echo "KEEP_WHEEL=$keep_wheel"
+            echo "RUN_TAG=run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            echo "OUT_DIR=${RUNNER_TEMP}/build-eval-out"
+          } >> "$GITHUB_ENV"
       - name: Build and measure
         run: bash .github/scripts/perf_eval/build_eval.sh
       - name: Publish summary
         if: always()
         run: |
-          if [ -f "$OUT_DIR/summary.md" ]; then
+          if [ -n "${OUT_DIR:-}" ] && [ -f "$OUT_DIR/summary.md" ]; then
             cat "$OUT_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
           fi
-      - name: Upload metrics
+      - name: Upload metrics and wheels
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-eval-${{ inputs.label || 'push' }}-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/build-eval-out/**
+          name: build-eval-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/build-eval-out/**
           if-no-files-found: warn
           retention-days: 30
