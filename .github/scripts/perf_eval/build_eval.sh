@@ -17,7 +17,9 @@
 #
 # Knobs (environment variables):
 #   JOBS          ninja / MAX_JOBS parallelism                            [16]
-#   CPU_LIST      taskset cpu list to hard-cap the build, e.g. 48-63      [unset: no pinning]
+#   CPU_LIST      taskset cpu list hard-capping the build, e.g. 48-63.   [auto]
+#                 "auto": if the host exposes more CPUs than JOBS, pin to the
+#                 last JOBS allowed CPUs; otherwise do not pin. "none": never pin.
 #   NVCC_THREADS  -DNVCC_THREADS for turbomind                            [unset: CMakeLists default]
 #   CUDA_ARCHS    CUDAARCHS for turbomind, e.g. "80-real;90a-real"        [unset: CMakeLists default]
 #   CMAKE_DEFS    extra turbomind cmake defines WITHOUT the -D prefix,
@@ -35,7 +37,7 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SRC_DIR=${SRC_DIR:-$(git -C "$HERE" rev-parse --show-toplevel)}
 COMPONENTS=${COMPONENTS:-turbomind}
 JOBS=${JOBS:-16}
-CPU_LIST=${CPU_LIST:-}
+CPU_LIST=${CPU_LIST:-auto}
 NVCC_THREADS=${NVCC_THREADS:-}
 CUDA_ARCHS=${CUDA_ARCHS:-}
 CMAKE_DEFS=${CMAKE_DEFS:-}
@@ -137,7 +139,29 @@ fi
 echo "::endgroup::"
 
 pin=()
-[[ -n $CPU_LIST ]] && pin=(taskset -c "$CPU_LIST")
+if [[ $CPU_LIST == auto ]]; then
+    allowed=()
+    for part in $(taskset -pc $$ | sed 's/.*: //; s/,/ /g'); do
+        if [[ $part == *-* ]]; then
+            lo=${part%-*}; hi=${part#*-}
+            for ((i = lo; i <= hi; i++)); do allowed+=("$i"); done
+        else
+            allowed+=("$part")
+        fi
+    done
+    if (( ${#allowed[@]} > JOBS )); then
+        tail=("${allowed[@]: -JOBS}")
+        CPU_LIST=$(IFS=,; echo "${tail[*]}")
+    else
+        CPU_LIST=
+    fi
+elif [[ $CPU_LIST == none ]]; then
+    CPU_LIST=
+fi
+if [[ -n $CPU_LIST ]]; then
+    taskset -c "$CPU_LIST" true || { echo "CPU_LIST='$CPU_LIST' is not usable on this host (has $(nproc --all) CPUs)" >&2; exit 2; }
+    pin=(taskset -c "$CPU_LIST")
+fi
 
 {
     echo "commit:        $(git -C "$SRC_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"

@@ -44,9 +44,9 @@ on:
         type: string
         default: '16'
       cpu_list:
-        description: 'taskset CPU list hard-capping the build (empty = no pinning)'
+        description: 'taskset CPU list hard-capping the build; "auto" pins to JOBS CPUs only if the host has more, "none" never pins'
         type: string
-        default: '48-63'
+        default: 'auto'
       nvcc_threads:
         description: 'turbomind -DNVCC_THREADS (empty = CMakeLists default)'
         type: string
@@ -106,7 +106,7 @@ jobs:
           if [ "$IS_DISPATCH" != "true" ]; then
             sel=(python-only)
             keep_wheel=1
-            cpu_list="48-63"
+            cpu_list="auto"
             jobs="16"
           else
             if [ -n "$IN_LMDEPLOY" ] && [ "$IN_LMDEPLOY" != "none" ]; then
