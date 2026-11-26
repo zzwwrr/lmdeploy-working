@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 
+import os
 from collections.abc import Iterable
 from functools import lru_cache
 from typing import Any
@@ -11,7 +12,7 @@ from transformers.configuration_utils import PretrainedConfig
 
 from lmdeploy.pytorch.distributed import get_tp_world_rank
 from lmdeploy.pytorch.engine.input_process import BaseModelInputProcessor
-from lmdeploy.pytorch.model_inputs import StepContext, StepContextManager
+from lmdeploy.pytorch.model_inputs import StepContext, StepContextManager, get_step_ctx_manager
 from lmdeploy.pytorch.nn import (
     ApplyRotaryEmb,
     Attention,
@@ -199,6 +200,7 @@ class Qwen3_5VisionModel(nn.Module):
         self.spatial_merge_size = config.spatial_merge_size
 
         self.patch_embed = Qwen3_5VisionPatchEmbed(config=config, dtype=dtype, device=device)
+        self.vision_graphs = None
 
         self.pos_embed = nn.Embedding(config.num_position_embeddings, config.hidden_size, dtype=dtype, device=device)
         self.num_grid_per_side = int(config.num_position_embeddings**0.5)
@@ -316,7 +318,16 @@ class Qwen3_5VisionModel(nn.Module):
 
     def forward(self, hidden_states: torch.Tensor, cu_seqlens: torch.Tensor, rotary_pos_emb: torch.Tensor,
                 pos_embeds: torch.Tensor) -> torch.Tensor:
-        """forward."""
+        if self.vision_graphs is not None:
+            return self.vision_graphs(self._encode, hidden_states, cu_seqlens, rotary_pos_emb, pos_embeds)
+        return self._encode(hidden_states, cu_seqlens, rotary_pos_emb, pos_embeds)
+
+    def _apply(self, fn, recurse=True):
+        if self.vision_graphs is not None:
+            self.vision_graphs.clear()
+        return super()._apply(fn, recurse=recurse)
+
+    def _encode(self, hidden_states, cu_seqlens, rotary_pos_emb, pos_embeds):
         hidden_states = self.patch_embed(hidden_states)
         hidden_states = hidden_states + pos_embeds
         cu_seqlens = torch.nn.functional.pad(cu_seqlens, (1, 0), value=0)
@@ -469,6 +480,17 @@ class Qwen3_5GatedDeltaNet(nn.Module):
                                      quant_config=quantization_config)
 
         self.gated_delta = GatedDelta()
+        self.fused_prefill = None
+        if (os.getenv('LMDEPLOY_FUSED_GDN_PREFILL') == '1' and dtype == torch.bfloat16
+                and device is not None and torch.device(device).type == 'cuda'
+                and torch.cuda.get_device_capability(device) == (9, 0) and quantization_config is None
+                and not get_build_model_context().enable_deterministic and self.conv1d.tp == 1
+                and getattr(self.gated_delta.impl, 'indexed_state', False)
+                and self.gated_delta.use_qk_l2norm_in_kernel and self.conv_kernel_size == 4
+                and (self.num_k_heads, self.num_v_heads, self.head_k_dim, self.head_v_dim) == (16, 32, 128, 128)
+                and self.conv1d.bias is None and self.conv1d.causal_conv1d_func.activation == 'silu'):
+            from lmdeploy.pytorch.kernels.cuda.gdn_prefill_conv import try_indexed_gdn_prefill
+            self.fused_prefill = try_indexed_gdn_prefill
 
     def get_A_log_exp(self):
         if self.A_log_exp is None:
@@ -539,6 +561,7 @@ class Qwen3_5GatedDeltaNet(nn.Module):
         hidden_states: torch.Tensor,
         past_key_value: tuple[torch.Tensor, torch.Tensor],
         gated_delta_meta: GatedDeltaMeta,
+        shared_rows: tuple[torch.Tensor, torch.Tensor] | None = None,
     ) -> torch.Tensor:
         """forward."""
 
@@ -551,9 +574,32 @@ class Qwen3_5GatedDeltaNet(nn.Module):
         # [..., ng, np/ng * hn] -> [..., np, hn]
         z = z.unflatten(-1, (-1, self.head_v_dim))
         projected_states_ba = self.in_proj_ba(hidden_states)
+        if shared_rows is not None:
+            # Convolution and recurrent state retain one complete sequence per request.
+            projected_states_qkv = projected_states_qkv.index_select(1, shared_rows[1])
+            projected_states_ba = projected_states_ba.index_select(1, shared_rows[1])
         b, a = self.fix_ba_ordering(projected_states_ba)
 
-        mixed_qkv = projected_states_qkv
+        core_attn_out = None
+        if self.fused_prefill is not None:
+            core_attn_out = self.fused_prefill(
+                self, projected_states_qkv, b, a, conv_state, recurrent_state, gated_delta_meta)
+        if core_attn_out is None:
+            core_attn_out = self._conv_and_gated_delta(
+                projected_states_qkv, b, a, conv_state, recurrent_state, gated_delta_meta)
+
+        if shared_rows is not None:
+            core_attn_out = core_attn_out.index_select(1, shared_rows[0])
+        z_shape_og = z.shape
+        core_attn_out = core_attn_out.reshape(-1, core_attn_out.shape[-1])
+        z = z.reshape(-1, z.shape[-1])
+        core_attn_out = self.norm(core_attn_out, z)
+        core_attn_out = core_attn_out.reshape(z_shape_og)
+        core_attn_out = core_attn_out.reshape(core_attn_out.shape[0], core_attn_out.shape[1], -1)
+
+        return self.out_proj(core_attn_out)
+
+    def _conv_and_gated_delta(self, mixed_qkv, b, a, conv_state, recurrent_state, gated_delta_meta):
         mixed_qkv = self.conv1d(mixed_qkv, conv_state, gated_delta_meta)
 
         tp = (self.key_dim * 2 + self.value_dim) // mixed_qkv.size(-1)
@@ -570,7 +616,7 @@ class Qwen3_5GatedDeltaNet(nn.Module):
         key = key.unflatten(-1, (-1, self.head_k_dim))
         value = value.unflatten(-1, (-1, self.head_v_dim))
 
-        core_attn_out = self.gated_delta(
+        return self.gated_delta(
             query,
             key,
             value,
@@ -582,17 +628,6 @@ class Qwen3_5GatedDeltaNet(nn.Module):
             gated_delta_meta=gated_delta_meta,
             kv_ratio=self.kv_ratio,
         )
-
-        z_shape_og = z.shape
-        core_attn_out = core_attn_out.reshape(-1, core_attn_out.shape[-1])
-        z = z.reshape(-1, z.shape[-1])
-        core_attn_out = self.norm(core_attn_out, z)
-        core_attn_out = core_attn_out.reshape(z_shape_og)
-        core_attn_out = core_attn_out.reshape(core_attn_out.shape[0], core_attn_out.shape[1], -1)
-
-        output = self.out_proj(core_attn_out)
-        return output
-
 
 class Qwen3_5Attention(nn.Module):
     """Rewrite module of Qwen3MoeAttention."""
@@ -676,6 +711,7 @@ class Qwen3_5Attention(nn.Module):
         rotary_pos_emb: tuple[torch.FloatTensor, torch.FloatTensor],
         past_key_value: tuple[torch.Tensor, torch.Tensor],
         attn_metadata: Any,
+        shared_rows: tuple[torch.Tensor, torch.Tensor] | None = None,
     ):
         """Rewrite of LlamaAttention.forward."""
         # qkv proj
@@ -699,6 +735,12 @@ class Qwen3_5Attention(nn.Module):
             inplace=True,
         )
 
+        # Keep each request's attention mask, positions and KV writes intact.
+        if shared_rows is not None:
+            inverse = shared_rows[1]
+            query_states = query_states.index_select(0, inverse)
+            key_states = key_states.index_select(0, inverse)
+            value_states = value_states.index_select(0, inverse)
         # attention
         attn_output = self.attn_fwd(
             query_states,
@@ -711,6 +753,8 @@ class Qwen3_5Attention(nn.Module):
             v_scales_zeros=None if len(past_key_value) == 2 else past_key_value[3],
             inplace=True,
         )
+        if shared_rows is not None:
+            attn_output = attn_output.index_select(0, shared_rows[0])
         attn_output = attn_output.reshape(*hidden_states.shape[:-1], -1)
         gate = gate.reshape(*hidden_states.shape[:-1], -1)
         attn_output = attn_output * gate.sigmoid()
@@ -777,6 +821,7 @@ class Qwen3_5DecoderLayer(nn.Module):
         attn_metadata: Any | None = None,
         gated_delta_meta: GatedDeltaMeta | None = None,
         all_routed_experts: torch.Tensor | None = None,
+        shared_rows: tuple[torch.Tensor, torch.Tensor] | None = None,
     ):
 
         if residual is None:
@@ -785,12 +830,14 @@ class Qwen3_5DecoderLayer(nn.Module):
         else:
             hidden_states, residual = self.input_layernorm(hidden_states, residual)
 
+        shared_kwargs = {'shared_rows': shared_rows} if shared_rows is not None else {}
         # Self Attention
         if self.layer_type == 'linear_attention':
             hidden_states = self.linear_attn(
                 hidden_states=hidden_states,
                 past_key_value=past_key_value,
                 gated_delta_meta=gated_delta_meta,
+                **shared_kwargs,
             )
         elif self.layer_type == 'full_attention':
             hidden_states = self.self_attn(
@@ -798,6 +845,7 @@ class Qwen3_5DecoderLayer(nn.Module):
                 rotary_pos_emb=rotary_pos_emb,
                 past_key_value=past_key_value,
                 attn_metadata=attn_metadata,
+                **shared_kwargs,
             )
 
         # Fully Connected
@@ -810,6 +858,9 @@ class Qwen3_5DecoderLayer(nn.Module):
 
 class Qwen3_5TextModel(nn.Module):
     """qwen3.5 text model."""
+
+    share_decision_prefix = False
+    use_decision_suffix = False
 
     def __init__(self,
                  config: PretrainedConfig,
@@ -881,10 +932,37 @@ class Qwen3_5TextModel(nn.Module):
         gated_delta_meta = self.gated_delta_meta_builder(hidden_states.size(1),
                                                          self.config.linear_conv_kernel_dim, state_ids, attn_metadata)
 
+        shared_rows = None
+        score_suffix = None
+        if ((self.share_decision_prefix or self.use_decision_suffix) and not self.aux_hidden_state_layers
+                and all_routed_experts is None):
+            from lmdeploy.pytorch.backends.cuda.graph_runner.piecewise import get_piecewise_graph_execution
+            manager = get_step_ctx_manager()
+            context = manager.current_context() if manager is not None else None
+            if context is not None and get_piecewise_graph_execution() is None:
+                if self.share_decision_prefix and context.decision_prefix_rows is not None:
+                    kept = context.decision_prefix_rows
+                    shared_rows = kept, context.decision_prefix_inverse
+                    hidden_states = hidden_states.index_select(1, kept)
+                    rotary_pos_emb = cos.index_select(0, kept), sin.index_select(0, kept)
+                elif (self.use_decision_suffix and not context.cache_config.enable_prefix_caching
+                      and not context.cache_config.use_mooncake_store):
+                    score_suffix = context.decision_score_suffix
+        shared_kwargs = {'shared_rows': shared_rows} if shared_rows is not None else {}
+
         # decoding
         aux_hidden_states = []
         residual = None
         for idx, decoder_layer in enumerate(self.layers):
+            if (score_suffix is not None and idx == len(self.layers) - 1 and residual is not None
+                    and decoder_layer.layer_type == 'full_attention'):
+                from .utils.decision_score_suffix import forward_decision_scores
+                scored = forward_decision_scores(decoder_layer, hidden_states, residual, rotary_pos_emb,
+                                                 attn_metadata, score_suffix)
+                if scored is not None:
+                    hidden_states, residual = scored
+                    hidden_states, _ = self.norm(hidden_states, residual)
+                    return hidden_states[:, :score_suffix.num_scores]
             hidden_states, residual = decoder_layer(
                 hidden_states,
                 rotary_pos_emb=rotary_pos_emb,
@@ -893,12 +971,15 @@ class Qwen3_5TextModel(nn.Module):
                 attn_metadata=attn_metadata,
                 gated_delta_meta=gated_delta_meta,
                 all_routed_experts=all_routed_experts,
+                **shared_kwargs,
             )
             if idx in self._aux_hidden_state_layers_set:
                 aux_hidden_states.append(hidden_states if residual is None else hidden_states + residual)
 
         # norm
         hidden_states, _ = self.norm(hidden_states, residual)
+        if shared_rows is not None:
+            hidden_states = hidden_states.index_select(1, shared_rows[1])
 
         if len(aux_hidden_states) > 0:
             return dict(hidden_states=hidden_states, aux_hidden_states=torch.cat(aux_hidden_states, dim=-1))
@@ -926,6 +1007,20 @@ class Qwen3_5Model(nn.Module):
                                                dtype=dtype,
                                                device=device,
                                                prefix=add_prefix('language_model', prefix))
+
+    def embed_image_tokens(self, inputs_embeds, pixel_values, vis_cu_seqlens, vis_pos_emb, pos_embeds, grid_thw,
+                           multimodal_mask):
+        """Insert this batch's encoded images into the text embedding sequence."""
+        dtype = inputs_embeds.dtype
+        vis_pos_emb = (vis_pos_emb[0].to(dtype), vis_pos_emb[1].to(dtype))
+        image_embeds = self.visual(pixel_values.to(dtype),
+                                   cu_seqlens=vis_cu_seqlens,
+                                   rotary_pos_emb=vis_pos_emb,
+                                   pos_embeds=pos_embeds)
+        split_sizes = (grid_thw.prod(-1) // self.visual.spatial_merge_size**2).tolist()
+        image_embeds = torch.cat(torch.split(image_embeds, split_sizes), dim=0).to(inputs_embeds.device, dtype)
+        multimodal_mask = multimodal_mask.unsqueeze(-1).expand_as(inputs_embeds)
+        return inputs_embeds.masked_scatter(multimodal_mask, image_embeds)
 
     def forward(
         self,
@@ -956,24 +1051,8 @@ class Qwen3_5Model(nn.Module):
             inputs_embeds = self.get_input_embeddings()(input_ids)
 
             if pixel_values is not None:
-                dtype = inputs_embeds.dtype
-                pixel_values = pixel_values.to(dtype)
-                vis_pos_emb = (vis_pos_emb[0].to(dtype), vis_pos_emb[1].to(dtype))
-
-                # get image embeds and deepstack visual embeds
-                image_embeds = self.visual(pixel_values,
-                                           cu_seqlens=vis_cu_seqlens,
-                                           rotary_pos_emb=vis_pos_emb,
-                                           pos_embeds=pos_embeds)
-
-                # split image embeds per sample
-                split_sizes = (grid_thw.prod(-1) // self.visual.spatial_merge_size**2).tolist()
-                image_embeds = torch.split(image_embeds, split_sizes)
-                image_embeds = torch.cat(image_embeds, dim=0).to(inputs_embeds.device, dtype)
-
-                # mask and scatter to create final input embeddings
-                multimodal_mask = multimodal_mask.unsqueeze(-1).expand_as(inputs_embeds)
-                inputs_embeds = inputs_embeds.masked_scatter(multimodal_mask, image_embeds)
+                inputs_embeds = self.embed_image_tokens(inputs_embeds, pixel_values, vis_cu_seqlens, vis_pos_emb,
+                                                        pos_embeds, grid_thw, multimodal_mask)
             elif ts_values is not None:
                 if not hasattr(self, 'time_series'):
                     raise RuntimeError('Time-series inputs require a time_series module.')

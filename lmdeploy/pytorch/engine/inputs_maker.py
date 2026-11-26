@@ -28,7 +28,7 @@ from lmdeploy.pytorch.long_context import (
     sort_long_context_multimodals,
 )
 from lmdeploy.pytorch.messages import MessageStatus
-from lmdeploy.pytorch.model_inputs import ModelInputs, ModelInputsDelta, VisionModelInputs
+from lmdeploy.pytorch.model_inputs import DecisionScoreSuffix, ModelInputs, ModelInputsDelta, VisionModelInputs
 from lmdeploy.utils import get_logger
 
 from .cache_inputs import CacheCheckpointInputs, StateCacheCopyPlan
@@ -70,6 +70,63 @@ def _make_state_checkpoint_copy_plan(
         return None
     src_offsets, dst_offsets = zip(*pairs)
     return tuple(src_offsets), tuple(dst_offsets)
+
+
+def _shared_decision_rows(token_ids: np.ndarray, lengths: list[int]):
+    """Map matching request prefixes to one representative inside this batch."""
+    groups = {}
+    offset = 0
+    for length in lengths:
+        if length >= 32:
+            identity = token_ids[offset:offset + 32].tobytes()
+            groups.setdefault(identity, []).append((offset, length))
+        offset += length
+
+    # Keep the cost of discovery bounded on long contexts. Compare actual token IDs.
+    keep = np.ones(len(token_ids), dtype=bool)
+    source = np.arange(len(token_ids), dtype=np.int64)
+    for group in groups.values():
+        if len(group) < 2:
+            continue
+        limit = min(256, min(length for _, length in group))
+        prefixes = np.stack([token_ids[start:start + limit] for start, _ in group])
+        differences = np.flatnonzero(np.any(prefixes != prefixes[0], axis=0))
+        width = int(differences[0]) if len(differences) else limit
+        first = group[0][0]
+        for start, _ in group[1:]:
+            keep[start:start + width] = False
+            source[start:start + width] = np.arange(first, first + width)
+
+    if len(token_ids) - int(keep.sum()) < max(64, len(token_ids) // 16):
+        return None, None
+    rows = np.flatnonzero(keep)
+    inverse = (np.cumsum(keep, dtype=np.int64) - 1)[source]
+    return torch.from_numpy(rows), torch.from_numpy(inverse)
+
+
+def _decision_score_suffix(lengths, indices, row_counts):
+    """Retain a contiguous, right-aligned query suffix for each causal FA3 sequence."""
+    queries, scores_in_suffix, cu = [], [], [0]
+    end = offset = max_length = 0
+    for length, count in zip(lengths, row_counts):
+        if count < 1:
+            return None
+        end += length
+        selected = indices[offset:offset + count]
+        start = selected[0]
+        suffix_length = end - start
+        if not 0 < suffix_length <= length or suffix_length > length // 8:
+            return None
+        scores_in_suffix.extend(cu[-1] + i - start for i in selected)
+        queries.extend(range(start, end))
+        cu.append(len(queries))
+        max_length = max(max_length, suffix_length)
+        offset += count
+    # A consistent GEMM row extent preserves the qualified BF16 scoring behavior.
+    pad = max(0, 512 - len(indices))
+    return DecisionScoreSuffix(torch.tensor(queries), torch.tensor(scores_in_suffix + [0] * pad),
+                               torch.tensor(indices + [queries[0]] * pad), torch.tensor(cu, dtype=torch.int32),
+                               max_length, len(indices))
 
 
 def fill_logits_indices(model_inputs: ModelInputs, messages: list['SchedulerSequence'], query_lengths: list[int]):
@@ -114,6 +171,20 @@ def fill_logits_indices(model_inputs: ModelInputs, messages: list['SchedulerSequ
 
     model_inputs.logits_indices = torch.tensor(indices, dtype=torch.long)
     model_inputs.seq_logit_length = torch.tensor(row_counts, dtype=torch.long)
+    if ((_envs.decision_share_prefix or _envs.decision_score_suffix) and not model_inputs.is_chunk and not model_inputs.is_decoding
+            and not model_inputs.is_dummy and not model_inputs.enable_microbatch
+            and model_inputs.input_ids.device.type == 'cpu' and 2048 < model_inputs.input_ids.numel() <= 32768
+            and len(messages) > 1 and all(getattr(msg.sampling_param, 'decision_text_scoring', False) and not msg.num_history_ids
+                                         and not msg.input_start_pos and not msg.adapter_name and not msg.num_images
+                                         and not len(msg.history_embeddings) and not msg.prefix_cache.multimodal_spans
+                                         for msg in messages)):
+        if _envs.decision_share_prefix:
+            model_inputs.decision_prefix_rows, model_inputs.decision_prefix_inverse = _shared_decision_rows(
+                model_inputs.input_ids.view(-1).numpy(), query_lengths)
+        if (_envs.decision_score_suffix and model_inputs.decision_prefix_rows is None and min(query_lengths) >= 1024
+                and all(p.max_new_tokens == 0 and p.num_logprobs == 0 and not p.out_logits and not p.out_last_hidden_states
+                        and not p.out_ce_loss and not p.return_routed_experts for p in (m.sampling_param for m in messages))):
+            model_inputs.decision_score_suffix = _decision_score_suffix(query_lengths, indices, row_counts)
     return model_inputs
 
 

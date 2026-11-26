@@ -25,13 +25,13 @@ _GRAPH_TOKEN_INPUT_AXES = {
     'position_ids': 1,
     'mrope_position_ids': 1,
 }
+_GRAPH_TOKEN_AXES_WITH_EMBEDS = {**_GRAPH_TOKEN_INPUT_AXES, 'inputs_embeds': 1}
 _FRAME_INPUT_NAMES = (
     'past_key_values',
     'attn_metadata',
     'state_ids',
     'kpool_tail_states',
 )
-_STANDARD_FORWARD_INPUT_NAMES = frozenset(_GRAPH_TOKEN_INPUT_AXES) | frozenset(_FRAME_INPUT_NAMES)
 _FORWARD_CONSTANT_TYPES = (bool, int, float, str, bytes, torch.dtype, torch.device)
 _DEFAULT_TOKEN_STRIDE = 512
 
@@ -43,6 +43,7 @@ class _StandardGraphDescriptor:
     token_bucket: int
     graph_input_names: tuple[str, ...]
     forward_constants: tuple[tuple[str, Any], ...]
+    embedding_spec: tuple[int, int, torch.dtype, torch.device] | None = None
 
 
 @dataclass
@@ -68,6 +69,10 @@ class StandardDecoderPiecewiseGraphRuntime:
         self.model = model
         self.max_capture_tokens = max_capture_tokens
         self.token_stride = token_stride
+        self.graph_input_axes = _GRAPH_TOKEN_INPUT_AXES
+        if getattr(model, 'supports_piecewise_inputs_embeds', False):
+            self.graph_input_axes = _GRAPH_TOKEN_AXES_WITH_EMBEDS
+        self.forward_input_names = frozenset(self.graph_input_axes) | frozenset(_FRAME_INPUT_NAMES)
 
     def get_capture_token_sizes(self) -> list[int]:
         """Return fixed-stride token buckets, including the configured cap."""
@@ -88,18 +93,25 @@ class StandardDecoderPiecewiseGraphRuntime:
         if context.local_adapter_ids is not None and not context.is_dummy:
             return None
 
-        forward_constants = self._get_forward_constants(kwargs)
+        forward_constants = self._get_forward_constants(kwargs, self.forward_input_names)
         if forward_constants is None:
             return None
 
         raw_tokens = kwargs['input_ids'].size(1)
-        graph_input_names = tuple(name for name in _GRAPH_TOKEN_INPUT_AXES if kwargs.get(name) is not None)
+        graph_input_names = tuple(name for name in self.graph_input_axes if kwargs.get(name) is not None)
+        embedding_spec = None
+        if 'inputs_embeds' in graph_input_names:
+            embeds = kwargs['inputs_embeds']
+            if (not isinstance(embeds, torch.Tensor) or embeds.ndim != 3
+                    or embeds.shape[:2] != kwargs['input_ids'].shape):
+                return None
+            embedding_spec = (embeds.size(0), embeds.size(-1), embeds.dtype, embeds.device)
         token_bucket = self._round_up_token_bucket(raw_tokens)
         if token_bucket is None:
             return None
         if raw_tokens != token_bucket and not getattr(self.model, 'piecewise_cuda_graph_token_padding', True):
             return None
-        return _StandardGraphDescriptor(token_bucket, graph_input_names, forward_constants)
+        return _StandardGraphDescriptor(token_bucket, graph_input_names, forward_constants, embedding_spec)
 
     def warmup(
         self,
@@ -181,10 +193,11 @@ class StandardDecoderPiecewiseGraphRuntime:
         return self.model.get_outputs_cudagraph(plan.output_buffers, input_ids=input_ids)
 
     @staticmethod
-    def _get_forward_constants(kwargs: Mapping[str, Any]) -> tuple[tuple[str, Any], ...] | None:
+    def _get_forward_constants(kwargs: Mapping[str, Any],
+                               input_names: frozenset[str]) -> tuple[tuple[str, Any], ...] | None:
         """Keep immutable extra arguments in the plan key and captured call."""
         constants = []
-        for name in sorted(kwargs.keys() - _STANDARD_FORWARD_INPUT_NAMES):
+        for name in sorted(kwargs.keys() - input_names):
             value = kwargs[name]
             if value is not None and not isinstance(value, _FORWARD_CONSTANT_TYPES):
                 return None
@@ -212,7 +225,7 @@ class StandardDecoderPiecewiseGraphRuntime:
         for name in descriptor.graph_input_names:
             value = inputs[name]
             shape = list(value.shape)
-            shape[_GRAPH_TOKEN_INPUT_AXES[name]] = descriptor.token_bucket
+            shape[_GRAPH_TOKEN_AXES_WITH_EMBEDS[name]] = descriptor.token_bucket
             bucket_inputs.append(value.new_zeros(shape))
         bucket_inputs = tuple(bucket_inputs)
         cls._fill_bucket_inputs(bucket_inputs, inputs, descriptor)
@@ -227,7 +240,7 @@ class StandardDecoderPiecewiseGraphRuntime:
         """Copy one logical request and deterministically clear its tail."""
         for bucket_input, name in zip(bucket_inputs, descriptor.graph_input_names, strict=True):
             value = inputs[name]
-            token_axis = _GRAPH_TOKEN_INPUT_AXES[name]
+            token_axis = _GRAPH_TOKEN_AXES_WITH_EMBEDS[name]
             bucket_input.zero_()
             bucket_input.narrow(token_axis, 0, value.size(token_axis)).copy_(value)
 

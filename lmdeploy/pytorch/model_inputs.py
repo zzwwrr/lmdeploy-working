@@ -219,6 +219,27 @@ class ModelInputsDelta:
         return ret
 
 
+@dataclass(frozen=True)
+class DecisionScoreSuffix:
+    """Rows needed by the final decoder layer of a stateless scoring request."""
+    queries: torch.Tensor
+    scores_in_suffix: torch.Tensor
+    scores_in_prompt: torch.Tensor
+    cu_query_lengths: torch.Tensor
+    max_query_length: int
+    num_scores: int
+
+    def to_device(self, device, non_blocking=False):
+        tensors = (self.queries, self.scores_in_suffix, self.scores_in_prompt, self.cu_query_lengths)
+        return DecisionScoreSuffix(*(x.to(device, non_blocking=non_blocking) for x in tensors),
+                                   self.max_query_length, self.num_scores)
+
+    def record_stream(self, stream):
+        for tensor in (self.queries, self.scores_in_suffix, self.scores_in_prompt, self.cu_query_lengths):
+            if tensor.is_cuda:
+                tensor.record_stream(stream)
+
+
 @dataclass
 class ModelInputs:
     """Input of the model."""
@@ -261,6 +282,11 @@ class ModelInputs:
     ssm_prefill_meta: SSMPrefillMetadata | None = None
     # -1 keeps the cursor, 0 resets to zero state, >0 reads a checkpoint.
     ssm_source_state_ids: torch.Tensor | None = None
+
+    # Unique token rows within this prefill and the inverse map to the packed requests.
+    decision_prefix_rows: torch.Tensor | None = None
+    decision_prefix_inverse: torch.Tensor | None = None
+    decision_score_suffix: DecisionScoreSuffix | None = None
 
     def __post_init__(self):
         ids = self.ssm_source_state_ids
@@ -312,7 +338,7 @@ class ModelInputs:
             v = getattr(self, k)
             if isinstance(v, torch.Tensor):
                 v = v.to(device, non_blocking=non_blocking)
-            elif isinstance(v, (VisionModelInputs, SSMStateMetadata, SSMPrefillMetadata)):
+            elif isinstance(v, (VisionModelInputs, SSMStateMetadata, SSMPrefillMetadata, DecisionScoreSuffix)):
                 v = v.to_device(device, non_blocking=non_blocking)
             out_dict[k] = v
 
@@ -325,7 +351,7 @@ class ModelInputs:
             if isinstance(value, torch.Tensor):
                 if value.is_cuda:
                     value.record_stream(stream)
-            elif isinstance(value, (VisionModelInputs, SSMStateMetadata, SSMPrefillMetadata)):
+            elif isinstance(value, (VisionModelInputs, SSMStateMetadata, SSMPrefillMetadata, DecisionScoreSuffix)):
                 value.record_stream(stream)
 
     def build_dp_meta(self, num_tokens: list[int]):
@@ -409,6 +435,9 @@ class StepContext:
     # Full-graph device scalar: zero for dummy DP steps, otherwise the
     # unpadded token count. Its address stays fixed while replay values change.
     moe_valid_token_count: torch.Tensor | None = None
+    decision_prefix_rows: torch.Tensor | None = None
+    decision_prefix_inverse: torch.Tensor | None = None
+    decision_score_suffix: DecisionScoreSuffix | None = None
 
     @classmethod
     def new(
@@ -451,6 +480,9 @@ class StepContext:
         ret = StepContext(
             input_ids=inputs.input_ids,
             model_config=model_config,
+            decision_prefix_rows=inputs.decision_prefix_rows,
+            decision_prefix_inverse=inputs.decision_prefix_inverse,
+            decision_score_suffix=inputs.decision_score_suffix,
             cache_config=cache_config,
             block_offsets=inputs.block_offsets,
             position_ids=position_ids,
@@ -582,6 +614,7 @@ class BuildModelContext:
     num_spec_tokens: int = 0
     max_batch_size: int = 0
     spec_model_ctx: SpecModelBuildContext = field(default_factory=SpecModelBuildContext)
+    allow_vision_cuda_graph: bool = False
 
     @property
     def deep_ep_max_tokens_per_rank(self) -> int:

@@ -231,6 +231,8 @@ with set_envs():
 
     # qwen3.5 recurrent_state dtype
     fp32_mamba_ssm_dtype = env_to_bool('LMDEPLOY_FP32_MAMBA_SSM_DTYPE', False)
+    decision_share_prefix = env_to_bool('LMDEPLOY_DECISION_SHARE_PREFIX', False)
+    decision_score_suffix = env_to_bool('LMDEPLOY_DECISION_SCORE_SUFFIX', False)
 
     # DSA indexer fusion
     disable_dsa_indexer_fusion = env_to_bool('LMDEPLOY_DISABLE_DSA_INDEXER_FUSION', False)

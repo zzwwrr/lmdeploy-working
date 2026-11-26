@@ -607,6 +607,9 @@ class BaseModelAgent:
             return None
         logits_indices = inputs.logits_indices
         flat_hidden = hidden_states.reshape(-1, hidden_states.shape[-1])
+        suffix = getattr(inputs, 'decision_score_suffix', None)
+        if suffix is not None and flat_hidden.size(0) == suffix.num_scores < inputs.input_ids.numel():
+            return self.get_logits(flat_hidden[None])[0]
         selected_hidden = flat_hidden.index_select(0, logits_indices)
         return self.get_logits(selected_hidden[None])[0]
 
@@ -1508,7 +1511,10 @@ class BaseModelAgent:
                                             tie_word_embeddings=self.model_config.tie_word_embeddings,
                                             num_spec_tokens=self.spec_agent.num_spec_tokens,
                                             max_batch_size=self.cache_config.max_batches,
-                                            spec_model_ctx=spec_model_ctx)
+                                            spec_model_ctx=spec_model_ctx,
+                                            allow_vision_cuda_graph=(not self.backend_config.eager_mode
+                                                                     and not self.backend_config.enable_deterministic
+                                                                     and not adapters))
         patched_model = build_patched_model(self.model_config, device=device, build_model_ctx=build_model_ctx)
         logger.debug(msg_with_rank(rank, 'loading weights.'))
         if not self.misc_config.empty_init:

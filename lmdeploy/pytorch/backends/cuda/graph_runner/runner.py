@@ -132,6 +132,10 @@ class CUDAGraphRunner(GraphRunner):
 
         self._piecewise_graph_manager = _make_piecewise_graph_manager(model, model_config, cache_config,
                                                                       backend_config)
+        self._prepare_piecewise_inputs = None
+        if self._piecewise_graph_manager is not None and getattr(model, 'supports_piecewise_inputs_embeds', False):
+            self._prepare_piecewise_inputs = model.prepare_piecewise_inputs
+            self._piecewise_input_limit = max(self._piecewise_graph_manager.get_capture_token_sizes())
 
         # strategy factory
         build_ctx = model.ctx_mgr.build_ctx
@@ -289,16 +293,23 @@ class CUDAGraphRunner(GraphRunner):
         context: StepContext = None,
     ):
         """Prepare inputs."""
-        return self.model.prepare_inputs_for_generation(
+        model_inputs = self.model.prepare_inputs_for_generation(
             past_key_values=past_key_values,
             inputs_embeds=inputs_embeds,
             context=context,
         )
+        if (self._prepare_piecewise_inputs is not None and not context.global_is_decoding()
+                and not context.enable_microbatch and (context.local_adapter_ids is None or context.is_dummy)
+                and model_inputs['input_ids'].size(1) <= self._piecewise_input_limit):
+            return self._prepare_piecewise_inputs(model_inputs)
+        return model_inputs
 
     def reset(self):
         """Remove all graphs to prevent hanging on exit."""
         super().reset()
         self._full_graph_runners.clear()
+        if hasattr(self.model, 'reset_vision_graphs'):
+            self.model.reset_vision_graphs()
         if self._piecewise_graph_manager is not None:
             self._piecewise_graph_manager.reset()
         _destroy_deepep_buffer()

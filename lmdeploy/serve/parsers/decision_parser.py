@@ -357,6 +357,7 @@ class DecisionParser:
         self.score_row_indices = tuple(position - (start + 1) for position in markers)
         self.expected_score_rows = len(ids) - (start + 1)
         prepared.gen_config.logprob_start_len = start
+        prepared.gen_config._decision_text_scoring = self.systemone and not self.has_images
 
     def parse_output(self, output, *, model_name: str) -> dict:
         if output.finish_reason == 'abort':

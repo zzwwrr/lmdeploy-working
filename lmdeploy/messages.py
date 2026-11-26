@@ -210,6 +210,7 @@ class GenerationConfig:
     spaces_between_special_tokens: bool = True
     logprobs: int = None
     logprob_start_len: int = -1
+    _decision_text_scoring: bool = field(default=False, repr=False, kw_only=True)
     logprob_extra_token_ids: list[int] | None = None
     response_format: dict | None = None
     logits_processors: list[LogitsProcessor] | None = None

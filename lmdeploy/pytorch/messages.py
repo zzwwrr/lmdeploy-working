@@ -76,6 +76,7 @@ class SamplingParam:
     out_ce_loss: bool = False
     num_logprobs: int = -1
     logprob_start_len: int = -1
+    decision_text_scoring: bool = field(default=False, kw_only=True)
     # Token IDs whose scores must be returned regardless of top-k selection.
     logprob_extra_token_ids: tuple[int, ...] | None = None
     return_routed_experts: bool = False
@@ -176,6 +177,7 @@ class SamplingParam:
             out_ce_loss=gen_config.return_ppl,
             num_logprobs=logprobs,
             logprob_start_len=gen_config.logprob_start_len,
+            decision_text_scoring=getattr(gen_config, '_decision_text_scoring', False),
             logprob_extra_token_ids=(tuple(gen_config.logprob_extra_token_ids)
                                if gen_config.logprob_extra_token_ids is not None else None),
             return_routed_experts=gen_config.return_routed_experts,
